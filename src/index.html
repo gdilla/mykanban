@@ -93,6 +93,20 @@
             transform: translate(0, 0);
             box-shadow: 0 0 0 var(--shadow-color);
         }
+        .hotkey-hint {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .hotkey-hint kbd {
+            font-family: var(--font-body);
+            background: var(--surface-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            box-shadow: 0 1px 0 var(--border-subtle);
+        }
 
         /* Tag Filter Bar */
         .filter-bar {
@@ -940,6 +954,7 @@
 <body>
     <div class="header">
         <h1>Kanban Board</h1>
+        <span class="hotkey-hint">Press <kbd>⌘T</kbd> to quick add</span>
         <div class="header-actions">
             <button class="header-btn" id="filters-toggle-btn" onclick="toggleFiltersPanel()">Filters</button>
             <button class="header-btn" onclick="openTagManager()">Tags</button>
