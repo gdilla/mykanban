@@ -1,0 +1,29 @@
+{
+  "name": "kanban-app",
+  "version": "1.0.0",
+  "description": "Local Kanban board with reminders and daily summaries",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac"
+  },
+  "author": "G",
+  "license": "MIT",
+  "build": {
+    "appId": "com.local.kanban",
+    "productName": "Kanban",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "target": ["dmg"]
+    },
+    "files": ["src/**/*", "assets/**/*"]
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}
