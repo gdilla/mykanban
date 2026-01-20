@@ -881,6 +881,7 @@
             box-shadow: 6px 6px 0 var(--shadow-color) !important;
             border-radius: 0 !important;
             font-family: var(--font-display) !important;
+            z-index: 9999 !important;
         }
         .flatpickr-day {
             color: var(--text-primary) !important;
@@ -1100,15 +1101,23 @@
         let activeFilters = [];
         let datePickers = [];
         let editDatePicker = null;
+        let inlineDatePicker = null;
 
         // Default tag colors
         const defaultColors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4ecdc4', '#a855f7', '#f472b6', '#fb923c', '#38bdf8'];
 
         // Task tag selector state
         let taskTagSelectorId = null;
+        let taskTagSelectorSavedTags = null;
 
         // Quick add tag selector state
         let selectedQuickAddTags = [];
+
+        // Modal navigation state
+        let previousModal = null;
+
+        // Saved quick add state for returning from tag manager
+        let quickAddSavedState = null;
 
         // Age filter state
         let ageFilterEnabled = false;
@@ -1128,12 +1137,30 @@
         }
 
         function initDatePickers() {
-            const today = new Date();
             document.querySelectorAll('.add-task-date').forEach(input => {
                 const fp = flatpickr(input, {
-                    dateFormat: 'M j, Y', defaultDate: today, minDate: 'today', disableMobile: true, theme: 'dark', animate: true, position: 'above',
-                    onChange: function(selectedDates) { if (selectedDates[0]) input.dataset.isoDate = selectedDates[0].toISOString().split('T')[0]; },
-                    onReady: function() { input.dataset.isoDate = today.toISOString().split('T')[0]; }
+                    dateFormat: 'M j, Y',
+                    defaultDate: new Date(),
+                    minDate: 'today',
+                    disableMobile: true,
+                    theme: 'dark',
+                    animate: true,
+                    position: 'above',
+                    onOpen: function() {
+                        // Refresh to current date when picker opens
+                        const now = new Date();
+                        if (!this.selectedDates.length) {
+                            this.setDate(now, true);
+                            input.dataset.isoDate = formatDateToISO(now);
+                        }
+                    },
+                    onChange: function(selectedDates) {
+                        if (selectedDates[0]) input.dataset.isoDate = formatDateToISO(selectedDates[0]);
+                    },
+                    onReady: function() {
+                        const now = new Date();
+                        input.dataset.isoDate = formatDateToISO(now);
+                    }
                 });
                 datePickers.push(fp);
             });
@@ -1149,10 +1176,26 @@
 
         function getTagById(id) { return tags.find(t => t.id === id); }
 
+        // Format date to YYYY-MM-DD using LOCAL time (not UTC)
+        function formatDateToISO(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Parse YYYY-MM-DD string as LOCAL date (not UTC)
+        function parseLocalDate(dateStr) {
+            if (!dateStr) return null;
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day); // month is 0-indexed
+        }
+
         function getDueStatus(dueDate) {
             if (!dueDate) return null;
             const now = new Date(); now.setHours(0,0,0,0);
-            const due = new Date(dueDate);
+            const due = parseLocalDate(dueDate);
+            due.setHours(0,0,0,0);
             const diffDays = Math.ceil((due - now) / (1000*60*60*24));
             if (diffDays < 0) return 'overdue';
             if (diffDays <= 2) return 'due-soon';
@@ -1161,7 +1204,7 @@
 
         function formatDueDate(dueDate) {
             if (!dueDate) return '';
-            return new Date(dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            return parseLocalDate(dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
         }
 
         function formatDuration(ms) {
@@ -1263,12 +1306,14 @@
                 startInlineEdit(task.id);
             };
 
-            // Inline due date editing
+            // Clicking due date opens edit modal
             const dueEl = div.querySelector('.task-due');
             if (dueEl) {
+                dueEl.draggable = false;
                 dueEl.onclick = (e) => {
                     e.stopPropagation();
-                    openInlineDatePicker(task.id, dueEl);
+                    e.preventDefault();
+                    editTask(task.id);
                 };
             }
 
@@ -1325,21 +1370,54 @@
 
         // Inline due date editing
         function openInlineDatePicker(taskId, anchorEl) {
+            console.log('openInlineDatePicker called', taskId);
             const task = tasks.find(t => t.id === taskId);
-            if (!task) return;
+            if (!task) {
+                console.log('Task not found');
+                return;
+            }
 
-            const fp = flatpickr(anchorEl, {
-                defaultDate: task.dueDate,
+            // Destroy any existing inline picker first
+            if (inlineDatePicker) {
+                inlineDatePicker.destroy();
+                inlineDatePicker = null;
+            }
+
+            const originalDate = task.dueDate;
+            console.log('Original date:', originalDate);
+            inlineDatePicker = flatpickr(anchorEl, {
+                defaultDate: task.dueDate ? parseLocalDate(task.dueDate) : null,
                 dateFormat: 'M j, Y',
                 disableMobile: true,
+                appendTo: document.body,
+                static: false,
                 onChange: (dates) => {
-                    task.dueDate = dates[0] ? dates[0].toISOString().split('T')[0] : null;
-                    saveData();
-                    renderTasks();
+                    // Update task date immediately when user selects
+                    const newDate = dates[0] ? formatDateToISO(dates[0]) : null;
+                    console.log('onChange fired, new date:', newDate);
+                    task.dueDate = newDate;
                 },
-                onClose: () => fp.destroy()
+                onClose: () => {
+                    console.log('onClose fired, task.dueDate:', task.dueDate, 'originalDate:', originalDate);
+                    const fp = inlineDatePicker;
+                    inlineDatePicker = null;
+                    // Save if date changed
+                    if (task.dueDate !== originalDate) {
+                        console.log('Date changed, saving...');
+                        saveData().then(() => {
+                            console.log('Save complete');
+                            if (fp) fp.destroy();
+                            renderTasks();
+                        });
+                    } else {
+                        console.log('Date not changed');
+                        if (fp) fp.destroy();
+                        renderTasks();
+                    }
+                }
             });
-            fp.open();
+            console.log('Opening picker');
+            inlineDatePicker.open();
         }
 
         function renderFilterBar() {
@@ -1418,12 +1496,26 @@
         function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveData(); renderTasks(); }
 
         function editTask(id) {
+            console.log('editTask called for', id);
             const task = tasks.find(t => t.id === id);
-            if (!task) return;
+            if (!task) {
+                console.log('Task not found');
+                return;
+            }
+            console.log('Task found:', task);
             editingTaskId = id;
             selectedEditTags = [...(task.tags || [])];
             document.getElementById('edit-content').value = task.content;
-            if (task.dueDate) editDatePicker.setDate(task.dueDate, true); else editDatePicker.clear();
+            console.log('Setting date picker to:', task.dueDate);
+            if (task.dueDate) {
+                // Parse as local date to avoid timezone issues
+                const localDate = parseLocalDate(task.dueDate);
+                console.log('Parsed local date:', localDate);
+                editDatePicker.setDate(localDate, true);
+            } else {
+                editDatePicker.clear();
+            }
+            console.log('Date picker selectedDates:', editDatePicker.selectedDates);
             renderEditTagSelector();
             document.getElementById('edit-modal').classList.add('show');
         }
@@ -1459,14 +1551,23 @@
         function openTaskTagSelector(taskId) {
             taskTagSelectorId = taskId;
             const task = tasks.find(t => t.id === taskId);
-            selectedEditTags = [...(task.tags || [])];
+            // Restore saved tags if returning from tag manager, otherwise use task's tags
+            if (taskTagSelectorSavedTags !== null) {
+                selectedEditTags = [...taskTagSelectorSavedTags];
+                taskTagSelectorSavedTags = null;
+            } else {
+                selectedEditTags = [...(task.tags || [])];
+            }
             renderTaskTagSelector();
             document.getElementById('task-tag-modal').classList.add('show');
         }
 
         function closeTaskTagSelector() {
             document.getElementById('task-tag-modal').classList.remove('show');
-            taskTagSelectorId = null;
+            // Only clear the ID if we're not navigating to tag manager
+            if (previousModal !== 'task-tag') {
+                taskTagSelectorId = null;
+            }
         }
 
         function renderTaskTagSelector() {
@@ -1492,15 +1593,21 @@
             const addBtn = document.createElement('span');
             addBtn.className = 'tag-option add-new';
             addBtn.textContent = 'New Tag';
-            addBtn.onclick = () => { closeTaskTagSelector(); openTagManager(); };
+            addBtn.onclick = () => {
+                // Save selected tags before navigating to tag manager
+                taskTagSelectorSavedTags = [...selectedEditTags];
+                previousModal = 'task-tag';
+                closeTaskTagSelector();
+                openTagManager();
+            };
             container.appendChild(addBtn);
         }
 
-        function saveTaskTags() {
+        async function saveTaskTags() {
             const task = tasks.find(t => t.id === taskTagSelectorId);
             if (task) {
                 task.tags = [...selectedEditTags];
-                saveData();
+                await saveData();
                 renderTasks();
             }
             closeTaskTagSelector();
@@ -1508,18 +1615,28 @@
 
         function closeEditModal() { document.getElementById('edit-modal').classList.remove('show'); editingTaskId = null; selectedEditTags = []; }
 
-        function saveEdit() {
+        async function saveEdit() {
+            console.log('saveEdit called');
+            console.log('editingTaskId:', editingTaskId);
             const task = tasks.find(t => t.id === editingTaskId);
-            if (!task) return;
+            if (!task) {
+                console.log('Task not found for saving');
+                return;
+            }
             const content = document.getElementById('edit-content').value.trim();
             const selectedDates = editDatePicker.selectedDates;
-            const dueDate = selectedDates.length > 0 ? selectedDates[0].toISOString().split('T')[0] : null;
+            console.log('selectedDates from picker:', selectedDates);
+            const dueDate = selectedDates.length > 0 ? formatDateToISO(selectedDates[0]) : null;
+            console.log('Saving with dueDate:', dueDate);
             if (content) {
                 task.content = content;
                 task.dueDate = dueDate;
                 task.tags = [...selectedEditTags];
-                saveData();
+                console.log('Task after update:', task);
+                await saveData();
+                console.log('Data saved');
                 renderTasks();
+                console.log('Tasks re-rendered');
             }
             closeEditModal();
         }
@@ -1553,6 +1670,17 @@
             document.getElementById('tag-modal').classList.remove('show');
             renderFilterBar();
             renderTasks();
+
+            if (previousModal === 'quick-add') {
+                previousModal = null;
+                openQuickAdd();
+            } else if (previousModal === 'task-tag') {
+                const taskId = taskTagSelectorId;
+                previousModal = null;
+                if (taskId) openTaskTagSelector(taskId);
+            } else {
+                previousModal = null;
+            }
         }
 
         function renderTagList() {
@@ -1698,13 +1826,32 @@
             const addBtn = document.createElement('span');
             addBtn.className = 'tag-option add-new';
             addBtn.textContent = 'New Tag';
-            addBtn.onclick = () => { closeQuickAdd(); openTagManager(); };
+            addBtn.onclick = () => {
+                // Save state before navigating to tag manager
+                quickAddSavedState = {
+                    input: document.getElementById('quick-add-input').value,
+                    tags: [...selectedQuickAddTags],
+                    date: quickAddDatePicker ? quickAddDatePicker.selectedDates[0] : null
+                };
+                previousModal = 'quick-add';
+                closeQuickAdd();
+                openTagManager();
+            };
             container.appendChild(addBtn);
         }
 
         function openQuickAdd() {
-            document.getElementById('quick-add-input').value = '';
-            selectedQuickAddTags = [];
+            // Restore state if returning from tag manager, otherwise reset
+            const savedState = quickAddSavedState;
+            quickAddSavedState = null;
+
+            if (savedState) {
+                document.getElementById('quick-add-input').value = savedState.input;
+                selectedQuickAddTags = [...savedState.tags];
+            } else {
+                document.getElementById('quick-add-input').value = '';
+                selectedQuickAddTags = [];
+            }
             renderQuickAddTagSelector();
             if (!quickAddDatePicker) {
                 quickAddDatePicker = flatpickr('#quick-add-date', {
@@ -1713,7 +1860,8 @@
                     disableMobile: true
                 });
             }
-            quickAddDatePicker.setDate(new Date(), true);
+            // Restore date or default to today
+            quickAddDatePicker.setDate(savedState && savedState.date ? savedState.date : new Date(), true);
             document.getElementById('quick-add-modal').classList.add('show');
             setTimeout(() => document.getElementById('quick-add-input').focus(), 100);
         }
@@ -1725,7 +1873,7 @@
         function submitQuickAdd() {
             const content = document.getElementById('quick-add-input').value.trim();
             const dates = quickAddDatePicker.selectedDates;
-            const dueDate = dates.length > 0 ? dates[0].toISOString().split('T')[0] : null;
+            const dueDate = dates.length > 0 ? formatDateToISO(dates[0]) : null;
             if (content) {
                 addTask('todo', content, dueDate, selectedQuickAddTags);
                 closeQuickAdd();
@@ -1752,7 +1900,7 @@
                     input.value = '';
                     const today = new Date();
                     const fp = datePickers.find(p => p.input === dateInput);
-                    if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = today.toISOString().split('T')[0]; }
+                    if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
                 }
             });
         });
@@ -1766,7 +1914,7 @@
                 textInput.value = '';
                 const today = new Date();
                 const fp = datePickers.find(p => p.input === dateInput);
-                if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = today.toISOString().split('T')[0]; }
+                if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
             });
         });
 
