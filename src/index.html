@@ -56,7 +56,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1400px;
             margin: 0 auto 32px;
             padding-bottom: 24px;
             border-bottom: 3px solid var(--shadow-color);
@@ -108,9 +107,46 @@
             box-shadow: 0 1px 0 var(--border-subtle);
         }
 
+        /* View Toggle */
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            margin-right: 16px;
+        }
+        .view-toggle-btn {
+            font-family: var(--font-display);
+            font-weight: 500;
+            padding: 10px 16px;
+            border: 2px solid var(--shadow-color);
+            background: var(--surface-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: var(--transition-fast);
+        }
+        .view-toggle-btn:first-child {
+            border-right: none;
+        }
+        .view-toggle-btn.active {
+            background: var(--shadow-color);
+            color: var(--surface-card);
+        }
+        .view-toggle-btn:hover:not(.active) {
+            background: var(--bg-primary);
+        }
+
+        /* Tag View columns */
+        .column.tag-column .column-header {
+            border-left: 6px solid var(--tag-color, var(--accent-todo));
+        }
+        .column.untagged-column .column-header {
+            border-left: 6px solid var(--text-muted);
+        }
+
         /* Tag Filter Bar */
         .filter-bar {
-            max-width: 1400px;
             margin: 0 auto 24px;
             padding: 16px 20px;
             background: var(--surface-card);
@@ -171,7 +207,6 @@
             border-radius: 0;
             padding: 16px 20px;
             margin: 0 auto 24px;
-            max-width: 1400px;
             font-family: var(--font-body);
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -184,14 +219,29 @@
             border: 1px solid var(--border-subtle);
             font-family: var(--font-body);
         }
-        .board { display: flex; gap: 24px; overflow-x: auto; padding-bottom: 24px; max-width: 1400px; margin: 0 auto; }
+        .board {
+            display: flex;
+            gap: 24px;
+            overflow-x: auto;
+            padding-bottom: 24px;
+            margin: 0 auto;
+            width: 100%;
+        }
         .column {
             background: transparent;
             border: none;
             border-radius: 0;
-            min-width: 340px;
-            max-width: 340px;
+            min-width: 300px;
+            flex: 1;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 300px);
+        }
+        .column.drag-over {
+            background: rgba(45, 42, 38, 0.03);
+            outline: 3px dashed var(--shadow-color);
+            outline-offset: -4px;
         }
         .column-header {
             display: flex;
@@ -224,13 +274,15 @@
             font-size: 0.85rem;
         }
         .tasks {
-            min-height: 200px;
+            flex: 1;
+            min-height: 100px;
             max-height: calc(100vh - 380px);
             overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 16px;
             padding: 8px;
+            padding-bottom: 80px;
         }
         .task {
             background: var(--surface-card);
@@ -292,6 +344,23 @@
             word-break: break-word;
             position: relative;
             z-index: 1;
+            cursor: pointer;
+        }
+        .task-title {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.5;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        .task-description-snippet {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            word-break: break-word;
         }
 
         /* Task Tags */
@@ -394,12 +463,6 @@
             outline: none;
             box-shadow: 3px 3px 0 var(--shadow-color);
         }
-        .task-content {
-            cursor: text;
-        }
-        .task-content:hover {
-            background: rgba(45, 42, 38, 0.03);
-        }
         .task-due {
             cursor: pointer;
         }
@@ -458,7 +521,6 @@
 
         /* Age filter bar */
         .age-filter-bar {
-            max-width: 1400px;
             margin: 0 auto 16px;
             padding: 12px 20px;
             background: var(--surface-card);
@@ -957,6 +1019,10 @@
         <h1>Kanban Board</h1>
         <span class="hotkey-hint">Press <kbd>⌘T</kbd> to quick add</span>
         <div class="header-actions">
+            <div class="view-toggle">
+                <button class="view-toggle-btn active" id="view-status-btn" onclick="setView('status')">Status</button>
+                <button class="view-toggle-btn" id="view-tags-btn" onclick="setView('tags')">Tags</button>
+            </div>
             <button class="header-btn" id="filters-toggle-btn" onclick="toggleFiltersPanel()">Filters</button>
             <button class="header-btn" onclick="openTagManager()">Tags</button>
             <button class="header-btn" onclick="manualSummary()">Summary</button>
@@ -987,33 +1053,14 @@
         Summaries: <code id="summaries-path">Loading...</code>
     </div>
 
-    <div class="board">
-        <div class="column" data-status="todo">
-            <div class="column-header"><span class="column-title">To Do</span><span class="task-count" id="count-todo">0</span></div>
-            <div class="tasks" id="tasks-todo"></div>
-            <div class="add-task-form">
-                <input type="text" class="add-task-input" placeholder="What needs to be done?" data-status="todo">
-                <div class="add-task-row">
-                    <div class="date-picker-wrapper"><input type="text" class="add-task-date" placeholder="Due date" data-status="todo"></div>
-                    <button class="add-task-btn" data-status="todo">Add Task</button>
-                </div>
-            </div>
-        </div>
-        <div class="column" data-status="doing">
-            <div class="column-header"><span class="column-title">In Progress</span><span class="task-count" id="count-doing">0</span></div>
-            <div class="tasks" id="tasks-doing"></div>
-        </div>
-        <div class="column" data-status="done">
-            <div class="column-header"><span class="column-title">Done</span><span class="task-count" id="count-done">0</span></div>
-            <div class="tasks" id="tasks-done"></div>
-        </div>
-    </div>
+    <div class="board"></div>
 
     <!-- Edit Task Modal -->
     <div class="modal" id="edit-modal">
         <div class="modal-content">
             <h2 class="modal-title">Edit Task</h2>
-            <div class="modal-field"><label>Task</label><textarea id="edit-content"></textarea></div>
+            <div class="modal-field"><label>Title</label><input type="text" id="edit-title"></div>
+            <div class="modal-field"><label>Description</label><textarea id="edit-description" style="min-height: 120px;"></textarea></div>
             <div class="modal-field"><label>Due Date</label><input type="text" id="edit-due-date"></div>
             <div class="modal-field">
                 <label>Tags</label>
@@ -1063,7 +1110,15 @@
         <div class="modal-content" style="width: 400px;">
             <h2 class="modal-title">Quick Add Task</h2>
             <div class="modal-field">
+                <label>Title</label>
                 <input type="text" id="quick-add-input" placeholder="What needs to be done?">
+            </div>
+            <div class="modal-field" id="quick-add-desc-field" style="display: none;">
+                <label>Description</label>
+                <textarea id="quick-add-description" placeholder="Add more details..." style="min-height: 80px;"></textarea>
+            </div>
+            <div class="modal-field" id="quick-add-desc-link">
+                <a href="#" onclick="showQuickAddDescription(); return false;" style="font-size: 0.8rem; color: var(--text-secondary);">+ Add description</a>
             </div>
             <div class="modal-field">
                 <input type="text" id="quick-add-date" placeholder="Due date">
@@ -1124,47 +1179,30 @@
         let ageFilterDays = 30;
         let sortByAge = false;
 
+        // View toggle state
+        let currentView = localStorage.getItem('kanban-view') || 'status';
+
         async function init() {
             const data = await ipcRenderer.invoke('load-data');
             tasks = data.tasks || [];
             tags = data.tags || [];
-            initDatePickers();
-            renderTasks();
+
+            // Initialize view toggle from stored preference
+            document.getElementById('view-status-btn').classList.toggle('active', currentView === 'status');
+            document.getElementById('view-tags-btn').classList.toggle('active', currentView === 'tags');
+
+            initEditDatePicker();
+            renderBoard();
             renderFilterBar();
             const paths = await ipcRenderer.invoke('get-paths');
             document.getElementById('data-path').textContent = paths.data;
             document.getElementById('summaries-path').textContent = paths.summaries;
         }
 
-        function initDatePickers() {
-            document.querySelectorAll('.add-task-date').forEach(input => {
-                const fp = flatpickr(input, {
-                    dateFormat: 'M j, Y',
-                    defaultDate: new Date(),
-                    minDate: 'today',
-                    disableMobile: true,
-                    theme: 'dark',
-                    animate: true,
-                    position: 'above',
-                    onOpen: function() {
-                        // Refresh to current date when picker opens
-                        const now = new Date();
-                        if (!this.selectedDates.length) {
-                            this.setDate(now, true);
-                            input.dataset.isoDate = formatDateToISO(now);
-                        }
-                    },
-                    onChange: function(selectedDates) {
-                        if (selectedDates[0]) input.dataset.isoDate = formatDateToISO(selectedDates[0]);
-                    },
-                    onReady: function() {
-                        const now = new Date();
-                        input.dataset.isoDate = formatDateToISO(now);
-                    }
-                });
-                datePickers.push(fp);
-            });
-            editDatePicker = flatpickr('#edit-due-date', { dateFormat: 'M j, Y', disableMobile: true, theme: 'dark', animate: true });
+        function initEditDatePicker() {
+            if (!editDatePicker) {
+                editDatePicker = flatpickr('#edit-due-date', { dateFormat: 'M j, Y', disableMobile: true, theme: 'dark', animate: true });
+            }
         }
 
         async function saveData() {
@@ -1229,13 +1267,13 @@
             ageFilterEnabled = !ageFilterEnabled;
             ageFilterDays = parseInt(document.getElementById('age-filter-days').value) || 30;
             document.getElementById('age-filter-btn').classList.toggle('active', ageFilterEnabled);
-            renderTasks();
+            renderBoard();
         }
 
         function toggleAgeSort() {
             sortByAge = !sortByAge;
             document.getElementById('age-sort-btn').classList.toggle('active', sortByAge);
-            renderTasks();
+            renderBoard();
         }
 
         function toggleFiltersPanel() {
@@ -1259,12 +1297,16 @@
             return true;
         }
 
-        function createTaskElement(task) {
+        function createTaskElement(task, options = {}) {
             const div = document.createElement('div');
             div.className = 'task';
             if (!taskMatchesFilters(task)) div.classList.add('hidden');
             div.draggable = true;
             div.dataset.id = task.id;
+            // Store original task id for tag view duplicates
+            if (options.tagColumnId) {
+                div.dataset.tagColumnId = options.tagColumnId;
+            }
             const dueStatus = getDueStatus(task.dueDate);
             if (dueStatus && task.status !== 'done') div.classList.add(dueStatus);
 
@@ -1292,30 +1334,28 @@
             let dueHtml = task.dueDate ? `<span class="task-due ${(dueStatus && task.status !== 'done') ? dueStatus : ''}">Due: ${formatDueDate(task.dueDate)}</span>` : '';
             let timeHtml = task.timeSpent ? `<span class="task-time">${formatDuration(task.timeSpent)}</span>` : '';
 
+            // Build title + description snippet
+            const title = task.title || task.content || '';
+            const description = task.description || '';
+            const descSnippet = description.length > 80 ? description.substring(0, 80) + '...' : description;
+            let contentHtml = `<div class="task-title">${escapeHtml(title)}</div>`;
+            if (descSnippet) {
+                contentHtml += `<div class="task-description-snippet">${escapeHtml(descSnippet)}</div>`;
+            }
+
             div.innerHTML = `
                 <button class="task-delete-btn" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="Delete">🗑️</button>
-                <div class="task-content">${escapeHtml(task.content)}</div>
+                <div class="task-content">${contentHtml}</div>
                 ${tagsHtml}
                 <div class="task-meta">
                     <div class="task-badges">${ageHtml}${dueHtml}${timeHtml}</div>
                 </div>`;
 
-            // Inline content editing
+            // Clicking anywhere on card content opens edit modal
             div.querySelector('.task-content').onclick = (e) => {
                 e.stopPropagation();
-                startInlineEdit(task.id);
+                editTask(task.id);
             };
-
-            // Clicking due date opens edit modal
-            const dueEl = div.querySelector('.task-due');
-            if (dueEl) {
-                dueEl.draggable = false;
-                dueEl.onclick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    editTask(task.id);
-                };
-            }
 
             div.addEventListener('dragstart', handleDragStart);
             div.addEventListener('dragend', handleDragEnd);
@@ -1332,50 +1372,10 @@
 
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
-        // Inline content editing
-        function startInlineEdit(taskId) {
+        // Inline due date editing (kept for potential future use)
+        function openInlineDatePicker(taskId, anchorEl) {
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
-            const el = document.querySelector(`.task[data-id="${taskId}"] .task-content`);
-            if (!el) return;
-
-            const textarea = document.createElement('textarea');
-            textarea.className = 'inline-edit-input';
-            textarea.value = task.content;
-            el.replaceWith(textarea);
-            textarea.focus();
-            textarea.select();
-
-            const finishEdit = () => {
-                const newContent = textarea.value.trim();
-                if (newContent && newContent !== task.content) {
-                    task.content = newContent;
-                    saveData();
-                }
-                renderTasks();
-            };
-
-            textarea.onblur = finishEdit;
-            textarea.onkeydown = (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    textarea.blur();
-                }
-                if (e.key === 'Escape') {
-                    textarea.onblur = null; // Prevent finishEdit from running
-                    renderTasks(); // Cancel - just re-render without saving
-                }
-            };
-        }
-
-        // Inline due date editing
-        function openInlineDatePicker(taskId, anchorEl) {
-            console.log('openInlineDatePicker called', taskId);
-            const task = tasks.find(t => t.id === taskId);
-            if (!task) {
-                console.log('Task not found');
-                return;
-            }
 
             // Destroy any existing inline picker first
             if (inlineDatePicker) {
@@ -1384,7 +1384,6 @@
             }
 
             const originalDate = task.dueDate;
-            console.log('Original date:', originalDate);
             inlineDatePicker = flatpickr(anchorEl, {
                 defaultDate: task.dueDate ? parseLocalDate(task.dueDate) : null,
                 dateFormat: 'M j, Y',
@@ -1392,31 +1391,23 @@
                 appendTo: document.body,
                 static: false,
                 onChange: (dates) => {
-                    // Update task date immediately when user selects
                     const newDate = dates[0] ? formatDateToISO(dates[0]) : null;
-                    console.log('onChange fired, new date:', newDate);
                     task.dueDate = newDate;
                 },
                 onClose: () => {
-                    console.log('onClose fired, task.dueDate:', task.dueDate, 'originalDate:', originalDate);
                     const fp = inlineDatePicker;
                     inlineDatePicker = null;
-                    // Save if date changed
                     if (task.dueDate !== originalDate) {
-                        console.log('Date changed, saving...');
                         saveData().then(() => {
-                            console.log('Save complete');
                             if (fp) fp.destroy();
-                            renderTasks();
+                            renderBoard();
                         });
                     } else {
-                        console.log('Date not changed');
                         if (fp) fp.destroy();
-                        renderTasks();
+                        renderBoard();
                     }
                 }
             });
-            console.log('Opening picker');
             inlineDatePicker.open();
         }
 
@@ -1448,26 +1439,36 @@
             if (idx === -1) activeFilters.push(tagId);
             else activeFilters.splice(idx, 1);
             renderFilterBar();
-            renderTasks();
+            renderBoard();
         }
 
         function clearFilters() {
             activeFilters = [];
             renderFilterBar();
-            renderTasks();
+            renderBoard();
         }
 
-        function renderTasks() {
-            ['todo', 'doing', 'done'].forEach(status => {
-                const container = document.getElementById(`tasks-${status}`);
-                container.innerHTML = '';
-                let statusTasks = tasks.filter(t => t.status === status);
+        function renderStatusView() {
+            const board = document.querySelector('.board');
+            board.innerHTML = '';
+
+            const statuses = [
+                { id: 'todo', title: 'To Do', accent: 'var(--accent-todo)', showAddForm: true },
+                { id: 'doing', title: 'In Progress', accent: 'var(--accent-progress)', showAddForm: false },
+                { id: 'done', title: 'Done', accent: 'var(--accent-done)', showAddForm: false }
+            ];
+
+            statuses.forEach((status, idx) => {
+                const column = document.createElement('div');
+                column.className = 'column';
+                column.dataset.status = status.id;
+
+                let statusTasks = tasks.filter(t => t.status === status.id);
 
                 // Sort logic
-                if (sortByAge && status === 'todo') {
-                    statusTasks.sort((a, b) => getTaskAgeDays(b) - getTaskAgeDays(a)); // Oldest first
+                if (sortByAge && status.id === 'todo') {
+                    statusTasks.sort((a, b) => getTaskAgeDays(b) - getTaskAgeDays(a));
                 } else {
-                    // Default: sort by due date
                     statusTasks.sort((a, b) => {
                         if (!a.dueDate && !b.dueDate) return 0;
                         if (!a.dueDate) return 1;
@@ -1476,46 +1477,309 @@
                     });
                 }
 
-                statusTasks.forEach(task => container.appendChild(createTaskElement(task)));
                 const visibleCount = statusTasks.filter(t => taskMatchesFilters(t)).length;
-                document.getElementById(`count-${status}`).textContent = visibleCount;
+
+                column.innerHTML = `
+                    <div class="column-header" style="border-left: 6px solid ${status.accent}">
+                        <span class="column-title">${status.title}</span>
+                        <span class="task-count">${visibleCount}</span>
+                    </div>
+                    <div class="tasks" id="tasks-${status.id}"></div>
+                    ${status.showAddForm ? `
+                    <div class="add-task-form">
+                        <input type="text" class="add-task-input" placeholder="What needs to be done?" data-status="${status.id}">
+                        <div class="add-task-row">
+                            <div class="date-picker-wrapper"><input type="text" class="add-task-date" placeholder="Due date" data-status="${status.id}"></div>
+                            <button class="add-task-btn" data-status="${status.id}">Add Task</button>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+
+                const tasksContainer = column.querySelector('.tasks');
+                statusTasks.forEach(task => tasksContainer.appendChild(createTaskElement(task)));
+
+                board.appendChild(column);
+            });
+
+            // Reinitialize event listeners
+            initStatusViewEvents();
+        }
+
+        function renderTagView() {
+            const board = document.querySelector('.board');
+            board.innerHTML = '';
+
+            // Create column for each tag + Untagged
+            const tagColumns = [...tags, { id: 'untagged', name: 'Untagged', color: '#9B9B9B' }];
+
+            tagColumns.forEach(tag => {
+                const column = document.createElement('div');
+                column.className = 'column tag-column';
+                if (tag.id === 'untagged') column.classList.add('untagged-column');
+                column.dataset.tagId = tag.id;
+
+                // Get tasks for this tag
+                let tagTasks;
+                if (tag.id === 'untagged') {
+                    tagTasks = tasks.filter(t => !t.tags || t.tags.length === 0);
+                } else {
+                    tagTasks = tasks.filter(t => t.tags && t.tags.includes(tag.id));
+                }
+
+                // Sort by due date
+                tagTasks.sort((a, b) => {
+                    if (!a.dueDate && !b.dueDate) return 0;
+                    if (!a.dueDate) return 1;
+                    if (!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
+
+                const visibleCount = tagTasks.filter(t => taskMatchesFilters(t)).length;
+
+                column.innerHTML = `
+                    <div class="column-header" style="border-left: 6px solid ${tag.color}">
+                        <span class="column-title">${escapeHtml(tag.name)}</span>
+                        <span class="task-count">${visibleCount}</span>
+                    </div>
+                    <div class="tasks" id="tasks-tag-${tag.id}"></div>
+                `;
+
+                const tasksContainer = column.querySelector('.tasks');
+                tagTasks.forEach(task => tasksContainer.appendChild(createTaskElement(task, { tagColumnId: tag.id })));
+
+                board.appendChild(column);
+            });
+
+            // Initialize tag view events
+            initTagViewEvents();
+        }
+
+        function initStatusViewEvents() {
+            // Column-level drag handlers
+            document.querySelectorAll('.column').forEach(column => {
+                const status = column.dataset.status;
+
+                column.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    column.classList.add('drag-over');
+                });
+                column.addEventListener('dragleave', e => {
+                    if (!column.contains(e.relatedTarget)) {
+                        column.classList.remove('drag-over');
+                    }
+                });
+                column.addEventListener('drop', e => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    if (draggedTask && status) {
+                        moveTask(draggedTask.dataset.id, status);
+                    }
+                });
+
+                // Tasks container handlers - also handle drops here
+                const tasksContainer = column.querySelector('.tasks');
+                if (tasksContainer) {
+                    tasksContainer.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        tasksContainer.classList.add('drag-over');
+                    });
+                    tasksContainer.addEventListener('dragleave', e => {
+                        if (!tasksContainer.contains(e.relatedTarget)) {
+                            tasksContainer.classList.remove('drag-over');
+                        }
+                    });
+                    tasksContainer.addEventListener('drop', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        tasksContainer.classList.remove('drag-over');
+                        column.classList.remove('drag-over');
+                        if (draggedTask && status) {
+                            moveTask(draggedTask.dataset.id, status);
+                        }
+                    });
+                }
+            });
+
+            // Reinitialize date pickers
+            datePickers = [];
+            document.querySelectorAll('.add-task-date').forEach(input => {
+                const fp = flatpickr(input, {
+                    dateFormat: 'M j, Y',
+                    defaultDate: new Date(),
+                    minDate: 'today',
+                    disableMobile: true,
+                    theme: 'dark',
+                    animate: true,
+                    position: 'above',
+                    onOpen: function() {
+                        const now = new Date();
+                        if (!this.selectedDates.length) {
+                            this.setDate(now, true);
+                            input.dataset.isoDate = formatDateToISO(now);
+                        }
+                    },
+                    onChange: function(selectedDates) {
+                        if (selectedDates[0]) input.dataset.isoDate = formatDateToISO(selectedDates[0]);
+                    },
+                    onReady: function() {
+                        const now = new Date();
+                        input.dataset.isoDate = formatDateToISO(now);
+                    }
+                });
+                datePickers.push(fp);
+            });
+
+            // Add task input handlers
+            document.querySelectorAll('.add-task-input').forEach(input => {
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') {
+                        const form = input.closest('.add-task-form');
+                        const dateInput = form.querySelector('.add-task-date');
+                        addTask(input.dataset.status, input.value, '', dateInput.dataset.isoDate);
+                        input.value = '';
+                        const today = new Date();
+                        const fp = datePickers.find(p => p.input === dateInput);
+                        if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
+                    }
+                });
+            });
+
+            // Add task button handlers
+            document.querySelectorAll('.add-task-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const form = btn.closest('.add-task-form');
+                    const textInput = form.querySelector('.add-task-input');
+                    const dateInput = form.querySelector('.add-task-date');
+                    addTask(btn.dataset.status, textInput.value, '', dateInput.dataset.isoDate);
+                    textInput.value = '';
+                    const today = new Date();
+                    const fp = datePickers.find(p => p.input === dateInput);
+                    if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
+                });
             });
         }
 
-        function addTask(status, content, dueDate, taskTags = []) {
-            if (!content.trim()) return;
+        function initTagViewEvents() {
+            // Column-level drag handlers for tag view
+            document.querySelectorAll('.column.tag-column').forEach(column => {
+                const tagId = column.dataset.tagId;
+
+                column.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    column.classList.add('drag-over');
+                });
+                column.addEventListener('dragleave', e => {
+                    if (!column.contains(e.relatedTarget)) {
+                        column.classList.remove('drag-over');
+                    }
+                });
+                column.addEventListener('drop', e => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
+                    if (draggedTask && tagId) {
+                        handleTagViewDrop(draggedTask.dataset.id, tagId);
+                    }
+                });
+
+                // Tasks container handlers - also handle drops here
+                const tasksContainer = column.querySelector('.tasks');
+                if (tasksContainer) {
+                    tasksContainer.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        tasksContainer.classList.add('drag-over');
+                    });
+                    tasksContainer.addEventListener('dragleave', e => {
+                        if (!tasksContainer.contains(e.relatedTarget)) {
+                            tasksContainer.classList.remove('drag-over');
+                        }
+                    });
+                    tasksContainer.addEventListener('drop', e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        tasksContainer.classList.remove('drag-over');
+                        column.classList.remove('drag-over');
+                        if (draggedTask && tagId) {
+                            handleTagViewDrop(draggedTask.dataset.id, tagId);
+                        }
+                    });
+                }
+            });
+        }
+
+        function handleTagViewDrop(taskId, targetTagId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            if (targetTagId === 'untagged') {
+                // Remove all tags
+                task.tags = [];
+            } else {
+                // Add this tag if not already present
+                if (!task.tags) task.tags = [];
+                if (!task.tags.includes(targetTagId)) {
+                    task.tags.push(targetTagId);
+                }
+            }
+            saveData();
+            renderBoard();
+        }
+
+        function setView(view) {
+            currentView = view;
+            localStorage.setItem('kanban-view', view);
+            document.getElementById('view-status-btn').classList.toggle('active', view === 'status');
+            document.getElementById('view-tags-btn').classList.toggle('active', view === 'tags');
+            renderBoard();
+        }
+
+        function renderBoard() {
+            if (currentView === 'tags') {
+                renderTagView();
+            } else {
+                renderStatusView();
+            }
+        }
+
+        // Legacy function for compatibility
+        function renderTasks() {
+            renderBoard();
+        }
+
+        function addTask(status, title, description, dueDate, taskTags = []) {
+            if (!title.trim()) return;
             const now = new Date().toISOString();
-            const task = { id: generateId(), content: content.trim(), status, dueDate: dueDate || null, tags: [...taskTags], createdAt: now };
+            const task = {
+                id: generateId(),
+                title: title.trim(),
+                description: (description || '').trim(),
+                status,
+                dueDate: dueDate || null,
+                tags: [...taskTags],
+                createdAt: now
+            };
             if (status === 'doing') task.startedAt = now;
             if (status === 'done') task.completedAt = now;
             tasks.push(task);
             saveData();
-            renderTasks();
+            renderBoard();
         }
 
-        function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveData(); renderTasks(); }
+        function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveData(); renderBoard(); }
 
         function editTask(id) {
-            console.log('editTask called for', id);
             const task = tasks.find(t => t.id === id);
-            if (!task) {
-                console.log('Task not found');
-                return;
-            }
-            console.log('Task found:', task);
+            if (!task) return;
             editingTaskId = id;
             selectedEditTags = [...(task.tags || [])];
-            document.getElementById('edit-content').value = task.content;
-            console.log('Setting date picker to:', task.dueDate);
+            document.getElementById('edit-title').value = task.title || task.content || '';
+            document.getElementById('edit-description').value = task.description || '';
             if (task.dueDate) {
-                // Parse as local date to avoid timezone issues
                 const localDate = parseLocalDate(task.dueDate);
-                console.log('Parsed local date:', localDate);
                 editDatePicker.setDate(localDate, true);
             } else {
                 editDatePicker.clear();
             }
-            console.log('Date picker selectedDates:', editDatePicker.selectedDates);
             renderEditTagSelector();
             document.getElementById('edit-modal').classList.add('show');
         }
@@ -1608,7 +1872,7 @@
             if (task) {
                 task.tags = [...selectedEditTags];
                 await saveData();
-                renderTasks();
+                renderBoard();
             }
             closeTaskTagSelector();
         }
@@ -1616,27 +1880,20 @@
         function closeEditModal() { document.getElementById('edit-modal').classList.remove('show'); editingTaskId = null; selectedEditTags = []; }
 
         async function saveEdit() {
-            console.log('saveEdit called');
-            console.log('editingTaskId:', editingTaskId);
             const task = tasks.find(t => t.id === editingTaskId);
-            if (!task) {
-                console.log('Task not found for saving');
-                return;
-            }
-            const content = document.getElementById('edit-content').value.trim();
+            if (!task) return;
+            const title = document.getElementById('edit-title').value.trim();
+            const description = document.getElementById('edit-description').value.trim();
             const selectedDates = editDatePicker.selectedDates;
-            console.log('selectedDates from picker:', selectedDates);
             const dueDate = selectedDates.length > 0 ? formatDateToISO(selectedDates[0]) : null;
-            console.log('Saving with dueDate:', dueDate);
-            if (content) {
-                task.content = content;
+            if (title) {
+                task.title = title;
+                task.description = description;
+                delete task.content; // Remove legacy field
                 task.dueDate = dueDate;
                 task.tags = [...selectedEditTags];
-                console.log('Task after update:', task);
                 await saveData();
-                console.log('Data saved');
-                renderTasks();
-                console.log('Tasks re-rendered');
+                renderBoard();
             }
             closeEditModal();
         }
@@ -1655,10 +1912,10 @@
             else if (newStatus !== 'done') delete task.completedAt;
             task.status = newStatus;
             saveData();
-            renderTasks();
+            renderBoard();
         }
 
-        function clearAllTasks() { if (confirm('Clear all tasks?')) { tasks = []; saveData(); renderTasks(); } }
+        function clearAllTasks() { if (confirm('Clear all tasks?')) { tasks = []; saveData(); renderBoard(); } }
 
         // Tag Management
         function openTagManager() {
@@ -1669,7 +1926,7 @@
         function closeTagManager() {
             document.getElementById('tag-modal').classList.remove('show');
             renderFilterBar();
-            renderTasks();
+            renderBoard();
 
             if (previousModal === 'quick-add') {
                 previousModal = null;
@@ -1830,6 +2087,8 @@
                 // Save state before navigating to tag manager
                 quickAddSavedState = {
                     input: document.getElementById('quick-add-input').value,
+                    description: document.getElementById('quick-add-description').value,
+                    showDescription: document.getElementById('quick-add-desc-field').style.display !== 'none',
                     tags: [...selectedQuickAddTags],
                     date: quickAddDatePicker ? quickAddDatePicker.selectedDates[0] : null
                 };
@@ -1840,6 +2099,12 @@
             container.appendChild(addBtn);
         }
 
+        function showQuickAddDescription() {
+            document.getElementById('quick-add-desc-field').style.display = 'block';
+            document.getElementById('quick-add-desc-link').style.display = 'none';
+            document.getElementById('quick-add-description').focus();
+        }
+
         function openQuickAdd() {
             // Restore state if returning from tag manager, otherwise reset
             const savedState = quickAddSavedState;
@@ -1847,9 +2112,17 @@
 
             if (savedState) {
                 document.getElementById('quick-add-input').value = savedState.input;
+                document.getElementById('quick-add-description').value = savedState.description || '';
                 selectedQuickAddTags = [...savedState.tags];
+                if (savedState.showDescription) {
+                    document.getElementById('quick-add-desc-field').style.display = 'block';
+                    document.getElementById('quick-add-desc-link').style.display = 'none';
+                }
             } else {
                 document.getElementById('quick-add-input').value = '';
+                document.getElementById('quick-add-description').value = '';
+                document.getElementById('quick-add-desc-field').style.display = 'none';
+                document.getElementById('quick-add-desc-link').style.display = 'block';
                 selectedQuickAddTags = [];
             }
             renderQuickAddTagSelector();
@@ -1871,52 +2144,29 @@
         }
 
         function submitQuickAdd() {
-            const content = document.getElementById('quick-add-input').value.trim();
+            const title = document.getElementById('quick-add-input').value.trim();
+            const description = document.getElementById('quick-add-description').value.trim();
             const dates = quickAddDatePicker.selectedDates;
             const dueDate = dates.length > 0 ? formatDateToISO(dates[0]) : null;
-            if (content) {
-                addTask('todo', content, dueDate, selectedQuickAddTags);
+            if (title) {
+                addTask('todo', title, description, dueDate, selectedQuickAddTags);
                 closeQuickAdd();
             }
         }
 
         // Drag and drop
         let draggedTask = null;
-        function handleDragStart(e) { draggedTask = e.target; e.target.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
-        function handleDragEnd(e) { e.target.classList.remove('dragging'); document.querySelectorAll('.tasks').forEach(el => el.classList.remove('drag-over')); draggedTask = null; }
-
-        document.querySelectorAll('.tasks').forEach(container => {
-            container.addEventListener('dragover', e => { e.preventDefault(); container.classList.add('drag-over'); });
-            container.addEventListener('dragleave', () => container.classList.remove('drag-over'));
-            container.addEventListener('drop', e => { e.preventDefault(); container.classList.remove('drag-over'); if (draggedTask) moveTask(draggedTask.dataset.id, container.id.replace('tasks-', '')); });
-        });
-
-        document.querySelectorAll('.add-task-input').forEach(input => {
-            input.addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    const form = input.closest('.add-task-form');
-                    const dateInput = form.querySelector('.add-task-date');
-                    addTask(input.dataset.status, input.value, dateInput.dataset.isoDate);
-                    input.value = '';
-                    const today = new Date();
-                    const fp = datePickers.find(p => p.input === dateInput);
-                    if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
-                }
-            });
-        });
-
-        document.querySelectorAll('.add-task-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const form = btn.closest('.add-task-form');
-                const textInput = form.querySelector('.add-task-input');
-                const dateInput = form.querySelector('.add-task-date');
-                addTask(btn.dataset.status, textInput.value, dateInput.dataset.isoDate);
-                textInput.value = '';
-                const today = new Date();
-                const fp = datePickers.find(p => p.input === dateInput);
-                if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
-            });
-        });
+        function handleDragStart(e) {
+            draggedTask = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.tasks').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.column').forEach(el => el.classList.remove('drag-over'));
+            draggedTask = null;
+        }
 
         document.getElementById('new-tag-name').addEventListener('keydown', e => {
             if (e.key === 'Enter') addNewTag();

@@ -23,10 +23,28 @@ function loadData() {
         if (fs.existsSync(dataPath)) {
             const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
             // Handle legacy format (array of tasks) vs new format ({ tasks, tags })
+            let tasks, tags;
             if (Array.isArray(data)) {
-                return { tasks: data, tags: [] };
+                tasks = data;
+                tags = [];
+            } else {
+                tasks = data.tasks || [];
+                tags = data.tags || [];
             }
-            return { tasks: data.tasks || [], tags: data.tags || [] };
+            // Migrate: content -> title + description
+            let migrated = false;
+            tasks.forEach(task => {
+                if (task.content !== undefined && task.title === undefined) {
+                    task.title = task.content;
+                    task.description = '';
+                    delete task.content;
+                    migrated = true;
+                }
+            });
+            if (migrated) {
+                saveData({ tasks, tags });
+            }
+            return { tasks, tags };
         }
     } catch (e) {
         console.error('Error loading data:', e);
@@ -163,7 +181,7 @@ function generateDailySummary() {
         summary += `## ✅ Completed Today\n`;
         completedToday.forEach(t => {
             const timeStr = t.timeSpent ? ` (${formatDuration(t.timeSpent)})` : '';
-            summary += `- ${t.content}${timeStr}\n`;
+            summary += `- ${t.title}${timeStr}\n`;
         });
         summary += `\n`;
 
@@ -172,7 +190,7 @@ function generateDailySummary() {
             summary += `## ⏱️ Time Breakdown\n`;
             completedToday.forEach(t => {
                 const percentage = ((t.timeSpent || 0) / totalTimeToday * 100).toFixed(1);
-                summary += `- ${t.content}: ${formatDuration(t.timeSpent)} (${percentage}%)\n`;
+                summary += `- ${t.title}: ${formatDuration(t.timeSpent)} (${percentage}%)\n`;
             });
             summary += `\n**Total:** ${formatDuration(totalTimeToday)}\n\n`;
         }
@@ -191,7 +209,7 @@ function generateDailySummary() {
                 const elapsed = new Date().getTime() - new Date(t.startedAt).getTime();
                 inProgressTime = ` [In progress: ${formatDuration(elapsed)}]`;
             }
-            summary += `- ${t.content}${due}${inProgressTime}\n`;
+            summary += `- ${t.title}${due}${inProgressTime}\n`;
         });
         summary += `\n`;
     }
@@ -199,7 +217,7 @@ function generateDailySummary() {
     if (overdue.length > 0) {
         summary += `## ⚠️ OVERDUE\n`;
         overdue.forEach(t => {
-            summary += `- ${t.content} (Was due: ${t.dueDate})\n`;
+            summary += `- ${t.title} (Was due: ${t.dueDate})\n`;
         });
         summary += `\n`;
     }
@@ -208,19 +226,19 @@ function generateDailySummary() {
     if (overdue.length > 0) {
         summary += `### Overdue (tackle first!):\n`;
         overdue.slice(0, 3).forEach(t => {
-            summary += `- ${t.content}\n`;
+            summary += `- ${t.title}\n`;
         });
     }
     if (dueTomorrow.length > 0) {
         summary += `### Due Tomorrow:\n`;
         dueTomorrow.forEach(t => {
-            summary += `- ${t.content}\n`;
+            summary += `- ${t.title}\n`;
         });
     }
     if (doing.length > 0) {
         summary += `### Continue working on:\n`;
         doing.slice(0, 3).forEach(t => {
-            summary += `- ${t.content}\n`;
+            summary += `- ${t.title}\n`;
         });
     }
     if (overdue.length === 0 && dueTomorrow.length === 0 && doing.length === 0) {
