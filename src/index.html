@@ -470,6 +470,217 @@
             transform: translateY(-1px);
             box-shadow: 2px 2px 0 var(--shadow-color);
         }
+        .task-due-add {
+            border-style: dashed;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+        .task-due-add:hover {
+            border-style: solid;
+            background: var(--shadow-color);
+            color: var(--surface-card);
+        }
+        .flatpickr-clear-btn {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            border: none;
+            border-top: 2px solid var(--shadow-color);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+        }
+        .flatpickr-clear-btn:hover {
+            background: var(--accent-todo);
+            color: white;
+        }
+        .task-status-badge {
+            font-family: var(--font-display);
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--shadow-color);
+        }
+        .task-timer-active {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            background: #E8F5E9;
+            border: 1px solid var(--accent-done);
+            color: var(--accent-done);
+            animation: pulse-timer 2s ease-in-out infinite;
+        }
+        @keyframes pulse-timer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .drop-indicator {
+            height: 3px;
+            background: var(--accent-progress);
+            margin: 4px 0;
+            box-shadow: 0 0 6px var(--accent-progress);
+            pointer-events: none;
+        }
+        .quick-add-select {
+            font-family: var(--font-body);
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--shadow-color);
+            border-radius: 0;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Image attachments */
+        .image-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .image-attachments:empty { display: none; }
+        .image-thumb-wrapper {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border: 2px solid var(--shadow-color);
+            background: var(--bg-primary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .image-thumb-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 3px 3px 0 var(--shadow-color);
+        }
+        .image-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .image-thumb-delete {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-todo);
+            color: white;
+            border: 1px solid var(--shadow-color);
+            border-radius: 0;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition-fast);
+            line-height: 1;
+        }
+        .image-thumb-wrapper:hover .image-thumb-delete { opacity: 1; }
+        .paste-hint {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        .image-preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(45, 42, 38, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .image-preview-overlay.show { display: flex; }
+        .image-preview-overlay img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border: 3px solid var(--surface-card);
+            box-shadow: 8px 8px 0 var(--shadow-color);
+        }
+        /* Card thumbnail strip for attachments */
+        .task-attachments-strip {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            overflow-x: auto;
+            padding: 2px 0;
+        }
+        .task-attachments-strip:empty { display: none; }
+        .task-attach-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            object-fit: cover;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+        .task-attach-thumb:hover {
+            transform: translateY(-1px);
+            box-shadow: 2px 2px 0 var(--shadow-color);
+        }
+        .task-attach-file-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.65rem;
+            font-family: var(--font-body);
+            color: var(--text-secondary);
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: var(--transition-fast);
+        }
+        .task-attach-file-icon:hover {
+            transform: translateY(-1px);
+            box-shadow: 2px 2px 0 var(--shadow-color);
+        }
+        .task-attach-more {
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            background: var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-family: var(--font-body);
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        .attach-file-btn {
+            background: none;
+            border: none;
+            color: var(--accent-todo);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            text-decoration: underline;
+            padding: 0;
+        }
+        .attach-file-btn:hover {
+            color: var(--text-primary);
+        }
+
         .task-tag {
             cursor: pointer;
         }
@@ -1060,7 +1271,16 @@
         <div class="modal-content">
             <h2 class="modal-title">Edit Task</h2>
             <div class="modal-field"><label>Title</label><input type="text" id="edit-title"></div>
-            <div class="modal-field"><label>Description</label><textarea id="edit-description" style="min-height: 120px;"></textarea></div>
+            <div class="modal-field">
+                <label>Description</label>
+                <textarea id="edit-description" style="min-height: 120px;"></textarea>
+                <div class="paste-hint">Paste images with ⌘V or <button class="attach-file-btn" onclick="triggerFileAttach()">attach files</button></div>
+                <input type="file" id="file-attach-input" multiple style="display:none">
+            </div>
+            <div class="modal-field" id="edit-images-field" style="display: none;">
+                <label>Attachments</label>
+                <div class="image-attachments" id="edit-image-attachments"></div>
+            </div>
             <div class="modal-field"><label>Due Date</label><input type="text" id="edit-due-date"></div>
             <div class="modal-field">
                 <label>Tags</label>
@@ -1081,7 +1301,7 @@
             <div class="add-tag-row">
                 <input type="text" class="add-tag-input" id="new-tag-name" placeholder="New tag name...">
                 <input type="color" class="add-tag-color" id="new-tag-color" value="#6bcb77">
-                <button class="add-tag-btn" onclick="addNewTag()">Add Task</button>
+                <button class="add-tag-btn" onclick="addNewTag()">Add Tag</button>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeTagManager()">Close</button>
@@ -1124,6 +1344,14 @@
                 <input type="text" id="quick-add-date" placeholder="Due date">
             </div>
             <div class="modal-field">
+                <label>Status</label>
+                <select id="quick-add-status" class="quick-add-select">
+                    <option value="todo" selected>To Do</option>
+                    <option value="doing">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+            <div class="modal-field">
                 <label>Tags</label>
                 <div class="tag-selector" id="quick-add-tag-selector"></div>
             </div>
@@ -1146,6 +1374,11 @@
         </div>
     </div>
 
+    <!-- Image Preview Overlay -->
+    <div class="image-preview-overlay" id="image-preview-overlay">
+        <img id="image-preview-img" src="" alt="Preview">
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         const { ipcRenderer } = require('electron');
@@ -1157,6 +1390,7 @@
         let datePickers = [];
         let editDatePicker = null;
         let inlineDatePicker = null;
+        let editingTaskImages = [];
 
         // Default tag colors
         const defaultColors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4ecdc4', '#a855f7', '#f472b6', '#fb923c', '#38bdf8'];
@@ -1187,16 +1421,81 @@
             tasks = data.tasks || [];
             tags = data.tags || [];
 
+            // Migrate: assign sortOrder to tasks that don't have one
+            if (tasks.some(t => t.sortOrder === undefined)) {
+                ['todo', 'doing', 'done'].forEach(status => {
+                    const statusTasks = tasks.filter(t => t.status === status);
+                    // Sort by due date initially (matching previous default)
+                    statusTasks.sort((a, b) => {
+                        if (!a.dueDate && !b.dueDate) return 0;
+                        if (!a.dueDate) return 1;
+                        if (!b.dueDate) return -1;
+                        return new Date(a.dueDate) - new Date(b.dueDate);
+                    });
+                    // Assign sequential sortOrder to ALL tasks in this status
+                    statusTasks.forEach((t, i) => { t.sortOrder = i; });
+                });
+                saveData();
+            }
+
+            // Migrate: assign tagSortOrders to tasks that don't have them
+            if (tasks.some(t => !t.tagSortOrders)) {
+                // Build tag columns (all tags + 'untagged')
+                const allTagIds = tags.map(t => t.id).concat(['untagged']);
+                allTagIds.forEach(tagId => {
+                    let tagTasks;
+                    if (tagId === 'untagged') {
+                        tagTasks = tasks.filter(t => !t.tags || t.tags.length === 0);
+                    } else {
+                        tagTasks = tasks.filter(t => t.tags && t.tags.includes(tagId));
+                    }
+                    // Sort by current sortOrder for initial migration
+                    tagTasks.sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity));
+                    tagTasks.forEach((t, i) => {
+                        if (!t.tagSortOrders) t.tagSortOrders = {};
+                        t.tagSortOrders[tagId] = i;
+                    });
+                });
+                saveData();
+            }
+
+            // Migrate: images[] (string array) → attachments[] (object array)
+            if (tasks.some(t => t.images && !t.attachments)) {
+                tasks.forEach(task => {
+                    if (task.images && !task.attachments) {
+                        task.attachments = task.images.map(f => ({
+                            filename: f,
+                            originalName: f,
+                            type: f.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? `image/${f.split('.').pop().replace('jpg', 'jpeg')}` : 'application/octet-stream'
+                        }));
+                        delete task.images;
+                    }
+                });
+                saveData();
+            }
+
             // Initialize view toggle from stored preference
             document.getElementById('view-status-btn').classList.toggle('active', currentView === 'status');
             document.getElementById('view-tags-btn').classList.toggle('active', currentView === 'tags');
 
             initEditDatePicker();
+            initEditModalPasteHandler();
             renderBoard();
             renderFilterBar();
             const paths = await ipcRenderer.invoke('get-paths');
             document.getElementById('data-path').textContent = paths.data;
             document.getElementById('summaries-path').textContent = paths.summaries;
+
+            // Update active timers every 60 seconds
+            setInterval(() => {
+                document.querySelectorAll('.task-timer-active').forEach(el => {
+                    const task = tasks.find(t => t.startedAt === el.dataset.started);
+                    if (task) {
+                        const elapsed = Date.now() - new Date(el.dataset.started).getTime();
+                        el.textContent = formatDuration(elapsed + (task.timeSpent || 0));
+                    }
+                });
+            }, 60000);
         }
 
         function initEditDatePicker() {
@@ -1331,8 +1630,32 @@
                 ageHtml = `<span class="task-age${staleClass}">${ageDays}d old</span>`;
             }
 
-            let dueHtml = task.dueDate ? `<span class="task-due ${(dueStatus && task.status !== 'done') ? dueStatus : ''}">Due: ${formatDueDate(task.dueDate)}</span>` : '';
+            let dueHtml = task.dueDate
+                ? `<span class="task-due ${(dueStatus && task.status !== 'done') ? dueStatus : ''}" data-task-id="${task.id}">Due: ${formatDueDate(task.dueDate)}</span>`
+                : `<span class="task-due task-due-add" data-task-id="${task.id}">+ Due date</span>`;
             let timeHtml = task.timeSpent ? `<span class="task-time">${formatDuration(task.timeSpent)}</span>` : '';
+
+            // Active timer for tasks currently in progress
+            let activeTimerHtml = '';
+            if (task.status === 'doing' && task.startedAt) {
+                const elapsed = Date.now() - new Date(task.startedAt).getTime();
+                activeTimerHtml = `<span class="task-timer-active" data-started="${task.startedAt}">${formatDuration(elapsed + (task.timeSpent || 0))}</span>`;
+            }
+
+            // Status badge for tag view
+            let statusBadgeHtml = '';
+            if (options.tagColumnId) {
+                const statusLabels = { todo: 'To Do', doing: 'In Progress', done: 'Done' };
+                const statusColors = { todo: 'var(--accent-todo)', doing: 'var(--accent-progress)', done: 'var(--accent-done)' };
+                statusBadgeHtml = `<span class="task-status-badge" style="background: ${statusColors[task.status]}; color: white;">${statusLabels[task.status]}</span>`;
+            }
+
+            // Attachment thumbnail strip (replaces old image count badge)
+            let attachHtml = '';
+            const attachments = task.attachments || [];
+            if (attachments.length > 0) {
+                attachHtml = `<div class="task-attachments-strip" data-task-id="${task.id}"></div>`;
+            }
 
             // Build title + description snippet
             const title = task.title || task.content || '';
@@ -1348,14 +1671,29 @@
                 <div class="task-content">${contentHtml}</div>
                 ${tagsHtml}
                 <div class="task-meta">
-                    <div class="task-badges">${ageHtml}${dueHtml}${timeHtml}</div>
-                </div>`;
+                    <div class="task-badges">${statusBadgeHtml}${ageHtml}${dueHtml}${timeHtml}${activeTimerHtml}</div>
+                </div>
+                ${attachHtml}`;
+
+            // Load attachment thumbnails asynchronously
+            if (attachments.length > 0) {
+                loadCardThumbnails(div, task);
+            }
 
             // Clicking anywhere on card content opens edit modal
             div.querySelector('.task-content').onclick = (e) => {
                 e.stopPropagation();
                 editTask(task.id);
             };
+
+            // Clicking due date badge opens inline date picker
+            const dueBadge = div.querySelector('.task-due');
+            if (dueBadge) {
+                dueBadge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openInlineDatePicker(task.id, dueBadge);
+                });
+            }
 
             div.addEventListener('dragstart', handleDragStart);
             div.addEventListener('dragend', handleDragEnd);
@@ -1371,6 +1709,215 @@
         }
 
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        // Image paste support
+        function processClipboardImage(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const maxDim = 1920;
+                        let { width, height } = img;
+                        if (width > maxDim || height > maxDim) {
+                            const ratio = Math.min(maxDim / width, maxDim / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        const isPng = blob.type === 'image/png';
+                        const dataUrl = isPng
+                            ? canvas.toDataURL('image/png')
+                            : canvas.toDataURL('image/jpeg', 0.8);
+                        resolve(dataUrl);
+                    };
+                    img.onerror = reject;
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function initEditModalPasteHandler() {
+            const editModal = document.getElementById('edit-modal');
+            editModal.addEventListener('paste', async (e) => {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+
+                for (const item of items) {
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+                        const blob = item.getAsFile();
+                        if (!blob) continue;
+                        try {
+                            const dataUrl = await processClipboardImage(blob);
+                            const filename = await ipcRenderer.invoke('save-image', dataUrl);
+                            const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+                            editingTaskImages.push({
+                                filename,
+                                originalName: `pasted-image.${ext}`,
+                                type: blob.type
+                            });
+                            await renderEditImageAttachments();
+                        } catch (err) {
+                            console.error('Failed to save pasted image:', err);
+                        }
+                        return;
+                    }
+                }
+                // No image items found — let default text paste proceed
+            });
+
+            // File attach input handler
+            document.getElementById('file-attach-input').addEventListener('change', async (e) => {
+                for (const file of e.target.files) {
+                    try {
+                        if (file.type.startsWith('image/')) {
+                            // Use existing image pipeline (resize + save)
+                            const dataUrl = await processClipboardImage(file);
+                            const filename = await ipcRenderer.invoke('save-image', dataUrl);
+                            editingTaskImages.push({
+                                filename,
+                                originalName: file.name,
+                                type: file.type
+                            });
+                        } else {
+                            // Generic file: read as base64 and save
+                            const base64 = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result.split(',')[1]);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+                            const filename = await ipcRenderer.invoke('save-file', {
+                                base64Data: base64,
+                                originalName: file.name,
+                                mimeType: file.type
+                            });
+                            editingTaskImages.push({
+                                filename,
+                                originalName: file.name,
+                                type: file.type || 'application/octet-stream'
+                            });
+                        }
+                        await renderEditImageAttachments();
+                    } catch (err) {
+                        console.error('Failed to attach file:', err);
+                    }
+                }
+                e.target.value = ''; // Reset for re-use
+            });
+        }
+
+        async function renderEditImageAttachments() {
+            const container = document.getElementById('edit-image-attachments');
+            const field = document.getElementById('edit-images-field');
+            container.innerHTML = '';
+
+            if (editingTaskImages.length === 0) {
+                field.style.display = 'none';
+                return;
+            }
+            field.style.display = 'block';
+
+            for (const att of editingTaskImages) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'image-thumb-wrapper';
+
+                if (att.type && att.type.startsWith('image/')) {
+                    // Image attachment: show thumbnail
+                    const dataUri = await ipcRenderer.invoke('load-image', att.filename);
+                    if (!dataUri) continue;
+
+                    const img = document.createElement('img');
+                    img.className = 'image-thumb';
+                    img.src = dataUri;
+                    img.alt = att.originalName || att.filename;
+                    img.onclick = () => openImagePreview(dataUri);
+                    wrapper.appendChild(img);
+                } else {
+                    // Non-image attachment: show file icon with extension
+                    const ext = att.originalName?.split('.').pop() || '?';
+                    const fileIcon = document.createElement('div');
+                    fileIcon.style.cssText = 'width:80px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg-primary);font-family:var(--font-body);';
+                    fileIcon.innerHTML = `<span style="font-size:1.5rem;">📄</span><span style="font-size:0.6rem;color:var(--text-secondary);text-transform:uppercase;margin-top:4px;">${escapeHtml(ext)}</span>`;
+                    fileIcon.title = att.originalName || att.filename;
+                    wrapper.appendChild(fileIcon);
+                }
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'image-thumb-delete';
+                deleteBtn.textContent = '\u00d7';
+                deleteBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    // Only remove from in-memory list; disk deletion deferred to saveEdit/closeEditModal
+                    editingTaskImages = editingTaskImages.filter(a => a.filename !== att.filename);
+                    await renderEditImageAttachments();
+                };
+
+                wrapper.appendChild(deleteBtn);
+                container.appendChild(wrapper);
+            }
+        }
+
+        function openImagePreview(dataUri) {
+            const overlay = document.getElementById('image-preview-overlay');
+            const img = document.getElementById('image-preview-img');
+            img.src = dataUri;
+            overlay.classList.add('show');
+            overlay.onclick = () => overlay.classList.remove('show');
+        }
+
+        // Load attachment thumbnails on card (first 3, async)
+        async function loadCardThumbnails(cardEl, task) {
+            const strip = cardEl.querySelector('.task-attachments-strip');
+            if (!strip) return;
+            const attachments = task.attachments || [];
+            const maxShow = 3;
+
+            for (let i = 0; i < Math.min(attachments.length, maxShow); i++) {
+                const att = attachments[i];
+                if (att.type && att.type.startsWith('image/')) {
+                    try {
+                        const dataUri = await ipcRenderer.invoke('load-image', att.filename);
+                        if (dataUri) {
+                            const img = document.createElement('img');
+                            img.className = 'task-attach-thumb';
+                            img.src = dataUri;
+                            img.onclick = (e) => { e.stopPropagation(); openImagePreview(dataUri); };
+                            strip.appendChild(img);
+                        }
+                    } catch (err) {
+                        console.error('Failed to load thumbnail:', err);
+                    }
+                } else {
+                    // Non-image: show file extension icon
+                    const ext = att.originalName?.split('.').pop() || '?';
+                    const icon = document.createElement('div');
+                    icon.className = 'task-attach-file-icon';
+                    icon.textContent = ext;
+                    icon.title = att.originalName || att.filename;
+                    icon.onclick = (e) => { e.stopPropagation(); };
+                    strip.appendChild(icon);
+                }
+            }
+            if (attachments.length > maxShow) {
+                const more = document.createElement('div');
+                more.className = 'task-attach-more';
+                more.textContent = `+${attachments.length - maxShow}`;
+                strip.appendChild(more);
+            }
+        }
+
+        // Open file picker for attaching files
+        function triggerFileAttach() {
+            document.getElementById('file-attach-input').click();
+        }
 
         // Inline due date editing (kept for potential future use)
         function openInlineDatePicker(taskId, anchorEl) {
@@ -1404,7 +1951,19 @@
                         });
                     } else {
                         if (fp) fp.destroy();
-                        renderBoard();
+                    }
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (task.dueDate) {
+                        const clearBtn = document.createElement('button');
+                        clearBtn.textContent = 'Clear Date';
+                        clearBtn.className = 'flatpickr-clear-btn';
+                        clearBtn.type = 'button';
+                        clearBtn.addEventListener('click', () => {
+                            task.dueDate = null;
+                            instance.close();
+                        });
+                        instance.calendarContainer.appendChild(clearBtn);
                     }
                 }
             });
@@ -1465,17 +2024,20 @@
 
                 let statusTasks = tasks.filter(t => t.status === status.id);
 
-                // Sort logic
-                if (sortByAge && status.id === 'todo') {
-                    statusTasks.sort((a, b) => getTaskAgeDays(b) - getTaskAgeDays(a));
-                } else {
-                    statusTasks.sort((a, b) => {
-                        if (!a.dueDate && !b.dueDate) return 0;
-                        if (!a.dueDate) return 1;
-                        if (!b.dueDate) return -1;
-                        return new Date(a.dueDate) - new Date(b.dueDate);
-                    });
-                }
+                // Sort by sortOrder first, then by due date or age as tiebreaker
+                statusTasks.sort((a, b) => {
+                    const orderA = a.sortOrder ?? Infinity;
+                    const orderB = b.sortOrder ?? Infinity;
+                    if (orderA !== orderB) return orderA - orderB;
+                    // Tiebreaker
+                    if (sortByAge && status.id === 'todo') {
+                        return getTaskAgeDays(b) - getTaskAgeDays(a);
+                    }
+                    if (!a.dueDate && !b.dueDate) return 0;
+                    if (!a.dueDate) return 1;
+                    if (!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
 
                 const visibleCount = statusTasks.filter(t => taskMatchesFilters(t)).length;
 
@@ -1527,8 +2089,11 @@
                     tagTasks = tasks.filter(t => t.tags && t.tags.includes(tag.id));
                 }
 
-                // Sort by due date
+                // Sort by tagSortOrders (independent from status view sortOrder)
                 tagTasks.sort((a, b) => {
+                    const orderA = a.tagSortOrders?.[tag.id] ?? Infinity;
+                    const orderB = b.tagSortOrders?.[tag.id] ?? Infinity;
+                    if (orderA !== orderB) return orderA - orderB;
                     if (!a.dueDate && !b.dueDate) return 0;
                     if (!a.dueDate) return 1;
                     if (!b.dueDate) return -1;
@@ -1543,6 +2108,13 @@
                         <span class="task-count">${visibleCount}</span>
                     </div>
                     <div class="tasks" id="tasks-tag-${tag.id}"></div>
+                    <div class="add-task-form">
+                        <input type="text" class="add-task-input" placeholder="Add to ${escapeHtml(tag.name)}..." data-tag-id="${tag.id}">
+                        <div class="add-task-row">
+                            <div class="date-picker-wrapper"><input type="text" class="add-task-date" placeholder="Due date" data-tag-id="${tag.id}"></div>
+                            <button class="add-task-btn" data-tag-id="${tag.id}">Add</button>
+                        </div>
+                    </div>
                 `;
 
                 const tasksContainer = column.querySelector('.tasks');
@@ -1572,21 +2144,49 @@
                 column.addEventListener('drop', e => {
                     e.preventDefault();
                     column.classList.remove('drag-over');
-                    if (draggedTask && status) {
-                        moveTask(draggedTask.dataset.id, status);
+                    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+                    if (!draggedTask || !status) return;
+
+                    const taskId = draggedTask.dataset.id;
+                    const task = tasks.find(t => t.id === taskId);
+                    if (!task) return;
+
+                    if (task.status === status) {
+                        const tasksContainer = column.querySelector('.tasks');
+                        if (tasksContainer) reorderTaskInColumn(status, tasksContainer);
+                    } else {
+                        moveTask(taskId, status);
                     }
                 });
 
-                // Tasks container handlers - also handle drops here
+                // Tasks container handlers - handle drops and reordering
                 const tasksContainer = column.querySelector('.tasks');
                 if (tasksContainer) {
                     tasksContainer.addEventListener('dragover', e => {
                         e.preventDefault();
-                        tasksContainer.classList.add('drag-over');
+                        if (!draggedTask) return;
+
+                        // Remove existing drop indicators
+                        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+
+                        const afterElement = getDragAfterElement(tasksContainer, e.clientY);
+                        const indicator = document.createElement('div');
+                        indicator.className = 'drop-indicator';
+
+                        if (afterElement) {
+                            tasksContainer.insertBefore(draggedTask, afterElement);
+                            tasksContainer.insertBefore(indicator, draggedTask);
+                        } else {
+                            tasksContainer.appendChild(draggedTask);
+                            // Insert indicator before the dragged task
+                            tasksContainer.insertBefore(indicator, draggedTask);
+                        }
                     });
                     tasksContainer.addEventListener('dragleave', e => {
                         if (!tasksContainer.contains(e.relatedTarget)) {
                             tasksContainer.classList.remove('drag-over');
+                            // Clean up indicators when leaving
+                            tasksContainer.querySelectorAll('.drop-indicator').forEach(el => el.remove());
                         }
                     });
                     tasksContainer.addEventListener('drop', e => {
@@ -1594,14 +2194,27 @@
                         e.stopPropagation();
                         tasksContainer.classList.remove('drag-over');
                         column.classList.remove('drag-over');
-                        if (draggedTask && status) {
-                            moveTask(draggedTask.dataset.id, status);
+                        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+
+                        if (!draggedTask || !status) return;
+
+                        const taskId = draggedTask.dataset.id;
+                        const task = tasks.find(t => t.id === taskId);
+                        if (!task) return;
+
+                        if (task.status === status) {
+                            // Same column: reorder
+                            reorderTaskInColumn(status, tasksContainer);
+                        } else {
+                            // Cross-column: move status
+                            moveTask(taskId, status);
                         }
                     });
                 }
             });
 
-            // Reinitialize date pickers
+            // Reinitialize date pickers (destroy old ones first)
+            datePickers.forEach(fp => fp.destroy());
             datePickers = [];
             document.querySelectorAll('.add-task-date').forEach(input => {
                 const fp = flatpickr(input, {
@@ -1661,6 +2274,10 @@
         }
 
         function initTagViewEvents() {
+            // Destroy old date pickers
+            datePickers.forEach(fp => fp.destroy());
+            datePickers = [];
+
             // Column-level drag handlers for tag view
             document.querySelectorAll('.column.tag-column').forEach(column => {
                 const tagId = column.dataset.tagId;
@@ -1677,21 +2294,38 @@
                 column.addEventListener('drop', e => {
                     e.preventDefault();
                     column.classList.remove('drag-over');
+                    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
                     if (draggedTask && tagId) {
                         handleTagViewDrop(draggedTask.dataset.id, tagId);
                     }
                 });
 
-                // Tasks container handlers - also handle drops here
+                // Tasks container handlers - handle drops and reordering
                 const tasksContainer = column.querySelector('.tasks');
                 if (tasksContainer) {
                     tasksContainer.addEventListener('dragover', e => {
                         e.preventDefault();
-                        tasksContainer.classList.add('drag-over');
+                        if (!draggedTask) return;
+
+                        // Remove existing drop indicators
+                        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+
+                        const afterElement = getDragAfterElement(tasksContainer, e.clientY);
+                        const indicator = document.createElement('div');
+                        indicator.className = 'drop-indicator';
+
+                        if (afterElement) {
+                            tasksContainer.insertBefore(draggedTask, afterElement);
+                            tasksContainer.insertBefore(indicator, draggedTask);
+                        } else {
+                            tasksContainer.appendChild(draggedTask);
+                            tasksContainer.insertBefore(indicator, draggedTask);
+                        }
                     });
                     tasksContainer.addEventListener('dragleave', e => {
                         if (!tasksContainer.contains(e.relatedTarget)) {
                             tasksContainer.classList.remove('drag-over');
+                            tasksContainer.querySelectorAll('.drop-indicator').forEach(el => el.remove());
                         }
                     });
                     tasksContainer.addEventListener('drop', e => {
@@ -1699,11 +2333,88 @@
                         e.stopPropagation();
                         tasksContainer.classList.remove('drag-over');
                         column.classList.remove('drag-over');
-                        if (draggedTask && tagId) {
-                            handleTagViewDrop(draggedTask.dataset.id, tagId);
+                        document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+
+                        if (!draggedTask || !tagId) return;
+
+                        const taskId = draggedTask.dataset.id;
+                        const task = tasks.find(t => t.id === taskId);
+                        if (!task) return;
+
+                        // Check if task is already in this tag column
+                        const isInColumn = tagId === 'untagged'
+                            ? (!task.tags || task.tags.length === 0)
+                            : (task.tags && task.tags.includes(tagId));
+
+                        if (isInColumn) {
+                            // Same column: reorder by sortOrder
+                            reorderTaskInColumn(task.status, tasksContainer);
+                        } else {
+                            // Different column: assign tag
+                            handleTagViewDrop(taskId, tagId);
                         }
                     });
                 }
+            });
+
+            // Initialize date pickers for tag view add forms
+            document.querySelectorAll('.column.tag-column .add-task-date').forEach(input => {
+                const fp = flatpickr(input, {
+                    dateFormat: 'M j, Y',
+                    defaultDate: new Date(),
+                    minDate: 'today',
+                    disableMobile: true,
+                    theme: 'dark',
+                    animate: true,
+                    position: 'above',
+                    onOpen: function() {
+                        if (!this.selectedDates.length) {
+                            const now = new Date();
+                            this.setDate(now, true);
+                            input.dataset.isoDate = formatDateToISO(now);
+                        }
+                    },
+                    onChange: function(selectedDates) {
+                        if (selectedDates[0]) input.dataset.isoDate = formatDateToISO(selectedDates[0]);
+                    },
+                    onReady: function() {
+                        input.dataset.isoDate = formatDateToISO(new Date());
+                    }
+                });
+                datePickers.push(fp);
+            });
+
+            // Add task input handlers for tag view
+            document.querySelectorAll('.column.tag-column .add-task-input').forEach(input => {
+                input.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') {
+                        const form = input.closest('.add-task-form');
+                        const dateInput = form.querySelector('.add-task-date');
+                        const tagId = input.dataset.tagId;
+                        const taskTags = tagId === 'untagged' ? [] : [tagId];
+                        addTask('todo', input.value, '', dateInput.dataset.isoDate, taskTags);
+                        input.value = '';
+                        const today = new Date();
+                        const fp = datePickers.find(p => p.input === dateInput);
+                        if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
+                    }
+                });
+            });
+
+            // Add task button handlers for tag view
+            document.querySelectorAll('.column.tag-column .add-task-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const form = btn.closest('.add-task-form');
+                    const textInput = form.querySelector('.add-task-input');
+                    const dateInput = form.querySelector('.add-task-date');
+                    const tagId = btn.dataset.tagId;
+                    const taskTags = tagId === 'untagged' ? [] : [tagId];
+                    addTask('todo', textInput.value, '', dateInput.dataset.isoDate, taskTags);
+                    textInput.value = '';
+                    const today = new Date();
+                    const fp = datePickers.find(p => p.input === dateInput);
+                    if (fp) { fp.setDate(today, true); dateInput.dataset.isoDate = formatDateToISO(today); }
+                });
             });
         }
 
@@ -1721,6 +2432,15 @@
                     task.tags.push(targetTagId);
                 }
             }
+
+            // Assign tagSortOrders for the target tag column (bottom of column)
+            if (!task.tagSortOrders) task.tagSortOrders = {};
+            const columnTasks = targetTagId === 'untagged'
+                ? tasks.filter(t => t.id !== taskId && (!t.tags || t.tags.length === 0))
+                : tasks.filter(t => t.id !== taskId && t.tags?.includes(targetTagId));
+            const maxOrder = Math.max(...columnTasks.map(t => t.tagSortOrders?.[targetTagId] ?? 0), -1);
+            task.tagSortOrders[targetTagId] = maxOrder + 1;
+
             saveData();
             renderBoard();
         }
@@ -1746,7 +2466,7 @@
             renderBoard();
         }
 
-        function addTask(status, title, description, dueDate, taskTags = []) {
+        function addTask(status, title, description, dueDate, taskTags = [], taskAttachments = []) {
             if (!title.trim()) return;
             const now = new Date().toISOString();
             const task = {
@@ -1756,8 +2476,31 @@
                 status,
                 dueDate: dueDate || null,
                 tags: [...taskTags],
+                attachments: [...taskAttachments],
                 createdAt: now
             };
+            // Assign sortOrder at bottom of target status column
+            const maxOrder = Math.max(...tasks.filter(t => t.status === status).map(t => t.sortOrder ?? 0), -1);
+            task.sortOrder = maxOrder + 1;
+
+            // Assign tagSortOrders for each tag column the task belongs to
+            if (taskTags.length > 0) {
+                task.tagSortOrders = {};
+                taskTags.forEach(tagId => {
+                    const maxTagOrder = Math.max(
+                        ...tasks.filter(t => t.tags?.includes(tagId)).map(t => t.tagSortOrders?.[tagId] ?? 0), -1
+                    );
+                    task.tagSortOrders[tagId] = maxTagOrder + 1;
+                });
+            } else {
+                // Untagged column
+                task.tagSortOrders = {};
+                const maxUntaggedOrder = Math.max(
+                    ...tasks.filter(t => !t.tags || t.tags.length === 0).map(t => t.tagSortOrders?.['untagged'] ?? 0), -1
+                );
+                task.tagSortOrders['untagged'] = maxUntaggedOrder + 1;
+            }
+
             if (status === 'doing') task.startedAt = now;
             if (status === 'done') task.completedAt = now;
             tasks.push(task);
@@ -1765,13 +2508,23 @@
             renderBoard();
         }
 
-        function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveData(); renderBoard(); }
+        function deleteTask(id) {
+            if (!confirm('Delete this task?')) return;
+            const task = tasks.find(t => t.id === id);
+            if (task && task.attachments) {
+                task.attachments.forEach(a => ipcRenderer.invoke('delete-image', a.filename));
+            }
+            tasks = tasks.filter(t => t.id !== id);
+            saveData();
+            renderBoard();
+        }
 
         function editTask(id) {
             const task = tasks.find(t => t.id === id);
             if (!task) return;
             editingTaskId = id;
             selectedEditTags = [...(task.tags || [])];
+            editingTaskImages = [...(task.attachments || [])].map(a => ({...a}));
             document.getElementById('edit-title').value = task.title || task.content || '';
             document.getElementById('edit-description').value = task.description || '';
             if (task.dueDate) {
@@ -1781,6 +2534,7 @@
                 editDatePicker.clear();
             }
             renderEditTagSelector();
+            renderEditImageAttachments();
             document.getElementById('edit-modal').classList.add('show');
         }
 
@@ -1877,7 +2631,18 @@
             closeTaskTagSelector();
         }
 
-        function closeEditModal() { document.getElementById('edit-modal').classList.remove('show'); editingTaskId = null; selectedEditTags = []; }
+        function closeEditModal() {
+            // Clean up orphaned attachments (added but not saved via saveEdit)
+            const task = tasks.find(t => t.id === editingTaskId);
+            const originalFilenames = (task ? (task.attachments || []) : []).map(a => a.filename);
+            const newAttachments = editingTaskImages.filter(a => !originalFilenames.includes(a.filename));
+            newAttachments.forEach(a => ipcRenderer.invoke('delete-image', a.filename));
+
+            document.getElementById('edit-modal').classList.remove('show');
+            editingTaskId = null;
+            selectedEditTags = [];
+            editingTaskImages = [];
+        }
 
         async function saveEdit() {
             const task = tasks.find(t => t.id === editingTaskId);
@@ -1887,11 +2652,18 @@
             const selectedDates = editDatePicker.selectedDates;
             const dueDate = selectedDates.length > 0 ? formatDateToISO(selectedDates[0]) : null;
             if (title) {
+                // Delete files that were removed during editing (original - final)
+                const originalFilenames = (task.attachments || []).map(a => a.filename);
+                const finalFilenames = editingTaskImages.map(a => a.filename);
+                const removedFiles = originalFilenames.filter(f => !finalFilenames.includes(f));
+                removedFiles.forEach(f => ipcRenderer.invoke('delete-image', f));
+
                 task.title = title;
                 task.description = description;
                 delete task.content; // Remove legacy field
                 task.dueDate = dueDate;
                 task.tags = [...selectedEditTags];
+                task.attachments = [...editingTaskImages].map(a => ({...a}));
                 await saveData();
                 renderBoard();
             }
@@ -1911,6 +2683,9 @@
             if (newStatus === 'done' && oldStatus !== 'done') task.completedAt = now;
             else if (newStatus !== 'done') delete task.completedAt;
             task.status = newStatus;
+            // Assign sortOrder at bottom of new column
+            const maxOrder = Math.max(...tasks.filter(t => t.id !== id && t.status === newStatus).map(t => t.sortOrder ?? 0), -1);
+            task.sortOrder = maxOrder + 1;
             saveData();
             renderBoard();
         }
@@ -2089,6 +2864,7 @@
                     input: document.getElementById('quick-add-input').value,
                     description: document.getElementById('quick-add-description').value,
                     showDescription: document.getElementById('quick-add-desc-field').style.display !== 'none',
+                    status: document.getElementById('quick-add-status').value,
                     tags: [...selectedQuickAddTags],
                     date: quickAddDatePicker ? quickAddDatePicker.selectedDates[0] : null
                 };
@@ -2113,6 +2889,7 @@
             if (savedState) {
                 document.getElementById('quick-add-input').value = savedState.input;
                 document.getElementById('quick-add-description').value = savedState.description || '';
+                document.getElementById('quick-add-status').value = savedState.status || 'todo';
                 selectedQuickAddTags = [...savedState.tags];
                 if (savedState.showDescription) {
                     document.getElementById('quick-add-desc-field').style.display = 'block';
@@ -2121,6 +2898,7 @@
             } else {
                 document.getElementById('quick-add-input').value = '';
                 document.getElementById('quick-add-description').value = '';
+                document.getElementById('quick-add-status').value = 'todo';
                 document.getElementById('quick-add-desc-field').style.display = 'none';
                 document.getElementById('quick-add-desc-link').style.display = 'block';
                 selectedQuickAddTags = [];
@@ -2146,10 +2924,11 @@
         function submitQuickAdd() {
             const title = document.getElementById('quick-add-input').value.trim();
             const description = document.getElementById('quick-add-description').value.trim();
+            const status = document.getElementById('quick-add-status').value;
             const dates = quickAddDatePicker.selectedDates;
             const dueDate = dates.length > 0 ? formatDateToISO(dates[0]) : null;
             if (title) {
-                addTask('todo', title, description, dueDate, selectedQuickAddTags);
+                addTask(status, title, description, dueDate, selectedQuickAddTags);
                 closeQuickAdd();
             }
         }
@@ -2165,14 +2944,65 @@
             e.target.classList.remove('dragging');
             document.querySelectorAll('.tasks').forEach(el => el.classList.remove('drag-over'));
             document.querySelectorAll('.column').forEach(el => el.classList.remove('drag-over'));
+            document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
             draggedTask = null;
+            // Re-render to restore correct DOM state (needed after reorder or cancelled drag)
+            renderBoard();
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.task:not(.dragging):not(.hidden)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, element: child };
+                }
+                return closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function reorderTaskInColumn(status, container) {
+            const cardElements = [...container.querySelectorAll('.task:not(.hidden)')];
+            const orderedIds = cardElements.map(el => el.dataset.id);
+
+            if (currentView === 'tags') {
+                // In tag view, write to tagSortOrders (independent from status view sortOrder)
+                const column = container.closest('.tag-column');
+                const tagId = column?.dataset.tagId;
+                if (!tagId) return;
+
+                orderedIds.forEach((id, index) => {
+                    const task = tasks.find(t => t.id === id);
+                    if (task) {
+                        if (!task.tagSortOrders) task.tagSortOrders = {};
+                        task.tagSortOrders[tagId] = index;
+                    }
+                });
+            } else {
+                // In status view, all tasks in the column share the same status
+                orderedIds.forEach((id, index) => {
+                    const task = tasks.find(t => t.id === id);
+                    if (task) task.sortOrder = index;
+                });
+            }
+            saveData();
         }
 
         document.getElementById('new-tag-name').addEventListener('keydown', e => {
             if (e.key === 'Enter') addNewTag();
         });
 
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeEditModal(); closeTagManager(); closeSummaryViewer(); closeQuickAdd(); closeTaskTagSelector(); } });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                const preview = document.getElementById('image-preview-overlay');
+                if (preview.classList.contains('show')) {
+                    preview.classList.remove('show');
+                    return;
+                }
+                closeEditModal(); closeTagManager(); closeSummaryViewer(); closeQuickAdd(); closeTaskTagSelector();
+            }
+        });
 
         // Enter key for quick add input
         document.getElementById('quick-add-input').addEventListener('keydown', e => {

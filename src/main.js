@@ -9,11 +9,19 @@ let reminderInterval;
 const userDataPath = app.getPath('userData');
 const dataPath = path.join(userDataPath, 'kanban-data.json');
 const summariesPath = path.join(userDataPath, 'summaries');
+const imagesPath = path.join(userDataPath, 'images');
 
 // Ensure summaries directory exists
 function ensureSummariesDir() {
     if (!fs.existsSync(summariesPath)) {
         fs.mkdirSync(summariesPath, { recursive: true });
+    }
+}
+
+// Ensure images directory exists
+function ensureImagesDir() {
+    if (!fs.existsSync(imagesPath)) {
+        fs.mkdirSync(imagesPath, { recursive: true });
     }
 }
 
@@ -355,7 +363,8 @@ ipcMain.handle('save-data', (event, data) => {
 });
 ipcMain.handle('get-paths', () => ({
     data: dataPath,
-    summaries: summariesPath
+    summaries: summariesPath,
+    images: imagesPath
 }));
 ipcMain.handle('generate-summary', () => generateDailySummary());
 
@@ -377,8 +386,50 @@ ipcMain.handle('read-summary', async (event, filename) => {
     return null;
 });
 
+// Image handlers
+ipcMain.handle('save-image', async (event, base64Data) => {
+    ensureImagesDir();
+    const matches = base64Data.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!matches) throw new Error('Invalid image data');
+    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+    const buffer = Buffer.from(matches[2], 'base64');
+    const filename = `${Date.now()}_${Math.random().toString(36).substr(2, 8)}.${ext}`;
+    const filePath = path.join(imagesPath, filename);
+    fs.writeFileSync(filePath, buffer);
+    return filename;
+});
+
+ipcMain.handle('load-image', async (event, filename) => {
+    const filePath = path.join(imagesPath, filename);
+    if (!fs.existsSync(filePath)) return null;
+    const buffer = fs.readFileSync(filePath);
+    const ext = path.extname(filename).slice(1);
+    const mimeType = ext === 'jpg' ? 'jpeg' : ext;
+    return `data:image/${mimeType};base64,${buffer.toString('base64')}`;
+});
+
+ipcMain.handle('delete-image', async (event, filename) => {
+    const filePath = path.join(imagesPath, filename);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
+    return true;
+});
+
+// Generic file save handler (for non-image attachments)
+ipcMain.handle('save-file', async (event, { base64Data, originalName, mimeType }) => {
+    ensureImagesDir();
+    const ext = path.extname(originalName) || '.bin';
+    const filename = `${Date.now()}_${Math.random().toString(36).substr(2, 8)}${ext}`;
+    const buffer = Buffer.from(base64Data, 'base64');
+    const filePath = path.join(imagesPath, filename);
+    fs.writeFileSync(filePath, buffer);
+    return filename;
+});
+
 app.whenReady().then(() => {
     ensureSummariesDir();
+    ensureImagesDir();
     createWindow();
     setupScheduler();
 
