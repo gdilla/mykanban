@@ -1931,20 +1931,21 @@
             }
 
             const originalDate = task.dueDate;
+            let cleared = false;
             inlineDatePicker = flatpickr(anchorEl, {
                 defaultDate: task.dueDate ? parseLocalDate(task.dueDate) : null,
                 dateFormat: 'M j, Y',
                 disableMobile: true,
                 appendTo: document.body,
                 static: false,
-                onChange: (dates) => {
-                    const newDate = dates[0] ? formatDateToISO(dates[0]) : null;
-                    task.dueDate = newDate;
-                },
-                onClose: () => {
+                onClose: (dates) => {
                     const fp = inlineDatePicker;
                     inlineDatePicker = null;
-                    if (task.dueDate !== originalDate) {
+                    // Read the final selected date directly from onClose's dates param
+                    // (more reliable than depending on onChange firing before onClose)
+                    const newDate = cleared ? null : (dates[0] ? formatDateToISO(dates[0]) : null);
+                    if (newDate !== originalDate) {
+                        task.dueDate = newDate;
                         saveData().then(() => {
                             if (fp) fp.destroy();
                             renderBoard();
@@ -1960,7 +1961,7 @@
                         clearBtn.className = 'flatpickr-clear-btn';
                         clearBtn.type = 'button';
                         clearBtn.addEventListener('click', () => {
-                            task.dueDate = null;
+                            cleared = true;
                             instance.close();
                         });
                         instance.calendarContainer.appendChild(clearBtn);
