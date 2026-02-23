@@ -362,6 +362,17 @@
             margin-top: 6px;
             word-break: break-word;
         }
+        .task-title[contenteditable="true"] {
+            outline: 2px solid var(--shadow-color);
+            outline-offset: 2px;
+            background: white;
+            padding: 2px 4px;
+            cursor: text;
+            min-height: 1.5em;
+        }
+        .task-title[contenteditable="true"]:focus {
+            outline-color: var(--accent-progress);
+        }
 
         /* Task Tags */
         .task-tags {
@@ -1686,6 +1697,13 @@
                 editTask(task.id);
             };
 
+            // Double click on title starts inline editing
+            const titleEl = div.querySelector('.task-title');
+            titleEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startInlineEdit(task.id, titleEl);
+            });
+
             // Clicking due date badge opens inline date picker
             const dueBadge = div.querySelector('.task-due');
             if (dueBadge) {
@@ -1706,6 +1724,55 @@
             const b = parseInt(hexcolor.slice(5,7), 16);
             const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
             return luminance > 0.5 ? '#000' : '#fff';
+        }
+
+        function startInlineEdit(taskId, titleEl) {
+            if (titleEl.contentEditable === 'true') return;
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const originalText = task.title || '';
+            titleEl.contentEditable = 'true';
+            titleEl.focus();
+
+            const range = document.createRange();
+            range.selectNodeContents(titleEl);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+
+            function finishEdit(save) {
+                titleEl.contentEditable = 'false';
+                if (save) {
+                    const newTitle = titleEl.textContent.trim();
+                    if (newTitle && newTitle !== originalText) {
+                        task.title = newTitle;
+                        saveData();
+                    } else {
+                        titleEl.textContent = originalText;
+                    }
+                } else {
+                    titleEl.textContent = originalText;
+                }
+                titleEl.removeEventListener('keydown', handleKey);
+                titleEl.removeEventListener('blur', handleBlur);
+            }
+
+            function handleKey(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    finishEdit(true);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    finishEdit(false);
+                }
+            }
+
+            function handleBlur() {
+                finishEdit(true);
+            }
+
+            titleEl.addEventListener('keydown', handleKey);
+            titleEl.addEventListener('blur', handleBlur);
         }
 
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
