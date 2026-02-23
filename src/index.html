@@ -2172,7 +2172,7 @@
                         subtitle: tagNames ? `Tags: ${tagNames}` : statusLabels[task.status],
                         badge: statusLabels[task.status],
                         action: () => editTask(task.id),
-                        score: fuzzyScore(query, task.title || '')
+                        score: Math.max(fuzzyScore(query, task.title || ''), fuzzyScore(query, task.description || ''))
                     });
                 }
             });
@@ -2208,7 +2208,7 @@
                         ...a,
                         type: 'action',
                         badge: 'Action',
-                        score: fuzzyScore(query, a.title)
+                        score: fuzzyScore(query, a.title + ' ' + a.subtitle)
                     });
                 }
             });
