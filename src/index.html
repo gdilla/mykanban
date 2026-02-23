@@ -1998,6 +1998,7 @@
             window.getSelection().addRange(range);
 
             function finishEdit(save) {
+                if (titleEl.contentEditable !== 'true') return;
                 titleEl.contentEditable = 'false';
                 if (save) {
                     const newTitle = titleEl.textContent.trim();
@@ -2096,7 +2097,8 @@
                 startedAt: null,
                 completedAt: null,
                 timeSpent: 0,
-                sortOrder: (tasks.filter(t => t.status === task.status).length) * 1000
+                sortOrder: (tasks.filter(t => t.status === task.status).length) * 1000,
+                tagSortOrders: {}
             };
             newTask.attachments = [];
             tasks.push(newTask);
@@ -2171,7 +2173,7 @@
                         title: task.title || 'Untitled',
                         subtitle: tagNames ? `Tags: ${tagNames}` : statusLabels[task.status],
                         badge: statusLabels[task.status],
-                        action: () => editTask(task.id),
+                        action: () => { closeCommandPalette(); editTask(task.id); },
                         score: Math.max(fuzzyScore(query, task.title || ''), fuzzyScore(query, task.description || ''))
                     });
                 }
