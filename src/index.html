@@ -526,6 +526,114 @@
             background: var(--border-subtle);
         }
 
+        /* Command Palette */
+        .command-palette-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 10001;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 15vh;
+        }
+        .command-palette-overlay.show { display: flex; }
+        .command-palette {
+            background: var(--surface-card);
+            border: 3px solid var(--shadow-color);
+            box-shadow: 8px 8px 0 var(--shadow-color);
+            width: 560px;
+            max-height: 420px;
+            display: flex;
+            flex-direction: column;
+            font-family: var(--font-body);
+        }
+        .command-palette-input {
+            padding: 16px 20px;
+            border: none;
+            border-bottom: 2px solid var(--shadow-color);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            background: var(--surface-card);
+            color: var(--text-primary);
+            outline: none;
+        }
+        .command-palette-input::placeholder {
+            color: var(--text-muted);
+        }
+        .command-palette-results {
+            overflow-y: auto;
+            max-height: 340px;
+        }
+        .command-palette-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background var(--transition-fast);
+        }
+        .command-palette-item:last-child { border-bottom: none; }
+        .command-palette-item:hover,
+        .command-palette-item.selected {
+            background: var(--bg-primary);
+        }
+        .command-palette-item-icon {
+            font-size: 1rem;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .command-palette-item-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .command-palette-item-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .command-palette-item-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+        .command-palette-item-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
+        }
+        .command-palette-empty {
+            padding: 24px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .command-palette-hint {
+            padding: 8px 20px;
+            border-top: 2px solid var(--shadow-color);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+        }
+        .command-palette-hint kbd {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 1px 5px;
+            font-family: var(--font-body);
+            font-size: 0.6rem;
+        }
+
         /* Inline editing */
         .inline-edit-input {
             font-family: var(--font-body);
@@ -1311,7 +1419,7 @@
 <body>
     <div class="header">
         <h1>Kanban Board</h1>
-        <span class="hotkey-hint">Press <kbd>⌘T</kbd> to quick add</span>
+        <span class="hotkey-hint">Press <kbd>⌘T</kbd> quick add · <kbd>⌘K</kbd> command palette</span>
         <div class="header-actions">
             <div class="view-toggle">
                 <button class="view-toggle-btn active" id="view-status-btn" onclick="setView('status')">Status</button>
@@ -1464,6 +1572,19 @@
 
     <!-- Context Menu -->
     <div class="context-menu" id="context-menu"></div>
+
+    <!-- Command Palette -->
+    <div class="command-palette-overlay" id="command-palette-overlay">
+        <div class="command-palette">
+            <input type="text" class="command-palette-input" id="command-palette-input" placeholder="Search tasks, tags, actions...">
+            <div class="command-palette-results" id="command-palette-results"></div>
+            <div class="command-palette-hint">
+                <span><kbd>↑↓</kbd> Navigate</span>
+                <span><kbd>Enter</kbd> Select</span>
+                <span><kbd>Esc</kbd> Close</span>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
@@ -1986,6 +2107,178 @@
         document.addEventListener('click', hideContextMenu);
         document.addEventListener('contextmenu', (e) => {
             if (!e.target.closest('.task')) hideContextMenu();
+        });
+
+        let commandPaletteSelectedIndex = 0;
+        let commandPaletteItems = [];
+
+        function openCommandPalette() {
+            const overlay = document.getElementById('command-palette-overlay');
+            const input = document.getElementById('command-palette-input');
+            overlay.classList.add('show');
+            input.value = '';
+            commandPaletteSelectedIndex = 0;
+            populateCommandPalette('');
+            input.focus();
+        }
+
+        function closeCommandPalette() {
+            document.getElementById('command-palette-overlay').classList.remove('show');
+        }
+
+        function fuzzyMatch(query, text) {
+            if (!query) return true;
+            query = query.toLowerCase();
+            text = text.toLowerCase();
+            if (text.includes(query)) return true;
+            let qi = 0;
+            for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+                if (text[ti] === query[qi]) qi++;
+            }
+            return qi === query.length;
+        }
+
+        function fuzzyScore(query, text) {
+            if (!query) return 0;
+            query = query.toLowerCase();
+            text = text.toLowerCase();
+            if (text.startsWith(query)) return 100;
+            if (text.includes(query)) return 80;
+            let score = 0, consecutive = 0, qi = 0;
+            for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+                if (text[ti] === query[qi]) {
+                    qi++;
+                    consecutive++;
+                    score += consecutive * 2;
+                } else {
+                    consecutive = 0;
+                }
+            }
+            return qi === query.length ? score : -1;
+        }
+
+        function getCommandPaletteItems(query) {
+            const items = [];
+            const statusLabels = { todo: 'To Do', doing: 'In Progress', done: 'Done' };
+
+            tasks.forEach(task => {
+                const text = (task.title || '') + ' ' + (task.description || '');
+                if (fuzzyMatch(query, text)) {
+                    const tagNames = (task.tags || []).map(id => getTagById(id)?.name).filter(Boolean).join(', ');
+                    items.push({
+                        type: 'task',
+                        icon: task.status === 'done' ? '✅' : task.status === 'doing' ? '🔄' : '📋',
+                        title: task.title || 'Untitled',
+                        subtitle: tagNames ? `Tags: ${tagNames}` : statusLabels[task.status],
+                        badge: statusLabels[task.status],
+                        action: () => editTask(task.id),
+                        score: fuzzyScore(query, task.title || '')
+                    });
+                }
+            });
+
+            tags.forEach(tag => {
+                if (fuzzyMatch(query, 'filter ' + tag.name)) {
+                    const count = tasks.filter(t => t.tags && t.tags.includes(tag.id)).length;
+                    items.push({
+                        type: 'tag',
+                        icon: '🏷️',
+                        title: `Filter: ${tag.name}`,
+                        subtitle: `${count} task${count !== 1 ? 's' : ''}`,
+                        badge: 'Filter',
+                        action: () => { toggleFilter(tag.id); renderBoard(); closeCommandPalette(); },
+                        score: fuzzyScore(query, 'filter ' + tag.name)
+                    });
+                }
+            });
+
+            const actions = [
+                { title: 'New Task', subtitle: 'Open quick add', icon: '➕', action: () => { closeCommandPalette(); openQuickAdd(); } },
+                { title: 'Manage Tags', subtitle: 'Open tag manager', icon: '🏷️', action: () => { closeCommandPalette(); openTagManager(); } },
+                { title: 'Generate Summary', subtitle: 'Create daily summary', icon: '📊', action: () => { closeCommandPalette(); manualSummary(); } },
+                { title: 'View Summaries', subtitle: 'Browse past summaries', icon: '📝', action: () => { closeCommandPalette(); openSummaryViewer(); } },
+                { title: 'Switch to Status View', subtitle: 'View by status columns', icon: '📊', action: () => { closeCommandPalette(); setView('status'); } },
+                { title: 'Switch to Tag View', subtitle: 'View by tag columns', icon: '🏷️', action: () => { closeCommandPalette(); setView('tags'); } },
+                { title: 'Clear Filters', subtitle: 'Remove all active filters', icon: '🧹', action: () => { closeCommandPalette(); clearFilters(); renderBoard(); } },
+            ];
+
+            actions.forEach(a => {
+                if (fuzzyMatch(query, a.title + ' ' + a.subtitle)) {
+                    items.push({
+                        ...a,
+                        type: 'action',
+                        badge: 'Action',
+                        score: fuzzyScore(query, a.title)
+                    });
+                }
+            });
+
+            items.sort((a, b) => (b.score || 0) - (a.score || 0));
+            return items.slice(0, 15);
+        }
+
+        function populateCommandPalette(query) {
+            const results = document.getElementById('command-palette-results');
+            commandPaletteItems = getCommandPaletteItems(query);
+
+            if (commandPaletteItems.length === 0) {
+                results.innerHTML = '<div class="command-palette-empty">No results found</div>';
+                return;
+            }
+
+            results.innerHTML = commandPaletteItems.map((item, i) => `
+                <div class="command-palette-item${i === commandPaletteSelectedIndex ? ' selected' : ''}" data-index="${i}">
+                    <span class="command-palette-item-icon">${item.icon}</span>
+                    <div class="command-palette-item-text">
+                        <div class="command-palette-item-title">${escapeHtml(item.title)}</div>
+                        ${item.subtitle ? `<div class="command-palette-item-subtitle">${escapeHtml(item.subtitle)}</div>` : ''}
+                    </div>
+                    <span class="command-palette-item-badge">${item.badge}</span>
+                </div>
+            `).join('');
+
+            results.querySelectorAll('.command-palette-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.dataset.index);
+                    if (commandPaletteItems[idx]) commandPaletteItems[idx].action();
+                });
+            });
+        }
+
+        function updateCommandPaletteSelection() {
+            document.querySelectorAll('.command-palette-item').forEach((el, i) => {
+                el.classList.toggle('selected', i === commandPaletteSelectedIndex);
+                if (i === commandPaletteSelectedIndex) el.scrollIntoView({ block: 'nearest' });
+            });
+        }
+
+        document.getElementById('command-palette-input').addEventListener('input', (e) => {
+            commandPaletteSelectedIndex = 0;
+            populateCommandPalette(e.target.value);
+        });
+
+        document.getElementById('command-palette-input').addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                commandPaletteSelectedIndex = Math.min(commandPaletteSelectedIndex + 1, commandPaletteItems.length - 1);
+                updateCommandPaletteSelection();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                commandPaletteSelectedIndex = Math.max(commandPaletteSelectedIndex - 1, 0);
+                updateCommandPaletteSelection();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (commandPaletteItems[commandPaletteSelectedIndex]) {
+                    commandPaletteItems[commandPaletteSelectedIndex].action();
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeCommandPalette();
+            }
+        });
+
+        document.getElementById('command-palette-overlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeCommandPalette();
         });
 
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
@@ -3276,20 +3569,34 @@
         });
 
         document.addEventListener('keydown', e => {
+            // Cmd+K opens command palette
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                openCommandPalette();
+                return;
+            }
+
             const editModal = document.getElementById('edit-modal');
             const tagModal = document.getElementById('tag-modal');
             const summaryModal = document.getElementById('summary-modal');
             const quickAddModal = document.getElementById('quick-add-modal');
             const tagSelectorModal = document.getElementById('task-tag-selector-modal');
             const preview = document.getElementById('image-preview-overlay');
+            const cmdPaletteOverlay = document.getElementById('command-palette-overlay');
 
             const anyModalOpen = editModal.classList.contains('show')
                 || tagModal.classList.contains('show')
                 || summaryModal.classList.contains('show')
                 || quickAddModal.classList.contains('show')
-                || tagSelectorModal.classList.contains('show');
+                || tagSelectorModal.classList.contains('show')
+                || cmdPaletteOverlay.classList.contains('show');
 
             if (e.key === 'Escape') {
+                const cmdPalette = document.getElementById('command-palette-overlay');
+                if (cmdPalette.classList.contains('show')) {
+                    closeCommandPalette();
+                    return;
+                }
                 if (preview.classList.contains('show')) {
                     preview.classList.remove('show');
                     return;
