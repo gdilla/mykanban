@@ -324,6 +324,13 @@
             opacity: 0.9;
             z-index: 1000;
         }
+        .task.focused {
+            outline: 3px solid var(--shadow-color);
+            outline-offset: 2px;
+            transform: rotate(0deg);
+            box-shadow: 6px 6px 0 var(--shadow-color);
+            z-index: 10;
+        }
         .task.overdue {
             box-shadow:
                 var(--shadow-offset) var(--shadow-offset) 0 var(--accent-todo),
@@ -1426,6 +1433,55 @@
 
         // View toggle state
         let currentView = localStorage.getItem('kanban-view') || 'status';
+        let focusedTaskIndex = -1;
+
+        function getVisibleTaskCards() {
+            return Array.from(document.querySelectorAll('.task:not(.hidden)'));
+        }
+
+        function setFocusedTask(index) {
+            const cards = getVisibleTaskCards();
+            document.querySelectorAll('.task.focused').forEach(el => el.classList.remove('focused'));
+            if (index < 0 || index >= cards.length) {
+                focusedTaskIndex = -1;
+                return;
+            }
+            focusedTaskIndex = index;
+            cards[index].classList.add('focused');
+            cards[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        function moveFocus(direction) {
+            const cards = getVisibleTaskCards();
+            if (cards.length === 0) return;
+
+            if (direction === 'down') {
+                setFocusedTask(focusedTaskIndex < cards.length - 1 ? focusedTaskIndex + 1 : 0);
+            } else if (direction === 'up') {
+                setFocusedTask(focusedTaskIndex > 0 ? focusedTaskIndex - 1 : cards.length - 1);
+            } else if (direction === 'left' || direction === 'right') {
+                if (focusedTaskIndex < 0) { setFocusedTask(0); return; }
+                const currentCard = cards[focusedTaskIndex];
+                const currentCol = currentCard.closest('.column');
+                const columns = Array.from(document.querySelectorAll('.column'));
+                const colIndex = columns.indexOf(currentCol);
+                const targetColIndex = direction === 'right'
+                    ? Math.min(colIndex + 1, columns.length - 1)
+                    : Math.max(colIndex - 1, 0);
+                if (targetColIndex === colIndex) return;
+                const targetCol = columns[targetColIndex];
+                const targetCards = Array.from(targetCol.querySelectorAll('.task:not(.hidden)'));
+                if (targetCards.length === 0) return;
+                const targetGlobalIndex = cards.indexOf(targetCards[0]);
+                if (targetGlobalIndex >= 0) setFocusedTask(targetGlobalIndex);
+            }
+        }
+
+        function getFocusedTaskId() {
+            const cards = getVisibleTaskCards();
+            if (focusedTaskIndex < 0 || focusedTaskIndex >= cards.length) return null;
+            return cards[focusedTaskIndex].dataset.id;
+        }
 
         async function init() {
             const data = await ipcRenderer.invoke('load-data');
@@ -2522,6 +2578,7 @@
         }
 
         function renderBoard() {
+            focusedTaskIndex = -1;
             if (currentView === 'tags') {
                 renderTagView();
             } else {
@@ -3062,13 +3119,75 @@
         });
 
         document.addEventListener('keydown', e => {
+            const editModal = document.getElementById('edit-modal');
+            const tagModal = document.getElementById('tag-modal');
+            const summaryModal = document.getElementById('summary-modal');
+            const quickAddModal = document.getElementById('quick-add-modal');
+            const tagSelectorModal = document.getElementById('task-tag-selector-modal');
+            const preview = document.getElementById('image-preview-overlay');
+
+            const anyModalOpen = editModal.classList.contains('show')
+                || tagModal.classList.contains('show')
+                || summaryModal.classList.contains('show')
+                || quickAddModal.classList.contains('show')
+                || tagSelectorModal.classList.contains('show');
+
             if (e.key === 'Escape') {
-                const preview = document.getElementById('image-preview-overlay');
                 if (preview.classList.contains('show')) {
                     preview.classList.remove('show');
                     return;
                 }
-                closeEditModal(); closeTagManager(); closeSummaryViewer(); closeQuickAdd(); closeTaskTagSelector();
+                if (anyModalOpen) {
+                    closeEditModal(); closeTagManager(); closeSummaryViewer(); closeQuickAdd(); closeTaskTagSelector();
+                    return;
+                }
+                setFocusedTask(-1);
+                return;
+            }
+
+            // Skip keyboard nav if modal open or typing in input
+            const active = document.activeElement;
+            const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'
+                || active.contentEditable === 'true');
+            if (anyModalOpen || isTyping) return;
+
+            if (e.key === 'ArrowDown' || e.key === 'j') {
+                e.preventDefault();
+                moveFocus('down');
+            } else if (e.key === 'ArrowUp' || e.key === 'k') {
+                e.preventDefault();
+                moveFocus('up');
+            } else if (e.key === 'ArrowLeft' || e.key === 'h') {
+                e.preventDefault();
+                moveFocus('left');
+            } else if (e.key === 'ArrowRight' || e.key === 'l') {
+                e.preventDefault();
+                moveFocus('right');
+            } else if (e.key === 'Enter') {
+                const taskId = getFocusedTaskId();
+                if (taskId) { e.preventDefault(); editTask(taskId); }
+            } else if (e.key === 'd') {
+                const taskId = getFocusedTaskId();
+                if (taskId) {
+                    e.preventDefault();
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                        const newStatus = task.status === 'done' ? 'todo' : 'done';
+                        moveTask(taskId, newStatus);
+                        renderBoard();
+                    }
+                }
+            } else if (e.key === 'x') {
+                const taskId = getFocusedTaskId();
+                if (taskId) { e.preventDefault(); deleteTask(taskId); }
+            } else if (e.key === 'e') {
+                const taskId = getFocusedTaskId();
+                if (taskId) {
+                    e.preventDefault();
+                    const card = document.querySelector(`.task[data-id="${taskId}"]`);
+                    const dueBadge = card?.querySelector('.task-due');
+                    if (dueBadge) openInlineDatePicker(taskId, dueBadge);
+                }
             }
         });
 
