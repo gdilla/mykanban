@@ -1088,8 +1088,15 @@
             border: 3px solid var(--shadow-color);
             box-shadow: 8px 8px 0 var(--shadow-color);
             max-height: 80vh;
-            overflow-y: auto;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
             animation: modalSlideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
         }
         @keyframes modalSlideDown {
             from { opacity: 0; transform: translateY(-40px); }
@@ -1139,6 +1146,8 @@
             margin-top: 28px;
             padding-top: 20px;
             border-top: 1px dashed var(--border-subtle);
+            flex-shrink: 0;
+            background: var(--surface-card);
         }
         .modal-btn {
             font-family: var(--font-display);
@@ -1461,21 +1470,23 @@
     <div class="modal" id="edit-modal">
         <div class="modal-content">
             <h2 class="modal-title">Edit Task</h2>
-            <div class="modal-field"><label>Title</label><input type="text" id="edit-title"></div>
-            <div class="modal-field">
-                <label>Description</label>
-                <textarea id="edit-description" style="min-height: 120px;"></textarea>
-                <div class="paste-hint">Paste images with ⌘V or <button class="attach-file-btn" onclick="triggerFileAttach()">attach files</button></div>
-                <input type="file" id="file-attach-input" multiple style="display:none">
-            </div>
-            <div class="modal-field" id="edit-images-field" style="display: none;">
-                <label>Attachments</label>
-                <div class="image-attachments" id="edit-image-attachments"></div>
-            </div>
-            <div class="modal-field"><label>Due Date</label><input type="text" id="edit-due-date"></div>
-            <div class="modal-field">
-                <label>Tags</label>
-                <div class="tag-selector" id="edit-tag-selector"></div>
+            <div class="modal-body">
+                <div class="modal-field"><label>Title</label><input type="text" id="edit-title"></div>
+                <div class="modal-field">
+                    <label>Description</label>
+                    <textarea id="edit-description" style="min-height: 120px;"></textarea>
+                    <div class="paste-hint">Paste images with ⌘V or <button class="attach-file-btn" onclick="triggerFileAttach()">attach files</button></div>
+                    <input type="file" id="file-attach-input" multiple style="display:none">
+                </div>
+                <div class="modal-field" id="edit-images-field" style="display: none;">
+                    <label>Attachments</label>
+                    <div class="image-attachments" id="edit-image-attachments"></div>
+                </div>
+                <div class="modal-field"><label>Due Date</label><input type="text" id="edit-due-date"></div>
+                <div class="modal-field">
+                    <label>Tags</label>
+                    <div class="tag-selector" id="edit-tag-selector"></div>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeEditModal()">Cancel</button>
@@ -1488,11 +1499,13 @@
     <div class="modal" id="tag-modal">
         <div class="modal-content">
             <h2 class="modal-title">Manage Tags</h2>
-            <div class="tag-list" id="tag-list"></div>
-            <div class="add-tag-row">
-                <input type="text" class="add-tag-input" id="new-tag-name" placeholder="New tag name...">
-                <input type="color" class="add-tag-color" id="new-tag-color" value="#6bcb77">
-                <button class="add-tag-btn" onclick="addNewTag()">Add Tag</button>
+            <div class="modal-body">
+                <div class="tag-list" id="tag-list"></div>
+                <div class="add-tag-row">
+                    <input type="text" class="add-tag-input" id="new-tag-name" placeholder="New tag name...">
+                    <input type="color" class="add-tag-color" id="new-tag-color" value="#6bcb77">
+                    <button class="add-tag-btn" onclick="addNewTag()">Add Tag</button>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeTagManager()">Close</button>
@@ -1504,10 +1517,12 @@
     <div class="modal" id="summary-modal">
         <div class="modal-content" style="width: 700px;">
             <h2 class="modal-title">Historical Summaries</h2>
-            <div class="summary-viewer">
-                <div class="summary-list" id="summary-list"></div>
-                <div class="summary-content" id="summary-content">
-                    <p class="summary-placeholder">Select a summary to view</p>
+            <div class="modal-body">
+                <div class="summary-viewer">
+                    <div class="summary-list" id="summary-list"></div>
+                    <div class="summary-content" id="summary-content">
+                        <p class="summary-placeholder">Select a summary to view</p>
+                    </div>
                 </div>
             </div>
             <div class="modal-actions">
@@ -1520,31 +1535,33 @@
     <div class="modal" id="quick-add-modal">
         <div class="modal-content" style="width: 400px;">
             <h2 class="modal-title">Quick Add Task</h2>
-            <div class="modal-field">
-                <label>Title</label>
-                <input type="text" id="quick-add-input" placeholder="What needs to be done?">
-            </div>
-            <div class="modal-field" id="quick-add-desc-field" style="display: none;">
-                <label>Description</label>
-                <textarea id="quick-add-description" placeholder="Add more details..." style="min-height: 80px;"></textarea>
-            </div>
-            <div class="modal-field" id="quick-add-desc-link">
-                <a href="#" onclick="showQuickAddDescription(); return false;" style="font-size: 0.8rem; color: var(--text-secondary);">+ Add description</a>
-            </div>
-            <div class="modal-field">
-                <input type="text" id="quick-add-date" placeholder="Due date">
-            </div>
-            <div class="modal-field">
-                <label>Status</label>
-                <select id="quick-add-status" class="quick-add-select">
-                    <option value="todo" selected>To Do</option>
-                    <option value="doing">In Progress</option>
-                    <option value="done">Done</option>
-                </select>
-            </div>
-            <div class="modal-field">
-                <label>Tags</label>
-                <div class="tag-selector" id="quick-add-tag-selector"></div>
+            <div class="modal-body">
+                <div class="modal-field">
+                    <label>Title</label>
+                    <input type="text" id="quick-add-input" placeholder="What needs to be done?">
+                </div>
+                <div class="modal-field" id="quick-add-desc-field" style="display: none;">
+                    <label>Description</label>
+                    <textarea id="quick-add-description" placeholder="Add more details..." style="min-height: 80px;"></textarea>
+                </div>
+                <div class="modal-field" id="quick-add-desc-link">
+                    <a href="#" onclick="showQuickAddDescription(); return false;" style="font-size: 0.8rem; color: var(--text-secondary);">+ Add description</a>
+                </div>
+                <div class="modal-field">
+                    <input type="text" id="quick-add-date" placeholder="Due date">
+                </div>
+                <div class="modal-field">
+                    <label>Status</label>
+                    <select id="quick-add-status" class="quick-add-select">
+                        <option value="todo" selected>To Do</option>
+                        <option value="doing">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>Tags</label>
+                    <div class="tag-selector" id="quick-add-tag-selector"></div>
+                </div>
             </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeQuickAdd()">Cancel</button>
@@ -1557,7 +1574,9 @@
     <div class="modal" id="task-tag-modal">
         <div class="modal-content" style="width: 350px;">
             <h2 class="modal-title">Select Tags</h2>
-            <div class="tag-selector" id="task-tag-selector"></div>
+            <div class="modal-body">
+                <div class="tag-selector" id="task-tag-selector"></div>
+            </div>
             <div class="modal-actions">
                 <button class="modal-btn cancel" onclick="closeTaskTagSelector()">Cancel</button>
                 <button class="modal-btn save" onclick="saveTaskTags()">Save</button>
@@ -1947,16 +1966,19 @@
                 loadCardThumbnails(div, task);
             }
 
-            // Clicking anywhere on card content opens edit modal
+            // Clicking card content opens edit modal (with delay to allow double-click)
+            let clickTimer = null;
             div.querySelector('.task-content').onclick = (e) => {
                 e.stopPropagation();
-                editTask(task.id);
+                if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; return; }
+                clickTimer = setTimeout(() => { clickTimer = null; editTask(task.id); }, 250);
             };
 
             // Double click on title starts inline editing
             const titleEl = div.querySelector('.task-title');
             titleEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
+                if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
                 startInlineEdit(task.id, titleEl);
             });
 
@@ -3036,6 +3058,13 @@
             } else {
                 renderStatusView();
             }
+            // Click on board background blurs active input so keyboard nav works
+            const board = document.querySelector('.board');
+            board.addEventListener('click', (e) => {
+                if (e.target === board || e.target.classList.contains('column') || e.target.classList.contains('task-list')) {
+                    document.activeElement?.blur();
+                }
+            });
         }
 
         // Legacy function for compatibility
