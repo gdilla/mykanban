@@ -461,6 +461,71 @@
             color: var(--surface-card);
         }
 
+        /* Quick status buttons on hover */
+        .task-status-actions {
+            position: absolute;
+            top: 8px;
+            right: 36px;
+            display: flex;
+            gap: 3px;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            z-index: 2;
+        }
+        .task:hover .task-status-actions { opacity: 1; }
+        .task-status-action {
+            width: 22px;
+            height: 22px;
+            border: 1px solid var(--shadow-color);
+            background: var(--surface-card);
+            cursor: pointer;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-fast);
+            border-radius: 0;
+            padding: 0;
+        }
+        .task-status-action:hover {
+            background: var(--shadow-color);
+            color: white;
+        }
+        .task-status-action.status-todo { color: var(--accent-todo); }
+        .task-status-action.status-doing { color: var(--accent-progress); }
+        .task-status-action.status-done { color: var(--accent-done); }
+
+        /* Custom context menu */
+        .context-menu {
+            position: fixed;
+            background: var(--surface-card);
+            border: 2px solid var(--shadow-color);
+            box-shadow: 4px 4px 0 var(--shadow-color);
+            z-index: 10000;
+            min-width: 160px;
+            display: none;
+            font-family: var(--font-display);
+        }
+        .context-menu.show { display: block; }
+        .context-menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 1px solid var(--border-subtle);
+            transition: background var(--transition-fast);
+        }
+        .context-menu-item:last-child { border-bottom: none; }
+        .context-menu-item:hover {
+            background: var(--bg-primary);
+        }
+        .context-menu-separator {
+            height: 1px;
+            background: var(--border-subtle);
+        }
+
         /* Inline editing */
         .inline-edit-input {
             font-family: var(--font-body);
@@ -1397,6 +1462,9 @@
         <img id="image-preview-img" src="" alt="Preview">
     </div>
 
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         const { ipcRenderer } = require('electron');
@@ -1733,8 +1801,19 @@
                 contentHtml += `<div class="task-description-snippet">${escapeHtml(descSnippet)}</div>`;
             }
 
+            const statusActions = [
+                { status: 'todo', label: '📋', title: 'Move to To Do' },
+                { status: 'doing', label: '🔄', title: 'Move to In Progress' },
+                { status: 'done', label: '✅', title: 'Move to Done' }
+            ].filter(s => s.status !== task.status);
+
+            const statusActionsHtml = `<div class="task-status-actions">${statusActions.map(s =>
+                `<button class="task-status-action status-${s.status}" onclick="event.stopPropagation(); moveTask('${task.id}', '${s.status}'); renderBoard();" title="${s.title}">${s.label}</button>`
+            ).join('')}</div>`;
+
             div.innerHTML = `
                 <button class="task-delete-btn" onclick="event.stopPropagation(); deleteTask('${task.id}')" title="Delete">🗑️</button>
+                ${statusActionsHtml}
                 <div class="task-content">${contentHtml}</div>
                 ${tagsHtml}
                 <div class="task-meta">
@@ -1771,6 +1850,7 @@
 
             div.addEventListener('dragstart', handleDragStart);
             div.addEventListener('dragend', handleDragEnd);
+            div.addEventListener('contextmenu', (e) => showContextMenu(e, task.id));
             return div;
         }
 
@@ -1830,6 +1910,82 @@
             titleEl.addEventListener('keydown', handleKey);
             titleEl.addEventListener('blur', handleBlur);
         }
+
+        function showContextMenu(e, taskId) {
+            e.preventDefault();
+            e.stopPropagation();
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const menu = document.getElementById('context-menu');
+            const statusOptions = [
+                { label: 'Move to To Do', status: 'todo', icon: '📋' },
+                { label: 'Move to In Progress', status: 'doing', icon: '🔄' },
+                { label: 'Move to Done', status: 'done', icon: '✅' }
+            ].filter(opt => opt.status !== task.status);
+
+            menu.innerHTML = statusOptions.map(opt =>
+                `<div class="context-menu-item" data-action="move" data-status="${opt.status}" data-task-id="${taskId}">${opt.icon} ${opt.label}</div>`
+            ).join('')
+            + `<div class="context-menu-separator"></div>`
+            + `<div class="context-menu-item" data-action="edit" data-task-id="${taskId}">✏️ Edit</div>`
+            + `<div class="context-menu-item" data-action="duplicate" data-task-id="${taskId}">📄 Duplicate</div>`
+            + `<div class="context-menu-item" data-action="delete" data-task-id="${taskId}">🗑️ Delete</div>`;
+
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+            menu.classList.add('show');
+
+            const rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth) menu.style.left = (window.innerWidth - rect.width - 8) + 'px';
+            if (rect.bottom > window.innerHeight) menu.style.top = (window.innerHeight - rect.height - 8) + 'px';
+
+            menu.onclick = (ev) => {
+                const item = ev.target.closest('.context-menu-item');
+                if (!item) return;
+                const action = item.dataset.action;
+                const tid = item.dataset.taskId;
+                if (action === 'move') {
+                    moveTask(tid, item.dataset.status);
+                    renderBoard();
+                } else if (action === 'edit') {
+                    editTask(tid);
+                } else if (action === 'duplicate') {
+                    duplicateTask(tid);
+                } else if (action === 'delete') {
+                    deleteTask(tid);
+                }
+                hideContextMenu();
+            };
+        }
+
+        function hideContextMenu() {
+            document.getElementById('context-menu').classList.remove('show');
+        }
+
+        function duplicateTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+            const newTask = {
+                ...JSON.parse(JSON.stringify(task)),
+                id: generateId(),
+                title: task.title + ' (copy)',
+                createdAt: new Date().toISOString(),
+                startedAt: null,
+                completedAt: null,
+                timeSpent: 0,
+                sortOrder: (tasks.filter(t => t.status === task.status).length) * 1000
+            };
+            newTask.attachments = [];
+            tasks.push(newTask);
+            saveData();
+            renderBoard();
+        }
+
+        document.addEventListener('click', hideContextMenu);
+        document.addEventListener('contextmenu', (e) => {
+            if (!e.target.closest('.task')) hideContextMenu();
+        });
 
         function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
