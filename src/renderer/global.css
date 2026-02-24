@@ -1,32 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* Task card brutalist styles */
+/* Task card — clean, elevated, no clip-path jank */
 .task-card {
   position: relative;
-  clip-path: polygon(
-    0% 2%, 2% 0%, 98% 1%, 100% 2%,
-    99% 98%, 97% 100%, 3% 99%, 0% 97%
-  );
-}
-
-.task-card:nth-child(odd) {
-  transform: rotate(-0.5deg);
-}
-
-.task-card:nth-child(even) {
-  transform: rotate(0.5deg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .task-card:hover {
-  transform: rotate(0deg) translateY(-4px) !important;
-  box-shadow: 6px 6px 0 #0d0d1a !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
 }
 
 .task-card.focused {
-  outline: 3px solid #a78bfa;
+  outline: 2px solid #818cf8;
   outline-offset: 2px;
-  transform: rotate(0deg) !important;
-  box-shadow: 6px 6px 0 #0d0d1a !important;
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.2) !important;
   z-index: 10;
 }
 
@@ -42,27 +30,18 @@
 
 /* Task meta separator */
 .task-meta-bar {
-  border-top: 1px dashed #3a3a5c;
+  border-top: 1px solid #2a2a2a;
   padding-top: 10px;
   margin-top: 10px;
 }
 
-/* Scrollbar styling - dark */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #3a3a5c;
-  border-radius: 0;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #5a5a8c;
-}
+/* Scrollbar — minimal dark */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #3d3d3d; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
 
-/* Quick action buttons fade */
+/* Quick action buttons */
 .task-quick-actions {
   opacity: 0;
   transition: opacity 0.15s ease;

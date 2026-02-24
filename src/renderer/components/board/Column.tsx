@@ -23,63 +23,32 @@ interface ColumnProps {
 
 export default function Column({ columnId, title, color, tasks, showAddForm }: ColumnProps) {
   const { setNodeRef } = useDroppable({ id: `column-${columnId}` })
-  const borderColor = color || STATUS_COLORS[columnId] || c.textMuted
+  const accentColor = color || STATUS_COLORS[columnId] || c.textMuted
 
   return (
-    <Box
-      className={`column-status-${columnId}`}
-      flex="1"
-      minW="300px"
-      display="flex"
-      flexDir="column"
-      minH="calc(100vh - 300px)"
-    >
+    <Box flex="1" minW="300px" display="flex" flexDir="column" minH="calc(100vh - 280px)">
+      {/* Column header */}
       <Flex
-        justify="space-between"
-        align="center"
-        mb={5}
-        p="16px 20px"
-        bg={c.surface}
-        border={`2px solid ${c.borderStrong}`}
-        boxShadow={`4px 4px 0 ${c.shadow}`}
-        borderLeft={`6px solid ${borderColor}`}
+        justify="space-between" align="center" mb={4} p="14px 18px"
+        bg={c.surface} border={`1px solid ${c.borderStrong}`} borderRadius="10px"
+        borderLeft={`4px solid ${accentColor}`}
       >
-        <Text
-          fontFamily="heading"
-          fontWeight={700}
-          fontSize="1rem"
-          textTransform="uppercase"
-          letterSpacing="0.1em"
-          color={c.text}
-        >
+        <Text fontFamily="heading" fontWeight={700} fontSize="0.9rem" textTransform="uppercase" letterSpacing="0.08em" color={c.text}>
           {title}
         </Text>
         <Text
-          fontFamily="heading"
-          fontWeight={700}
-          bg={borderColor}
-          color={borderColor === c.doing ? '#1a1a2e' : '#fff'}
-          px={3}
-          py="4px"
-          fontSize="0.85rem"
+          fontFamily="heading" fontWeight={700} fontSize="0.75rem"
+          bg={accentColor} color={accentColor === c.doing ? '#0c0c0c' : '#fff'}
+          px={2.5} py="3px" borderRadius="4px"
         >
           {tasks.length}
         </Text>
       </Flex>
 
+      {/* Task list */}
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <Box
-          ref={setNodeRef}
-          flex="1"
-          minH="100px"
-          maxH="calc(100vh - 380px)"
-          overflowY="auto"
-          display="flex"
-          flexDir="column"
-          gap={4}
-          p={2}
-          pb="80px"
-        >
+        <Box ref={setNodeRef} flex="1" minH="80px" maxH="calc(100vh - 360px)" overflowY="auto"
+          display="flex" flexDir="column" gap={3} px={1} pb="60px">
           {tasks.map(task => (
             <TaskCard key={task.id} task={task} />
           ))}

@@ -15,11 +15,8 @@ function formatAge(createdAt: string): string {
 }
 
 function formatDue(dueDate: string): { label: string; isOverdue: boolean; isSoon: boolean } {
-  const now = new Date()
-  const due = new Date(dueDate + 'T23:59:59')
-  const diff = due.getTime() - now.getTime()
+  const diff = new Date(dueDate + 'T23:59:59').getTime() - Date.now()
   const days = Math.ceil(diff / 86400000)
-
   if (days < 0) return { label: `${Math.abs(days)}d overdue`, isOverdue: true, isSoon: false }
   if (days === 0) return { label: 'today', isOverdue: false, isSoon: true }
   if (days === 1) return { label: 'tomorrow', isOverdue: false, isSoon: true }
@@ -35,68 +32,29 @@ function formatTime(ms: number): string {
   return `${minutes}m`
 }
 
-const badgeBase = {
-  fontFamily: `'JetBrains Mono', monospace`,
-  fontSize: '0.7rem',
-  px: '8px',
-  py: '4px',
-}
-
 export default function TaskBadges({ task }: { task: Task }) {
   const { state } = useApp()
   const isTimerActive = state.activeTimerTaskId === task.id
-
-  const age = formatAge(task.createdAt)
   const due = task.dueDate ? formatDue(task.dueDate) : null
+
+  const badge = (bg: string, color: string, text: string, className?: string) => (
+    <Box fontFamily="body" fontSize="0.68rem" px="7px" py="3px" borderRadius="4px"
+      bg={bg} color={color} className={className}>
+      {text}
+    </Box>
+  )
 
   return (
     <Flex gap={2} flexWrap="wrap">
-      {task.status !== 'done' && (
-        <Box {...badgeBase} bg={c.bg} border={`1px solid ${c.border}`} color={c.textSecondary}>
-          {age}
-        </Box>
+      {task.status !== 'done' && badge(c.surface, c.textMuted, formatAge(task.createdAt))}
+      {due && task.status !== 'done' && badge(
+        due.isOverdue ? c.todoSoft : due.isSoon ? c.doingSoft : c.surface,
+        due.isOverdue ? c.todo : due.isSoon ? c.doing : c.textMuted,
+        due.label
       )}
-
-      {due && task.status !== 'done' && (
-        <Box
-          {...badgeBase}
-          bg={due.isOverdue ? c.todo : due.isSoon ? c.doing : c.bg}
-          color={due.isOverdue ? '#fff' : due.isSoon ? '#1a1a2e' : c.textSecondary}
-          border={`1px solid ${due.isOverdue ? c.todo : due.isSoon ? c.doing : c.border}`}
-          cursor="pointer"
-        >
-          {due.label}
-        </Box>
-      )}
-
-      {task.timeSpent > 0 && (
-        <Box
-          {...badgeBase}
-          bg={c.doneSoft}
-          border={`1px solid ${c.done}`}
-          color={c.done}
-        >
-          {formatTime(task.timeSpent)}
-        </Box>
-      )}
-
-      {isTimerActive && (
-        <Box
-          {...badgeBase}
-          className="timer-badge"
-          bg={c.done}
-          border={`1px solid ${c.done}`}
-          color="#fff"
-        >
-          tracking
-        </Box>
-      )}
-
-      {task.attachments.length > 0 && (
-        <Box {...badgeBase} bg={c.bg} border={`1px solid ${c.border}`} color={c.textSecondary}>
-          {task.attachments.length} file{task.attachments.length > 1 ? 's' : ''}
-        </Box>
-      )}
+      {task.timeSpent > 0 && badge(c.doneSoft, c.done, formatTime(task.timeSpent))}
+      {isTimerActive && badge(c.done, '#fff', '● tracking', 'timer-badge')}
+      {task.attachments.length > 0 && badge(c.surface, c.textMuted, `${task.attachments.length} file${task.attachments.length > 1 ? 's' : ''}`)}
     </Flex>
   )
 }

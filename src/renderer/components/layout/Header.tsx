@@ -1,5 +1,5 @@
 import React from 'react'
-import { Flex, Heading, Box, Button, Text } from '@chakra-ui/react'
+import { Flex, Heading, Button, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
 
@@ -7,77 +7,54 @@ export default function Header() {
   const { state, dispatch } = useApp()
 
   return (
-    <Flex
-      as="header"
-      align="center"
-      justify="space-between"
-      mb={8}
-      pb={6}
-      borderBottom={`3px solid ${c.borderStrong}`}
-    >
-      <Flex align="center" gap={6}>
-        <Heading
-          as="h1"
-          fontFamily="heading"
-          fontWeight={700}
-          fontSize="2.5rem"
-          letterSpacing="-0.02em"
-          textTransform="uppercase"
-          color={c.text}
-        >
+    <Flex as="header" align="center" justify="space-between" mb={6} pb={5} borderBottom={`1px solid ${c.border}`}>
+      <Flex align="center" gap={5}>
+        <Heading as="h1" fontFamily="heading" fontWeight={700} fontSize="1.8rem" letterSpacing="-0.02em" textTransform="uppercase" color={c.text}>
           Kanban
         </Heading>
-        <Text fontSize="0.75rem" color={c.textMuted} fontFamily="body">
-          <Text as="kbd" bg={c.surface} border={`1px solid ${c.border}`} borderRadius="3px" px={1.5} py={0.5} fontSize="0.7rem" boxShadow={`0 1px 0 ${c.border}`} color={c.textSecondary}>↑↓←→</Text> nav{' · '}
-          <Text as="kbd" bg={c.surface} border={`1px solid ${c.border}`} borderRadius="3px" px={1.5} py={0.5} fontSize="0.7rem" boxShadow={`0 1px 0 ${c.border}`} color={c.textSecondary}>Enter</Text> edit{' · '}
-          <Text as="kbd" bg={c.surface} border={`1px solid ${c.border}`} borderRadius="3px" px={1.5} py={0.5} fontSize="0.7rem" boxShadow={`0 1px 0 ${c.border}`} color={c.textSecondary}>d</Text> done{' · '}
-          <Text as="kbd" bg={c.surface} border={`1px solid ${c.border}`} borderRadius="3px" px={1.5} py={0.5} fontSize="0.7rem" boxShadow={`0 1px 0 ${c.border}`} color={c.textSecondary}>⌘K</Text> search
-        </Text>
+        <Flex gap={1} align="center" flexWrap="wrap">
+          {[
+            ['↑↓←→', 'nav'],
+            ['Enter', 'edit'],
+            ['d', 'done'],
+            ['⌘K', 'search'],
+          ].map(([key, label]) => (
+            <Flex key={key} align="center" gap={1}>
+              <Text as="kbd" bg={c.card} border={`1px solid ${c.borderStrong}`} borderRadius="4px" px={1.5} py={0.5} fontSize="0.65rem" color={c.textSecondary} fontFamily="body">
+                {key}
+              </Text>
+              <Text fontSize="0.65rem" color={c.textMuted} mr={2}>{label}</Text>
+            </Flex>
+          ))}
+        </Flex>
       </Flex>
 
-      <Flex gap={0} align="center">
-        <Flex mr={4}>
-          <Button
-            size="md"
-            bg={state.currentView === 'status' ? c.accent : c.surface}
-            color={state.currentView === 'status' ? '#fff' : c.text}
-            border={`2px solid ${c.borderStrong}`}
-            borderRight="none"
-            borderRadius="0"
-            fontFamily="heading"
-            fontWeight={500}
-            fontSize="0.85rem"
-            textTransform="uppercase"
-            letterSpacing="0.05em"
-            onClick={() => dispatch({ type: 'SET_VIEW', view: 'status' })}
-            _hover={{ bg: state.currentView === 'status' ? c.accent : c.surfaceHover }}
-          >
-            Status
-          </Button>
-          <Button
-            size="md"
-            bg={state.currentView === 'tags' ? c.accent : c.surface}
-            color={state.currentView === 'tags' ? '#fff' : c.text}
-            border={`2px solid ${c.borderStrong}`}
-            borderRadius="0"
-            fontFamily="heading"
-            fontWeight={500}
-            fontSize="0.85rem"
-            textTransform="uppercase"
-            letterSpacing="0.05em"
-            onClick={() => dispatch({ type: 'SET_VIEW', view: 'tags' })}
-            _hover={{ bg: state.currentView === 'tags' ? c.accent : c.surfaceHover }}
-          >
-            Tags
-          </Button>
+      <Flex gap={2} align="center">
+        <Flex bg={c.surface} borderRadius="8px" border={`1px solid ${c.borderStrong}`} overflow="hidden">
+          {(['status', 'tags'] as const).map(view => (
+            <Button
+              key={view}
+              size="sm"
+              bg={state.currentView === view ? c.accent : 'transparent'}
+              color={state.currentView === view ? '#fff' : c.textSecondary}
+              borderRadius="0"
+              border="none"
+              fontFamily="heading"
+              fontWeight={600}
+              fontSize="0.8rem"
+              textTransform="uppercase"
+              px={5}
+              onClick={() => dispatch({ type: 'SET_VIEW', view })}
+              _hover={{ bg: state.currentView === view ? c.accent : c.card }}
+            >
+              {view}
+            </Button>
+          ))}
         </Flex>
-
-        <Button variant="brutalist-outline" size="md" mr={3}
-          onClick={() => window.dispatchEvent(new CustomEvent('open-tag-manager'))}>
-          Manage Tags
+        <Button variant="brutalist-outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('open-tag-manager'))}>
+          Tags
         </Button>
-        <Button variant="brutalist-outline" size="md"
-          onClick={() => window.dispatchEvent(new CustomEvent('open-summary-viewer'))}>
+        <Button variant="brutalist-outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('open-summary-viewer'))}>
           Summaries
         </Button>
       </Flex>

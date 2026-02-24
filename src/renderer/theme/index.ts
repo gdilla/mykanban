@@ -1,29 +1,42 @@
 import { extendTheme } from '@chakra-ui/react'
 
-// Dark brutalist color palette
+// Proper dark theme with clear visual layers
+// bg (darkest) → surface (mid) → card (lightest) = clear depth
 const c = {
-  bg: '#1a1a2e',
-  bgGrid: '#16213e',
-  surface: '#1e1e3a',
-  surfaceHover: '#25254a',
-  card: '#222244',
-  cardHover: '#2a2a55',
-  border: '#3a3a5c',
-  borderStrong: '#5a5a8c',
-  shadow: '#0d0d1a',
-  text: '#e8e6f0',
-  textSecondary: '#9896b0',
-  textMuted: '#6b6988',
-  todo: '#ff6b6b',
-  todoSoft: '#ff6b6b22',
-  doing: '#ffd93d',
-  doingSoft: '#ffd93d22',
-  done: '#6bcb77',
-  doneSoft: '#6bcb7722',
-  accent: '#a78bfa',
-  accentSoft: '#a78bfa22',
-  danger: '#ff4757',
-  timeGreen: '#6bcb77',
+  // Layered backgrounds — each step lighter for depth
+  bg: '#0c0c0c',            // true dark
+  surface: '#161616',       // panels, filter bar
+  card: '#1e1e1e',          // task cards — clearly pops off bg
+  cardHover: '#262626',     // hover state
+
+  // Borders — visible but not harsh
+  border: '#2a2a2a',
+  borderStrong: '#3d3d3d',
+  borderAccent: '#4a4a4a',
+
+  // Shadow
+  shadow: '#000000',
+
+  // Text — good contrast on dark
+  text: '#ececec',
+  textSecondary: '#a0a0a0',
+  textMuted: '#666666',
+
+  // Status colors — vivid, high contrast on dark
+  todo: '#ff5c5c',
+  todoSoft: 'rgba(255, 92, 92, 0.12)',
+  doing: '#ffb347',
+  doingSoft: 'rgba(255, 179, 71, 0.12)',
+  done: '#4ade80',
+  doneSoft: 'rgba(74, 222, 128, 0.12)',
+
+  // Accent
+  accent: '#818cf8',        // indigo — buttons, focus, active states
+  accentHover: '#6366f1',
+  accentSoft: 'rgba(129, 140, 248, 0.15)',
+
+  // Misc
+  danger: '#ef4444',
 }
 
 const theme = extendTheme({
@@ -42,10 +55,10 @@ const theme = extendTheme({
         color: c.text,
         fontFamily: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
         backgroundImage: `
-          linear-gradient(90deg, ${c.border}33 1px, transparent 1px),
-          linear-gradient(${c.border}33 1px, transparent 1px)
+          linear-gradient(90deg, ${c.border}55 1px, transparent 1px),
+          linear-gradient(${c.border}55 1px, transparent 1px)
         `,
-        backgroundSize: '40px 40px',
+        backgroundSize: '48px 48px',
         minHeight: '100vh',
       },
     },
@@ -54,55 +67,41 @@ const theme = extendTheme({
     Button: {
       baseStyle: {
         fontFamily: `'Space Grotesk', -apple-system, sans-serif`,
-        fontWeight: 500,
-        borderRadius: '0',
+        fontWeight: 600,
+        borderRadius: '6px',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
-        fontSize: '0.85rem',
+        fontSize: '0.8rem',
       },
       variants: {
         brutalist: {
           bg: c.accent,
           color: '#fff',
-          border: '2px solid',
-          borderColor: c.borderStrong,
-          boxShadow: `3px 3px 0 ${c.shadow}`,
+          border: 'none',
           _hover: {
-            transform: 'translate(-2px, -2px)',
-            boxShadow: `5px 5px 0 ${c.shadow}`,
-            bg: '#b89cfc',
+            bg: c.accentHover,
+            transform: 'translateY(-1px)',
+            boxShadow: `0 4px 12px ${c.accent}44`,
           },
           _active: {
-            transform: 'translate(0, 0)',
-            boxShadow: `0 0 0 ${c.shadow}`,
+            transform: 'translateY(0)',
           },
         },
         'brutalist-outline': {
-          bg: c.surface,
+          bg: 'transparent',
           color: c.text,
-          border: '2px solid',
-          borderColor: c.borderStrong,
-          boxShadow: `3px 3px 0 ${c.shadow}`,
+          border: `1px solid ${c.borderStrong}`,
           _hover: {
-            transform: 'translate(-2px, -2px)',
-            boxShadow: `5px 5px 0 ${c.shadow}`,
-            bg: c.surfaceHover,
-          },
-          _active: {
-            transform: 'translate(0, 0)',
-            boxShadow: `0 0 0 ${c.shadow}`,
+            bg: c.surface,
+            borderColor: c.borderAccent,
           },
         },
         'brutalist-danger': {
           bg: c.danger,
           color: 'white',
-          border: '2px solid',
-          borderColor: c.borderStrong,
-          boxShadow: `3px 3px 0 ${c.shadow}`,
+          border: 'none',
           _hover: {
-            bg: '#ff2234',
-            transform: 'translate(-2px, -2px)',
-            boxShadow: `5px 5px 0 ${c.shadow}`,
+            bg: '#dc2626',
           },
         },
       },
@@ -110,21 +109,19 @@ const theme = extendTheme({
     Modal: {
       baseStyle: {
         dialog: {
-          bg: c.card,
-          border: '3px solid',
-          borderColor: c.borderStrong,
-          borderRadius: '0',
-          boxShadow: `8px 8px 0 ${c.shadow}`,
+          bg: c.surface,
+          border: `1px solid ${c.borderStrong}`,
+          borderRadius: '12px',
+          boxShadow: `0 24px 48px rgba(0,0,0,0.5)`,
           color: c.text,
         },
         header: {
           fontFamily: `'Space Grotesk', -apple-system, sans-serif`,
           fontWeight: 700,
-          fontSize: '1.5rem',
+          fontSize: '1.3rem',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
-          borderBottom: '2px solid',
-          borderColor: c.borderStrong,
+          borderBottom: `1px solid ${c.border}`,
           pb: 4,
           color: c.text,
         },
@@ -132,12 +129,12 @@ const theme = extendTheme({
           pt: 6,
         },
         footer: {
-          borderTop: `1px dashed ${c.border}`,
+          borderTop: `1px solid ${c.border}`,
           pt: 5,
         },
         closeButton: {
-          color: c.textSecondary,
-          _hover: { color: c.text },
+          color: c.textMuted,
+          _hover: { color: c.text, bg: c.card },
         },
       },
     },
@@ -145,53 +142,46 @@ const theme = extendTheme({
       variants: {
         brutalist: {
           field: {
-            border: '2px solid',
-            borderColor: c.borderStrong,
-            borderRadius: '0',
+            border: `1px solid ${c.borderStrong}`,
+            borderRadius: '6px',
             bg: c.bg,
             color: c.text,
             fontFamily: `'JetBrains Mono', monospace`,
             fontSize: '0.9rem',
             _focus: {
-              boxShadow: `3px 3px 0 ${c.shadow}`,
               borderColor: c.accent,
+              boxShadow: `0 0 0 1px ${c.accent}`,
             },
             _placeholder: { color: c.textMuted },
           },
         },
       },
-      defaultProps: {
-        variant: 'brutalist',
-      },
+      defaultProps: { variant: 'brutalist' },
     },
     Textarea: {
       variants: {
         brutalist: {
-          border: '2px solid',
-          borderColor: c.borderStrong,
-          borderRadius: '0',
+          border: `1px solid ${c.borderStrong}`,
+          borderRadius: '6px',
           bg: c.bg,
           color: c.text,
           fontFamily: `'JetBrains Mono', monospace`,
           fontSize: '0.9rem',
           _focus: {
-            boxShadow: `3px 3px 0 ${c.shadow}`,
             borderColor: c.accent,
+            boxShadow: `0 0 0 1px ${c.accent}`,
           },
           _placeholder: { color: c.textMuted },
         },
       },
-      defaultProps: {
-        variant: 'brutalist',
-      },
+      defaultProps: { variant: 'brutalist' },
     },
     Select: {
       variants: {
         brutalist: {
           field: {
-            border: '2px solid',
-            borderColor: c.borderStrong,
-            borderRadius: '0',
+            border: `1px solid ${c.borderStrong}`,
+            borderRadius: '6px',
             bg: c.bg,
             color: c.text,
             fontFamily: `'JetBrains Mono', monospace`,
@@ -199,14 +189,10 @@ const theme = extendTheme({
           },
         },
       },
-      defaultProps: {
-        variant: 'brutalist',
-      },
+      defaultProps: { variant: 'brutalist' },
     },
   },
 })
 
-// Export colors for direct use in components
 export const colors = c
-
 export default theme

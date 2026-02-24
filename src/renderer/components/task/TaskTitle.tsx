@@ -4,12 +4,7 @@ import { Task } from '../../state/types'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
 
-interface TaskTitleProps {
-  task: Task
-  onDoubleClick: () => void
-}
-
-export default function TaskTitle({ task, onDoubleClick }: TaskTitleProps) {
+export default function TaskTitle({ task, onDoubleClick }: { task: Task; onDoubleClick: () => void }) {
   const { dispatch } = useApp()
   const [isEditing, setIsEditing] = useState(false)
   const inputRef = useRef<HTMLSpanElement>(null)
@@ -32,32 +27,16 @@ export default function TaskTitle({ task, onDoubleClick }: TaskTitleProps) {
     setIsEditing(false)
     if (save && inputRef.current) {
       const newTitle = inputRef.current.textContent?.trim() || ''
-      if (newTitle && newTitle !== task.title) {
-        dispatch({ type: 'UPDATE_TASK', id: task.id, updates: { title: newTitle } })
-      }
+      if (newTitle && newTitle !== task.title) dispatch({ type: 'UPDATE_TASK', id: task.id, updates: { title: newTitle } })
     }
   }
 
   if (isEditing) {
     return (
-      <Box
-        ref={inputRef}
-        as="span"
-        contentEditable
-        suppressContentEditableWarning
-        fontFamily="body"
-        fontWeight={500}
-        fontSize="0.9rem"
-        lineHeight="1.5"
-        color={c.text}
-        display="block"
-        outline={`2px solid ${c.accent}`}
-        outlineOffset="2px"
-        bg={c.bg}
-        px={1}
-        py="2px"
-        cursor="text"
-        minH="1.5em"
+      <Box ref={inputRef} as="span" contentEditable suppressContentEditableWarning
+        fontFamily="body" fontWeight={500} fontSize="0.88rem" lineHeight="1.5" color={c.text}
+        display="block" outline={`2px solid ${c.accent}`} outlineOffset="1px"
+        bg={c.bg} px={1} py="2px" borderRadius="4px" cursor="text" minH="1.5em"
         onBlur={() => finishEdit(true)}
         onKeyDown={(e: React.KeyboardEvent) => {
           if (e.key === 'Enter') { e.preventDefault(); finishEdit(true) }
@@ -71,16 +50,8 @@ export default function TaskTitle({ task, onDoubleClick }: TaskTitleProps) {
   }
 
   return (
-    <Text
-      fontFamily="body"
-      fontWeight={500}
-      fontSize="0.9rem"
-      lineHeight="1.5"
-      color={c.text}
-      wordBreak="break-word"
-      onDoubleClick={(e) => { e.stopPropagation(); startEdit() }}
-      cursor="pointer"
-    >
+    <Text fontFamily="body" fontWeight={500} fontSize="0.88rem" lineHeight="1.5" color={c.text}
+      wordBreak="break-word" onDoubleClick={(e) => { e.stopPropagation(); startEdit() }} cursor="pointer">
       {task.title}
     </Text>
   )
