@@ -1,9 +1,10 @@
-import React, { memo, useState, useCallback } from 'react'
-import { Card, CardBody, Flex, Box, IconButton, Text, Badge } from '@chakra-ui/react'
+import React, { memo, useRef, useCallback } from 'react'
+import { Box, Flex, Text } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Task } from '../../state/types'
 import { useApp } from '../../state/AppContext'
+import { colors as c } from '../../theme'
 import TaskTitle from './TaskTitle'
 import TaskBadges from './TaskBadges'
 import TaskTags from './TaskTags'
@@ -14,8 +15,8 @@ interface TaskCardProps {
 
 function TaskCardInner({ task }: TaskCardProps) {
   const { state, dispatch } = useApp()
-  const [isHovered, setIsHovered] = useState(false)
   const isFocused = state.focusedTaskId === task.id
+  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const {
     attributes,
@@ -26,117 +27,156 @@ function TaskCardInner({ task }: TaskCardProps) {
     isDragging,
   } = useSortable({ id: task.id })
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.9 : 1,
   }
-
-  let clickTimer: ReturnType<typeof setTimeout> | null = null
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
-    if (clickTimer) {
-      clearTimeout(clickTimer)
-      clickTimer = null
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = null
       return
     }
-    clickTimer = setTimeout(() => {
-      clickTimer = null
+    clickTimerRef.current = setTimeout(() => {
+      clickTimerRef.current = null
       dispatch({ type: 'SET_EDITING_TASK', id: task.id })
     }, 250)
   }, [task.id, dispatch])
 
   const handleDoubleClick = useCallback(() => {
-    if (clickTimer) {
-      clearTimeout(clickTimer)
-      clickTimer = null
+    if (clickTimerRef.current) {
+      clearTimeout(clickTimerRef.current)
+      clickTimerRef.current = null
     }
   }, [])
 
-  const handleQuickMove = (status: Task['status']) => {
+  const handleQuickMove = (e: React.MouseEvent, status: Task['status']) => {
+    e.stopPropagation()
     dispatch({ type: 'MOVE_TASK', id: task.id, status })
   }
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (confirm(`Delete "${task.title}"?`)) {
       dispatch({ type: 'DELETE_TASK', id: task.id })
     }
   }
 
-  const rotation = task.id.charCodeAt(0) % 2 === 0 ? '0.5deg' : '-0.5deg'
+  // Due status for card glow
+  let shadowColor = c.shadow
+  if (task.dueDate && task.status !== 'done') {
+    const diff = new Date(task.dueDate + 'T23:59:59').getTime() - Date.now()
+    const days = Math.ceil(diff / 86400000)
+    if (days < 0) shadowColor = c.todo
+    else if (days <= 3) shadowColor = c.doing
+  }
 
   return (
-    <Card
+    <Box
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
+      className={`task-card ${isFocused ? 'focused' : ''}`}
+      bg={c.card}
+      borderRadius="2px"
+      p="16px 18px"
       cursor="grab"
-      transform={`rotate(${rotation})`}
-      outline={isFocused ? '3px solid' : 'none'}
-      outlineColor="brand.doing"
-      outlineOffset="2px"
-      size="sm"
+      boxShadow={`4px 4px 0 ${shadowColor}`}
+      position="relative"
+      onClick={handleClick}
     >
-      <CardBody p={3}>
-        <TaskTitle task={task} onDoubleClick={handleDoubleClick} />
-        <TaskTags task={task} />
-        <TaskBadges task={task} />
-
-        {/* Quick action buttons on hover */}
-        {isHovered && (
-          <Flex
-            position="absolute"
-            top={1}
-            right={1}
-            gap={1}
-          >
-            {task.status !== 'todo' && (
-              <IconButton
-                aria-label="Move to todo"
-                size="xs"
-                variant="ghost"
-                fontSize="10px"
-                onClick={(e) => { e.stopPropagation(); handleQuickMove('todo') }}
-                icon={<Text>📋</Text>}
-              />
-            )}
-            {task.status !== 'doing' && (
-              <IconButton
-                aria-label="Move to in progress"
-                size="xs"
-                variant="ghost"
-                fontSize="10px"
-                onClick={(e) => { e.stopPropagation(); handleQuickMove('doing') }}
-                icon={<Text>🔄</Text>}
-              />
-            )}
-            {task.status !== 'done' && (
-              <IconButton
-                aria-label="Move to done"
-                size="xs"
-                variant="ghost"
-                fontSize="10px"
-                onClick={(e) => { e.stopPropagation(); handleQuickMove('done') }}
-                icon={<Text>✅</Text>}
-              />
-            )}
-            <IconButton
-              aria-label="Delete task"
-              size="xs"
-              variant="ghost"
-              fontSize="10px"
-              onClick={(e) => { e.stopPropagation(); handleDelete() }}
-              icon={<Text>🗑</Text>}
-            />
-          </Flex>
+      {/* Quick action buttons — readable labels, high contrast */}
+      <Flex
+        className="task-quick-actions"
+        position="absolute"
+        top="8px"
+        right="8px"
+        gap="4px"
+        zIndex={2}
+      >
+        {task.status !== 'todo' && (
+          <ActionBtn
+            label="TODO"
+            color={c.todo}
+            onClick={(e) => handleQuickMove(e, 'todo')}
+          />
         )}
-      </CardBody>
-    </Card>
+        {task.status !== 'doing' && (
+          <ActionBtn
+            label="WIP"
+            color={c.doing}
+            onClick={(e) => handleQuickMove(e, 'doing')}
+          />
+        )}
+        {task.status !== 'done' && (
+          <ActionBtn
+            label="DONE"
+            color={c.done}
+            onClick={(e) => handleQuickMove(e, 'done')}
+          />
+        )}
+        <ActionBtn
+          label="DEL"
+          color={c.danger}
+          onClick={handleDelete}
+        />
+      </Flex>
+
+      {/* Card content */}
+      <Box position="relative" zIndex={1}>
+        <TaskTitle task={task} onDoubleClick={handleDoubleClick} />
+
+        {task.description && (
+          <Text
+            fontSize="0.8rem"
+            lineHeight="1.4"
+            color={c.textSecondary}
+            mt={1.5}
+            noOfLines={2}
+            fontFamily="body"
+          >
+            {task.description}
+          </Text>
+        )}
+
+        <TaskTags task={task} />
+
+        <Box className="task-meta-bar">
+          <TaskBadges task={task} />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+function ActionBtn({ label, color, onClick }: {
+  label: string
+  color: string
+  onClick: (e: React.MouseEvent) => void
+}) {
+  return (
+    <Box
+      as="button"
+      fontFamily="heading"
+      fontSize="0.55rem"
+      fontWeight={700}
+      letterSpacing="0.05em"
+      px="6px"
+      py="3px"
+      bg={color}
+      color="#fff"
+      border={`1px solid ${color}`}
+      cursor="pointer"
+      transition="all 0.1s ease"
+      _hover={{ transform: 'scale(1.1)', boxShadow: `0 0 8px ${color}66` }}
+      onClick={onClick}
+    >
+      {label}
+    </Box>
   )
 }
 

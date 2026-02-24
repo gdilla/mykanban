@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react'
-import { Text } from '@chakra-ui/react'
+import { Text, Box } from '@chakra-ui/react'
 import { Task } from '../../state/types'
 import { useApp } from '../../state/AppContext'
+import { colors as c } from '../../theme'
 
 interface TaskTitleProps {
   task: Task
@@ -11,13 +12,11 @@ interface TaskTitleProps {
 export default function TaskTitle({ task, onDoubleClick }: TaskTitleProps) {
   const { dispatch } = useApp()
   const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState(task.title)
   const inputRef = useRef<HTMLSpanElement>(null)
 
   const startEdit = useCallback(() => {
     onDoubleClick()
     setIsEditing(true)
-    setEditValue(task.title)
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus()
@@ -41,37 +40,46 @@ export default function TaskTitle({ task, onDoubleClick }: TaskTitleProps) {
 
   if (isEditing) {
     return (
-      <Text
+      <Box
         ref={inputRef}
+        as="span"
         contentEditable
         suppressContentEditableWarning
-        fontFamily="heading"
-        fontWeight={600}
-        fontSize="0.85rem"
-        outline="2px solid"
-        outlineColor="brand.doing"
+        fontFamily="body"
+        fontWeight={500}
+        fontSize="0.9rem"
+        lineHeight="1.5"
+        color={c.text}
+        display="block"
+        outline={`2px solid ${c.accent}`}
+        outlineOffset="2px"
+        bg={c.bg}
         px={1}
+        py="2px"
+        cursor="text"
+        minH="1.5em"
         onBlur={() => finishEdit(true)}
-        onKeyDown={(e) => {
+        onKeyDown={(e: React.KeyboardEvent) => {
           if (e.key === 'Enter') { e.preventDefault(); finishEdit(true) }
           if (e.key === 'Escape') finishEdit(false)
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        {editValue}
-      </Text>
+        {task.title}
+      </Box>
     )
   }
 
   return (
     <Text
-      fontFamily="heading"
-      fontWeight={600}
-      fontSize="0.85rem"
-      mb={1}
+      fontFamily="body"
+      fontWeight={500}
+      fontSize="0.9rem"
+      lineHeight="1.5"
+      color={c.text}
+      wordBreak="break-word"
       onDoubleClick={(e) => { e.stopPropagation(); startEdit() }}
-      cursor="text"
-      noOfLines={2}
+      cursor="pointer"
     >
       {task.title}
     </Text>

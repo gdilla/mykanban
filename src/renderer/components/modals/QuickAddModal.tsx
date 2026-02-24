@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  ModalCloseButton, Input, Textarea, Button, FormControl, FormLabel, Select, Link,
+  ModalCloseButton, Input, Textarea, Button, Box, Text, Select, Link,
 } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { Task } from '../../state/types'
@@ -64,47 +64,41 @@ export default function QuickAddModal() {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="md">
       <ModalOverlay bg="rgba(45, 42, 38, 0.8)" />
-      <ModalContent>
+      <ModalContent maxW="400px">
         <ModalHeader>Quick Add Task</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <FormControl mb={4}>
-            <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+          <Box mb={5}>
+            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Title
-            </FormLabel>
+            </Text>
             <Input
               ref={inputRef}
               value={title}
               onChange={e => setTitle(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
               placeholder="What needs to be done?"
-              border="2px solid"
-              borderColor="brand.shadow"
-              borderRadius="0"
-              bg="brand.bg"
+              variant="brutalist"
             />
-          </FormControl>
+          </Box>
 
           {showDesc ? (
-            <FormControl mb={4}>
-              <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+            <Box mb={5}>
+              <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
                 Description
-              </FormLabel>
+              </Text>
               <Textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Add more details..."
-                border="2px solid"
-                borderColor="brand.shadow"
-                borderRadius="0"
-                bg="brand.bg"
+                variant="brutalist"
                 minH="80px"
               />
-            </FormControl>
+            </Box>
           ) : (
             <Link
               fontSize="0.8rem"
-              color="brand.textSecondary"
+              color="#6B6B6B"
               onClick={() => setShowDesc(true)}
               mb={4}
               display="block"
@@ -113,45 +107,39 @@ export default function QuickAddModal() {
             </Link>
           )}
 
-          <FormControl mb={4}>
-            <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+          <Box mb={5}>
+            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Due Date
-            </FormLabel>
+            </Text>
             <Input
               type="date"
               value={dueDate}
               onChange={e => setDueDate(e.target.value)}
-              border="2px solid"
-              borderColor="brand.shadow"
-              borderRadius="0"
-              bg="brand.bg"
+              variant="brutalist"
             />
-          </FormControl>
+          </Box>
 
-          <FormControl mb={4}>
-            <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+          <Box mb={5}>
+            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Status
-            </FormLabel>
+            </Text>
             <Select
               value={status}
               onChange={e => setStatus(e.target.value as Task['status'])}
-              border="2px solid"
-              borderColor="brand.shadow"
-              borderRadius="0"
-              bg="brand.bg"
+              variant="brutalist"
             >
               <option value="todo">To Do</option>
               <option value="doing">In Progress</option>
               <option value="done">Done</option>
             </Select>
-          </FormControl>
+          </Box>
 
-          <FormControl mb={4}>
-            <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+          <Box mb={5}>
+            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Tags
-            </FormLabel>
+            </Text>
             <TagSelector selectedTags={selectedTags} onChange={setSelectedTags} />
-          </FormControl>
+          </Box>
         </ModalBody>
 
         <ModalFooter gap={3}>

@@ -1,7 +1,8 @@
 import React from 'react'
-import { Flex, Badge } from '@chakra-ui/react'
+import { Flex, Box } from '@chakra-ui/react'
 import { Task } from '../../state/types'
 import { useApp } from '../../state/AppContext'
+import { colors as c } from '../../theme'
 
 function formatAge(createdAt: string): string {
   const ms = Date.now() - new Date(createdAt).getTime()
@@ -22,7 +23,7 @@ function formatDue(dueDate: string): { label: string; isOverdue: boolean; isSoon
   if (days < 0) return { label: `${Math.abs(days)}d overdue`, isOverdue: true, isSoon: false }
   if (days === 0) return { label: 'today', isOverdue: false, isSoon: true }
   if (days === 1) return { label: 'tomorrow', isOverdue: false, isSoon: true }
-  if (days <= 3) return { label: `${days}d`, isOverdue: false, isSoon: true }
+  if (days <= 3) return { label: `in ${days}d`, isOverdue: false, isSoon: true }
   return { label: dueDate, isOverdue: false, isSoon: false }
 }
 
@@ -34,72 +35,67 @@ function formatTime(ms: number): string {
   return `${minutes}m`
 }
 
-interface TaskBadgesProps {
-  task: Task
+const badgeBase = {
+  fontFamily: `'JetBrains Mono', monospace`,
+  fontSize: '0.7rem',
+  px: '8px',
+  py: '4px',
 }
 
-export default function TaskBadges({ task }: TaskBadgesProps) {
+export default function TaskBadges({ task }: { task: Task }) {
   const { state } = useApp()
   const isTimerActive = state.activeTimerTaskId === task.id
 
   const age = formatAge(task.createdAt)
   const due = task.dueDate ? formatDue(task.dueDate) : null
-  const hasTime = task.timeSpent > 0
 
   return (
-    <Flex gap={1} flexWrap="wrap" mt={1}>
+    <Flex gap={2} flexWrap="wrap">
       {task.status !== 'done' && (
-        <Badge
-          variant="subtle"
-          colorScheme="gray"
-          fontSize="0.6rem"
-        >
+        <Box {...badgeBase} bg={c.bg} border={`1px solid ${c.border}`} color={c.textSecondary}>
           {age}
-        </Badge>
+        </Box>
       )}
 
       {due && task.status !== 'done' && (
-        <Badge
-          bg={due.isOverdue ? 'brand.accent' : due.isSoon ? 'brand.warning' : 'transparent'}
-          color={due.isOverdue || due.isSoon ? 'white' : 'brand.textSecondary'}
-          border="1px solid"
-          borderColor={due.isOverdue ? 'brand.accent' : due.isSoon ? 'brand.warning' : 'brand.border'}
-          fontSize="0.6rem"
+        <Box
+          {...badgeBase}
+          bg={due.isOverdue ? c.todo : due.isSoon ? c.doing : c.bg}
+          color={due.isOverdue ? '#fff' : due.isSoon ? '#1a1a2e' : c.textSecondary}
+          border={`1px solid ${due.isOverdue ? c.todo : due.isSoon ? c.doing : c.border}`}
           cursor="pointer"
         >
-          📅 {due.label}
-        </Badge>
+          {due.label}
+        </Box>
       )}
 
-      {hasTime && (
-        <Badge
-          variant="subtle"
-          colorScheme="blue"
-          fontSize="0.6rem"
+      {task.timeSpent > 0 && (
+        <Box
+          {...badgeBase}
+          bg={c.doneSoft}
+          border={`1px solid ${c.done}`}
+          color={c.done}
         >
-          ⏱ {formatTime(task.timeSpent)}
-        </Badge>
+          {formatTime(task.timeSpent)}
+        </Box>
       )}
 
       {isTimerActive && (
-        <Badge
-          bg="brand.success"
-          color="white"
-          fontSize="0.6rem"
-          animation="pulse 2s infinite"
+        <Box
+          {...badgeBase}
+          className="timer-badge"
+          bg={c.done}
+          border={`1px solid ${c.done}`}
+          color="#fff"
         >
-          ● tracking
-        </Badge>
+          tracking
+        </Box>
       )}
 
       {task.attachments.length > 0 && (
-        <Badge
-          variant="subtle"
-          colorScheme="gray"
-          fontSize="0.6rem"
-        >
-          📎 {task.attachments.length}
-        </Badge>
+        <Box {...badgeBase} bg={c.bg} border={`1px solid ${c.border}`} color={c.textSecondary}>
+          {task.attachments.length} file{task.attachments.length > 1 ? 's' : ''}
+        </Box>
       )}
     </Flex>
   )

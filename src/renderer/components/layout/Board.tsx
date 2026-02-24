@@ -1,6 +1,9 @@
 import React from 'react'
 import { Box } from '@chakra-ui/react'
-import { DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent } from '@dnd-kit/core'
+import {
+  DndContext, DragEndEvent, DragOverlay, closestCenter, DragStartEvent,
+  PointerSensor, useSensor, useSensors,
+} from '@dnd-kit/core'
 import { useApp } from '../../state/AppContext'
 import StatusView from '../board/StatusView'
 import TagView from '../board/TagView'
@@ -9,6 +12,13 @@ import DragOverlayCard from '../task/DragOverlay'
 export default function Board() {
   const { state, dispatch } = useApp()
   const [activeId, setActiveId] = React.useState<string | null>(null)
+
+  // Require 8px of movement before activating drag — this lets clicks through
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  )
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
@@ -61,6 +71,7 @@ export default function Board() {
 
   return (
     <DndContext
+      sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -69,10 +80,10 @@ export default function Board() {
         className="board-area"
         onClick={handleBoardClick}
         display="flex"
-        gap={4}
+        gap={6}
         overflowX="auto"
-        pb={4}
-        minH="calc(100vh - 160px)"
+        pb={6}
+        minH="calc(100vh - 200px)"
       >
         {state.currentView === 'status' ? <StatusView /> : <TagView />}
       </Box>

@@ -1,31 +1,26 @@
 import React from 'react'
-import { Card, CardBody, Text } from '@chakra-ui/react'
+import { Box, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
+import { colors as c } from '../../theme'
 
-interface DragOverlayCardProps {
-  taskId: string
-}
-
-export default function DragOverlayCard({ taskId }: DragOverlayCardProps) {
+export default function DragOverlayCard({ taskId }: { taskId: string }) {
   const { state } = useApp()
   const task = state.tasks.find(t => t.id === taskId)
   if (!task) return null
 
   return (
-    <Card
-      bg="brand.surface"
-      border="2px solid"
-      borderColor="brand.shadow"
-      boxShadow="8px 8px 0 var(--chakra-colors-brand-shadow)"
+    <Box
+      bg={c.card}
+      border={`2px solid ${c.borderStrong}`}
+      boxShadow={`8px 8px 0 ${c.shadow}`}
       transform="rotate(3deg)"
-      opacity={0.9}
-      size="sm"
+      opacity={0.95}
+      p="16px 18px"
+      borderRadius="2px"
     >
-      <CardBody p={3}>
-        <Text fontFamily="heading" fontWeight={600} fontSize="0.85rem">
-          {task.title}
-        </Text>
-      </CardBody>
-    </Card>
+      <Text fontFamily="body" fontWeight={500} fontSize="0.9rem" color={c.text}>
+        {task.title}
+      </Text>
+    </Box>
   )
 }

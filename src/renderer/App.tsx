@@ -16,7 +16,7 @@ export default function App() {
   useKeyboardNav()
 
   return (
-    <Box minH="100vh" p={4}>
+    <Box minH="100vh" p={8}>
       <Header />
       <FilterBar />
       <Board />

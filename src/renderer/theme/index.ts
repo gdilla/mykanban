@@ -1,93 +1,108 @@
 import { extendTheme } from '@chakra-ui/react'
 
+// Dark brutalist color palette
+const c = {
+  bg: '#1a1a2e',
+  bgGrid: '#16213e',
+  surface: '#1e1e3a',
+  surfaceHover: '#25254a',
+  card: '#222244',
+  cardHover: '#2a2a55',
+  border: '#3a3a5c',
+  borderStrong: '#5a5a8c',
+  shadow: '#0d0d1a',
+  text: '#e8e6f0',
+  textSecondary: '#9896b0',
+  textMuted: '#6b6988',
+  todo: '#ff6b6b',
+  todoSoft: '#ff6b6b22',
+  doing: '#ffd93d',
+  doingSoft: '#ffd93d22',
+  done: '#6bcb77',
+  doneSoft: '#6bcb7722',
+  accent: '#a78bfa',
+  accentSoft: '#a78bfa22',
+  danger: '#ff4757',
+  timeGreen: '#6bcb77',
+}
+
 const theme = extendTheme({
-  fonts: {
-    heading: `'Space Grotesk', sans-serif`,
-    body: `'Space Mono', monospace`,
+  config: {
+    initialColorMode: 'dark',
+    useSystemColorMode: false,
   },
-  colors: {
-    brand: {
-      bg: '#f5f0eb',
-      surface: '#fffdf9',
-      text: '#2d2a26',
-      textSecondary: '#7a756e',
-      shadow: '#2d2a26',
-      border: 'rgba(45, 42, 38, 0.15)',
-      accent: '#e74c3c',
-      accentHover: '#c0392b',
-      success: '#27ae60',
-      warning: '#f39c12',
-      doing: '#3498db',
-    },
+  fonts: {
+    heading: `'Space Grotesk', -apple-system, sans-serif`,
+    body: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
   },
   styles: {
     global: {
-      '@import': [
-        "url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap')",
-      ],
       body: {
-        bg: 'brand.bg',
-        color: 'brand.text',
-        fontFamily: 'body',
+        bg: c.bg,
+        color: c.text,
+        fontFamily: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
         backgroundImage: `
-          linear-gradient(rgba(45,42,38,0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(45,42,38,0.03) 1px, transparent 1px)
+          linear-gradient(90deg, ${c.border}33 1px, transparent 1px),
+          linear-gradient(${c.border}33 1px, transparent 1px)
         `,
-        backgroundSize: '24px 24px',
+        backgroundSize: '40px 40px',
+        minHeight: '100vh',
       },
     },
   },
   components: {
-    Card: {
-      baseStyle: {
-        container: {
-          bg: 'brand.surface',
-          border: '2px solid',
-          borderColor: 'brand.shadow',
-          borderRadius: '0',
-          boxShadow: '4px 4px 0 var(--chakra-colors-brand-shadow)',
-          transition: 'all 0.15s ease',
-          _hover: {
-            transform: 'translate(-2px, -2px)',
-            boxShadow: '6px 6px 0 var(--chakra-colors-brand-shadow)',
-          },
-        },
-      },
-    },
     Button: {
       baseStyle: {
-        fontFamily: 'heading',
-        fontWeight: 700,
+        fontFamily: `'Space Grotesk', -apple-system, sans-serif`,
+        fontWeight: 500,
         borderRadius: '0',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
+        fontSize: '0.85rem',
       },
       variants: {
         brutalist: {
-          bg: 'brand.text',
-          color: 'white',
+          bg: c.accent,
+          color: '#fff',
           border: '2px solid',
-          borderColor: 'brand.shadow',
+          borderColor: c.borderStrong,
+          boxShadow: `3px 3px 0 ${c.shadow}`,
           _hover: {
-            transform: 'translate(-1px, -1px)',
-            boxShadow: '3px 3px 0 var(--chakra-colors-brand-shadow)',
+            transform: 'translate(-2px, -2px)',
+            boxShadow: `5px 5px 0 ${c.shadow}`,
+            bg: '#b89cfc',
+          },
+          _active: {
+            transform: 'translate(0, 0)',
+            boxShadow: `0 0 0 ${c.shadow}`,
           },
         },
         'brutalist-outline': {
-          bg: 'transparent',
+          bg: c.surface,
+          color: c.text,
           border: '2px solid',
-          borderColor: 'brand.shadow',
+          borderColor: c.borderStrong,
+          boxShadow: `3px 3px 0 ${c.shadow}`,
           _hover: {
-            bg: 'brand.bg',
+            transform: 'translate(-2px, -2px)',
+            boxShadow: `5px 5px 0 ${c.shadow}`,
+            bg: c.surfaceHover,
+          },
+          _active: {
+            transform: 'translate(0, 0)',
+            boxShadow: `0 0 0 ${c.shadow}`,
           },
         },
         'brutalist-danger': {
-          bg: 'brand.accent',
+          bg: c.danger,
           color: 'white',
           border: '2px solid',
-          borderColor: 'brand.shadow',
+          borderColor: c.borderStrong,
+          boxShadow: `3px 3px 0 ${c.shadow}`,
           _hover: {
-            bg: 'brand.accentHover',
+            bg: '#ff2234',
+            transform: 'translate(-2px, -2px)',
+            boxShadow: `5px 5px 0 ${c.shadow}`,
           },
         },
       },
@@ -95,37 +110,103 @@ const theme = extendTheme({
     Modal: {
       baseStyle: {
         dialog: {
-          bg: 'brand.surface',
+          bg: c.card,
           border: '3px solid',
-          borderColor: 'brand.shadow',
+          borderColor: c.borderStrong,
           borderRadius: '0',
-          boxShadow: '8px 8px 0 var(--chakra-colors-brand-shadow)',
+          boxShadow: `8px 8px 0 ${c.shadow}`,
+          color: c.text,
         },
         header: {
-          fontFamily: 'heading',
+          fontFamily: `'Space Grotesk', -apple-system, sans-serif`,
           fontWeight: 700,
+          fontSize: '1.5rem',
           textTransform: 'uppercase',
           letterSpacing: '0.05em',
           borderBottom: '2px solid',
-          borderColor: 'brand.shadow',
+          borderColor: c.borderStrong,
+          pb: 4,
+          color: c.text,
+        },
+        body: {
+          pt: 6,
         },
         footer: {
-          borderTop: '1px dashed',
-          borderColor: 'brand.border',
+          borderTop: `1px dashed ${c.border}`,
+          pt: 5,
+        },
+        closeButton: {
+          color: c.textSecondary,
+          _hover: { color: c.text },
         },
       },
     },
-    Badge: {
-      baseStyle: {
-        fontFamily: 'heading',
-        borderRadius: '0',
-        fontWeight: 700,
-        textTransform: 'uppercase',
-        fontSize: '0.65rem',
-        letterSpacing: '0.05em',
+    Input: {
+      variants: {
+        brutalist: {
+          field: {
+            border: '2px solid',
+            borderColor: c.borderStrong,
+            borderRadius: '0',
+            bg: c.bg,
+            color: c.text,
+            fontFamily: `'JetBrains Mono', monospace`,
+            fontSize: '0.9rem',
+            _focus: {
+              boxShadow: `3px 3px 0 ${c.shadow}`,
+              borderColor: c.accent,
+            },
+            _placeholder: { color: c.textMuted },
+          },
+        },
+      },
+      defaultProps: {
+        variant: 'brutalist',
+      },
+    },
+    Textarea: {
+      variants: {
+        brutalist: {
+          border: '2px solid',
+          borderColor: c.borderStrong,
+          borderRadius: '0',
+          bg: c.bg,
+          color: c.text,
+          fontFamily: `'JetBrains Mono', monospace`,
+          fontSize: '0.9rem',
+          _focus: {
+            boxShadow: `3px 3px 0 ${c.shadow}`,
+            borderColor: c.accent,
+          },
+          _placeholder: { color: c.textMuted },
+        },
+      },
+      defaultProps: {
+        variant: 'brutalist',
+      },
+    },
+    Select: {
+      variants: {
+        brutalist: {
+          field: {
+            border: '2px solid',
+            borderColor: c.borderStrong,
+            borderRadius: '0',
+            bg: c.bg,
+            color: c.text,
+            fontFamily: `'JetBrains Mono', monospace`,
+            fontSize: '0.9rem',
+          },
+        },
+      },
+      defaultProps: {
+        variant: 'brutalist',
       },
     },
   },
 })
+
+// Export colors for direct use in components
+export const colors = c
 
 export default theme

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Box, Flex, Image, Text, IconButton, Button, FormControl, FormLabel } from '@chakra-ui/react'
+import { Box, Flex, Image, Text, IconButton, Button } from '@chakra-ui/react'
 import { Attachment } from '../../state/types'
 import { useIpc } from '../../hooks/useIpc'
+import { colors as c } from '../../theme'
 
 interface AttachmentGridProps {
   attachments: Attachment[]
@@ -18,9 +19,7 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach }: 
     attachments.forEach(async (att) => {
       if (att.type.startsWith('image/') && !thumbnails[att.filename]) {
         const data = await ipc.loadImage(att.filename)
-        if (data) {
-          setThumbnails(prev => ({ ...prev, [att.filename]: data }))
-        }
+        if (data) setThumbnails(prev => ({ ...prev, [att.filename]: data }))
       }
     })
   }, [attachments])
@@ -28,55 +27,41 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach }: 
   if (attachments.length === 0) return null
 
   return (
-    <FormControl mb={4}>
-      <FormLabel fontFamily="heading" fontSize="0.85rem" textTransform="uppercase">
+    <Box mb={5}>
+      <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
         Attachments
-      </FormLabel>
+      </Text>
       <Flex gap={2} flexWrap="wrap">
         {attachments.map(att => (
-          <Box
-            key={att.filename}
-            position="relative"
-            border="2px solid"
-            borderColor="brand.shadow"
-            p={1}
-          >
+          <Box key={att.filename} position="relative" border={`2px solid ${c.borderStrong}`} p={1}>
             {att.type.startsWith('image/') && thumbnails[att.filename] ? (
-              <Image
-                src={thumbnails[att.filename]}
-                alt={att.originalName}
-                w="80px"
-                h="80px"
-                objectFit="cover"
-              />
+              <Image src={thumbnails[att.filename]} alt={att.originalName} w="80px" h="80px" objectFit="cover" />
             ) : (
-              <Flex
-                w="80px"
-                h="80px"
-                align="center"
-                justify="center"
-                bg="brand.bg"
-              >
-                <Text fontSize="0.6rem" fontFamily="body" textAlign="center" px={1}>
+              <Flex w="80px" h="80px" align="center" justify="center" bg={c.bg}>
+                <Text fontSize="0.6rem" fontFamily="body" textAlign="center" px={1} color={c.textSecondary}>
                   {att.originalName}
                 </Text>
               </Flex>
             )}
-            <IconButton
-              aria-label="Remove attachment"
-              size="xs"
+            <Box
+              as="button"
               position="absolute"
               top={-1}
               right={-1}
-              bg="brand.accent"
+              bg={c.danger}
               color="white"
               borderRadius="full"
-              minW="16px"
+              w="16px"
               h="16px"
               fontSize="8px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              cursor="pointer"
               onClick={() => onRemove(att.filename)}
-              icon={<Text>✕</Text>}
-            />
+            >
+              ✕
+            </Box>
           </Box>
         ))}
       </Flex>
@@ -87,16 +72,18 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach }: 
         style={{ display: 'none' }}
         onChange={e => e.target.files && onFileAttach(e.target.files)}
       />
-      <Button
-        size="xs"
-        variant="ghost"
+      <Box
+        as="button"
         mt={2}
         fontFamily="heading"
-        color="brand.textSecondary"
+        fontSize="0.75rem"
+        color={c.textSecondary}
+        cursor="pointer"
+        _hover={{ color: c.text }}
         onClick={() => fileInputRef.current?.click()}
       >
         + Attach files
-      </Button>
-    </FormControl>
+      </Box>
+    </Box>
   )
 }

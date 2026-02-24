@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  ModalCloseButton, Input, Button, Flex, Box, IconButton, Text,
+  ModalCloseButton, Input, Button, Flex, Box, Text,
 } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
+import { colors as c } from '../../theme'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -23,10 +24,7 @@ export default function TagManagerModal() {
 
   const handleAdd = () => {
     if (!newName.trim()) return
-    dispatch({
-      type: 'ADD_TAG',
-      tag: { id: generateId(), name: newName.trim(), color: newColor },
-    })
+    dispatch({ type: 'ADD_TAG', tag: { id: generateId(), name: newName.trim(), color: newColor } })
     setNewName('')
     setNewColor('#6bcb77')
   }
@@ -39,63 +37,38 @@ export default function TagManagerModal() {
 
   return (
     <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="md">
-      <ModalOverlay bg="rgba(45, 42, 38, 0.8)" />
+      <ModalOverlay bg="rgba(13, 13, 26, 0.85)" />
       <ModalContent>
         <ModalHeader>Manage Tags</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {state.tags.map(tag => (
-            <Flex key={tag.id} align="center" gap={2} mb={2} p={2} bg="brand.bg">
-              <Box w="20px" h="20px" bg={tag.color} border="2px solid" borderColor="brand.shadow" flexShrink={0} />
-              <Text flex={1} fontFamily="heading" fontWeight={600} fontSize="0.85rem">
-                {tag.name}
-              </Text>
-              <IconButton
-                aria-label="Delete tag"
-                size="xs"
-                variant="ghost"
-                color="brand.accent"
+            <Flex key={tag.id} align="center" gap={2} mb={2} p={2} bg={c.bg} border={`1px solid ${c.border}`}>
+              <Box w="20px" h="20px" bg={tag.color} border={`2px solid ${c.borderStrong}`} flexShrink={0} />
+              <Text flex={1} fontFamily="heading" fontWeight={600} fontSize="0.85rem" color={c.text}>{tag.name}</Text>
+              <Box
+                as="button"
+                fontSize="0.75rem"
+                color={c.danger}
+                cursor="pointer"
+                fontWeight={700}
+                _hover={{ color: '#ff2234' }}
                 onClick={() => handleDelete(tag.id)}
-                icon={<Text>✕</Text>}
-              />
+              >
+                DEL
+              </Box>
             </Flex>
           ))}
-
           <Flex gap={2} mt={4}>
-            <Input
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAdd()}
-              placeholder="New tag name..."
-              size="sm"
-              border="2px solid"
-              borderColor="brand.shadow"
-              borderRadius="0"
-              bg="brand.bg"
-              flex={1}
-            />
-            <Input
-              type="color"
-              value={newColor}
-              onChange={e => setNewColor(e.target.value)}
-              w="40px"
-              h="32px"
-              p={0}
-              border="2px solid"
-              borderColor="brand.shadow"
-              borderRadius="0"
-              cursor="pointer"
-            />
-            <Button size="sm" variant="brutalist" onClick={handleAdd}>
-              Add
-            </Button>
+            <Input value={newName} onChange={e => setNewName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdd()}
+              placeholder="New tag name..." size="sm" variant="brutalist" flex={1} />
+            <input type="color" value={newColor} onChange={e => setNewColor(e.target.value)}
+              style={{ width: 40, height: 32, border: `2px solid ${c.borderStrong}`, cursor: 'pointer', background: c.bg }} />
+            <Button size="sm" variant="brutalist" onClick={handleAdd}>Add</Button>
           </Flex>
         </ModalBody>
-
         <ModalFooter>
-          <Button variant="brutalist-outline" onClick={() => setIsOpen(false)}>
-            Close
-          </Button>
+          <Button variant="brutalist-outline" onClick={() => setIsOpen(false)}>Close</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

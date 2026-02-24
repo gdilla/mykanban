@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Task card brutalist styles */
+.task-card {
+  position: relative;
+  clip-path: polygon(
+    0% 2%, 2% 0%, 98% 1%, 100% 2%,
+    99% 98%, 97% 100%, 3% 99%, 0% 97%
+  );
+}
+
+.task-card:nth-child(odd) {
+  transform: rotate(-0.5deg);
+}
+
+.task-card:nth-child(even) {
+  transform: rotate(0.5deg);
+}
+
+.task-card:hover {
+  transform: rotate(0deg) translateY(-4px) !important;
+  box-shadow: 6px 6px 0 #0d0d1a !important;
+}
+
+.task-card.focused {
+  outline: 3px solid #a78bfa;
+  outline-offset: 2px;
+  transform: rotate(0deg) !important;
+  box-shadow: 6px 6px 0 #0d0d1a !important;
+  z-index: 10;
+}
+
+/* Badge animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timer-badge {
+  animation: pulse 2s infinite;
+}
+
+/* Task meta separator */
+.task-meta-bar {
+  border-top: 1px dashed #3a3a5c;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+/* Scrollbar styling - dark */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #3a3a5c;
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a8c;
+}
+
+/* Quick action buttons fade */
+.task-quick-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.task-card:hover .task-quick-actions {
+  opacity: 1;
+}

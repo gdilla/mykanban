@@ -5,6 +5,7 @@ import { SaasProvider } from '@saas-ui/react'
 import theme from './theme'
 import { AppProvider } from './state/AppContext'
 import App from './App'
+import './global.css'
 
 const root = createRoot(document.getElementById('root')!)
 root.render(
