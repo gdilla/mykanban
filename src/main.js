@@ -344,7 +344,13 @@ function createWindow() {
         icon: path.join(__dirname, 'icon.png')
     });
 
-    mainWindow.loadFile(path.join(__dirname, 'index.html'));
+    // In dev mode with electron-vite, load from Vite dev server
+    // In production, load the built renderer index.html
+    if (process.env.ELECTRON_RENDERER_URL) {
+        mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
+    } else {
+        mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    }
 
     // Minimize to tray instead of closing
     mainWindow.on('close', (event) => {
