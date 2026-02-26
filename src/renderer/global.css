@@ -1,28 +1,226 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* === Palette Engine: app-inspired themes === */
+/* Contrast principle: bg → surface → card should have ≥10% lightness spread on dark themes */
+
+/* --- Linear (dark) — deep navy, violet accents --- */
+[data-palette="linear"] {
+  --c-bg: #0c0d14;
+  --c-surface: #151620;
+  --c-card: #23243a;
+  --c-card-hover: #2b2c45;
+  --c-border: #2e2f48;
+  --c-border-strong: #3f4060;
+  --c-border-accent: #535578;
+  --c-text: #f3f2f8;
+  --c-text-secondary: #9e9cb8;
+  --c-text-muted: #55547a;
+  --c-accent-a40: rgba(94, 106, 210, 0.3);
+  --c-accent-a10: rgba(94, 106, 210, 0.08);
+  --c-card-a80: rgba(35, 36, 58, 0.88);
+  --c-text-muted-a60: rgba(85, 84, 122, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #5e6ad2;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #4e5abc;
+  --c-scrollbar: #2e2f48;
+  --c-scrollbar-hover: #3f4060;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px rgba(94,106,210,0.06);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(94,106,210,0.1);
+  --c-focus-outline: #5e6ad2;
+  --c-focus-shadow: 0 0 16px rgba(94, 106, 210, 0.25);
+}
+
+/* --- GitHub Dark — deep navy, blue accents --- */
+[data-palette="github-dark"] {
+  --c-bg: #010409;
+  --c-surface: #0d1117;
+  --c-card: #1a2130;
+  --c-card-hover: #222c3c;
+  --c-border: #30363d;
+  --c-border-strong: #484f58;
+  --c-border-accent: #6e7681;
+  --c-text: #f0f6fc;
+  --c-text-secondary: #9198a1;
+  --c-text-muted: #5d6370;
+  --c-accent-a40: rgba(88, 166, 255, 0.25);
+  --c-accent-a10: rgba(88, 166, 255, 0.06);
+  --c-card-a80: rgba(26, 33, 48, 0.88);
+  --c-text-muted-a60: rgba(93, 99, 112, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #f0f6fc;
+  --c-save-btn-color: #010409;
+  --c-save-btn-hover: #ffffff;
+  --c-scrollbar: #30363d;
+  --c-scrollbar-hover: #484f58;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.3), 0 0 0 1px rgba(48,54,61,0.5);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.45);
+  --c-focus-outline: #58a6ff;
+  --c-focus-shadow: 0 0 16px rgba(88, 166, 255, 0.2);
+}
+
+/* --- Vercel (dark) — pure black, stark white, extreme contrast --- */
+[data-palette="vercel"] {
+  --c-bg: #000000;
+  --c-surface: #0a0a0a;
+  --c-card: #171717;
+  --c-card-hover: #1f1f1f;
+  --c-border: #2e2e2e;
+  --c-border-strong: #454545;
+  --c-border-accent: #666666;
+  --c-text: #fafafa;
+  --c-text-secondary: #a0a0a0;
+  --c-text-muted: #5c5c5c;
+  --c-accent-a40: rgba(255, 255, 255, 0.15);
+  --c-accent-a10: rgba(255, 255, 255, 0.04);
+  --c-card-a80: rgba(23, 23, 23, 0.9);
+  --c-text-muted-a60: rgba(92, 92, 92, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.7);
+  --c-save-btn-bg: #fafafa;
+  --c-save-btn-color: #000000;
+  --c-save-btn-hover: #ffffff;
+  --c-scrollbar: #2e2e2e;
+  --c-scrollbar-hover: #454545;
+  --c-card-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.4);
+  --c-card-shadow-hover: 0 0 0 1px rgba(255,255,255,0.1), 0 8px 24px rgba(0,0,0,0.6);
+  --c-focus-outline: #ffffff;
+  --c-focus-shadow: 0 0 16px rgba(255, 255, 255, 0.1);
+}
+
+/* --- Spotify (dark) — warm black, green energy --- */
+[data-palette="spotify"] {
+  --c-bg: #0a0a0a;
+  --c-surface: #121212;
+  --c-card: #232323;
+  --c-card-hover: #2a2a2a;
+  --c-border: #333333;
+  --c-border-strong: #484848;
+  --c-border-accent: #5e5e5e;
+  --c-text: #ffffff;
+  --c-text-secondary: #b3b3b3;
+  --c-text-muted: #616161;
+  --c-accent-a40: rgba(29, 185, 84, 0.25);
+  --c-accent-a10: rgba(29, 185, 84, 0.06);
+  --c-card-a80: rgba(35, 35, 35, 0.9);
+  --c-text-muted-a60: rgba(97, 97, 97, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.65);
+  --c-save-btn-bg: #1db954;
+  --c-save-btn-color: #000000;
+  --c-save-btn-hover: #1ed760;
+  --c-scrollbar: #333333;
+  --c-scrollbar-hover: #484848;
+  --c-card-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.6);
+  --c-focus-outline: #1db954;
+  --c-focus-shadow: 0 0 16px rgba(29, 185, 84, 0.25);
+}
+
+/* --- Slack (dark) — aubergine tinted, warm grays --- */
+[data-palette="slack"] {
+  --c-bg: #111315;
+  --c-surface: #1a1d21;
+  --c-card: #2a2d33;
+  --c-card-hover: #33363d;
+  --c-border: #3b3e45;
+  --c-border-strong: #50535a;
+  --c-border-accent: #696c73;
+  --c-text: #e8e8e9;
+  --c-text-secondary: #b0b1b3;
+  --c-text-muted: #696b6e;
+  --c-accent-a40: rgba(74, 21, 75, 0.35);
+  --c-accent-a10: rgba(74, 21, 75, 0.1);
+  --c-card-a80: rgba(42, 45, 51, 0.9);
+  --c-text-muted-a60: rgba(105, 107, 110, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #007a5a;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #148567;
+  --c-scrollbar: #3b3e45;
+  --c-scrollbar-hover: #50535a;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  --c-card-shadow-hover: 0 8px 20px rgba(0,0,0,0.45);
+  --c-focus-outline: #1264a3;
+  --c-focus-shadow: 0 0 16px rgba(18, 100, 163, 0.25);
+}
+
+/* --- Notion (light) — warm off-white, bookish readability --- */
+[data-palette="notion"] {
+  --c-bg: #f0efe9;
+  --c-surface: #f9f8f5;
+  --c-card: #ffffff;
+  --c-card-hover: #f5f4f0;
+  --c-border: #e2e0da;
+  --c-border-strong: #d0cec8;
+  --c-border-accent: #b0aea8;
+  --c-text: #1f1f1f;
+  --c-text-secondary: #5f5e5b;
+  --c-text-muted: #9b9a97;
+  --c-accent-a40: rgba(35, 131, 226, 0.2);
+  --c-accent-a10: rgba(35, 131, 226, 0.06);
+  --c-card-a80: rgba(255, 255, 255, 0.9);
+  --c-text-muted-a60: rgba(155, 154, 151, 0.6);
+  --c-modal-overlay: rgba(15, 15, 15, 0.45);
+  --c-save-btn-bg: #2383e2;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #0b6bcb;
+  --c-scrollbar: #d0cec8;
+  --c-scrollbar-hover: #b8b6b0;
+  --c-card-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-card-shadow-hover: 0 4px 14px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-focus-outline: #2383e2;
+  --c-focus-shadow: 0 0 16px rgba(35, 131, 226, 0.15);
+}
+
+/* --- Arc (light) — crisp white, cool tones, Apple-like --- */
+[data-palette="arc"] {
+  --c-bg: #e8e8ed;
+  --c-surface: #f5f5f7;
+  --c-card: #ffffff;
+  --c-card-hover: #f5f5f7;
+  --c-border: #d5d5da;
+  --c-border-strong: #bbbbc2;
+  --c-border-accent: #98989f;
+  --c-text: #1d1d1f;
+  --c-text-secondary: #58585e;
+  --c-text-muted: #97979d;
+  --c-accent-a40: rgba(0, 122, 255, 0.2);
+  --c-accent-a10: rgba(0, 122, 255, 0.06);
+  --c-card-a80: rgba(255, 255, 255, 0.9);
+  --c-text-muted-a60: rgba(151, 151, 157, 0.6);
+  --c-modal-overlay: rgba(0, 0, 0, 0.3);
+  --c-save-btn-bg: #007aff;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #0066d6;
+  --c-scrollbar: #c5c5cb;
+  --c-scrollbar-hover: #a8a8af;
+  --c-card-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-card-shadow-hover: 0 4px 14px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-focus-outline: #007aff;
+  --c-focus-shadow: 0 0 16px rgba(0, 122, 255, 0.18);
+}
 
 /* App loading fade-in */
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 .app-enter { animation: fadeIn 0.3s ease; }
 
-/* Task card — clean, elevated, no clip-path jank */
+/* Task card */
 .task-card {
   position: relative;
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .task-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+  box-shadow: var(--c-card-shadow-hover) !important;
 }
 
 .task-card.focused {
-  outline: 2px solid #818cf8;
+  outline: 2px solid var(--c-focus-outline);
   outline-offset: 2px;
-  box-shadow: 0 0 20px rgba(129, 140, 248, 0.2) !important;
+  box-shadow: var(--c-focus-shadow) !important;
   z-index: 10;
 }
 
-/* Done task visual treatment */
+/* Done task */
 .task-card.done {
   opacity: 0.55;
 }
@@ -40,20 +238,13 @@
   animation: pulse 2s infinite;
 }
 
-/* Task meta separator */
-.task-meta-bar {
-  border-top: 1px solid #2a2a2a;
-  padding-top: 10px;
-  margin-top: 10px;
-}
-
-/* Scrollbar — minimal dark */
-::-webkit-scrollbar { width: 6px; }
+/* Scrollbar — minimal */
+::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #3d3d3d; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #555; }
+::-webkit-scrollbar-thumb { background: var(--c-scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-scrollbar-hover); }
 
-/* Quick action buttons — no layout shift */
+/* Quick action buttons */
 .task-quick-actions {
   opacity: 0;
   pointer-events: none;
@@ -65,7 +256,54 @@
   transition: opacity 0.15s ease, pointer-events 0s;
 }
 
-/* Force dark on native elements */
-select option { background: #0c0c0c; color: #ececec; }
-input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-::placeholder { color: #666 !important; }
+/* Force consistent native elements */
+select option { background: var(--c-bg); color: var(--c-text); }
+::placeholder { color: var(--c-text-muted) !important; }
+
+/* Palette picker dropdown */
+.palette-picker-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 180px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.palette-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--c-text-secondary);
+  font-size: 0.8rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+.palette-picker-item:hover {
+  background: var(--c-card);
+  color: var(--c-text);
+}
+
+.palette-picker-item.active {
+  color: var(--c-text);
+  font-weight: 500;
+}
+
+.palette-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}

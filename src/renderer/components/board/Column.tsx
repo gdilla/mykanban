@@ -4,14 +4,19 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Task } from '../../state/types'
 import { colors as c } from '../../theme'
-import { getContrastColor } from '../../utils/color'
 import TaskCard from '../task/TaskCard'
 import AddTaskForm from './AddTaskForm'
 
 const STATUS_COLORS: Record<string, string> = {
-  todo: c.todo,
-  doing: c.doing,
-  done: c.done,
+  todo: '#3b82f6',
+  doing: '#f59e0b',
+  done: '#10b981',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  todo: 'To Do',
+  doing: 'In Progress',
+  done: 'Done',
 }
 
 interface ColumnProps {
@@ -25,31 +30,25 @@ interface ColumnProps {
 export default function Column({ columnId, title, color, tasks, showAddForm }: ColumnProps) {
   const { setNodeRef } = useDroppable({ id: `column-${columnId}` })
   const accentColor = color || STATUS_COLORS[columnId] || c.textMuted
+  const displayTitle = STATUS_LABELS[columnId] || title
 
   return (
-    <Box flex="1" minW="300px" display="flex" flexDir="column" minH="calc(100vh - 280px)">
+    <Box flex="1" minW="300px" display="flex" flexDir="column" minH={0}>
       {/* Column header */}
-      <Flex
-        justify="space-between" align="center" mb={4} p="14px 18px"
-        bg={c.surface} border={`1px solid ${c.borderStrong}`} borderRadius="10px"
-        borderLeft={`4px solid ${accentColor}`}
-      >
-        <Text fontFamily="heading" fontWeight={700} fontSize="0.9rem" textTransform="uppercase" letterSpacing="0.08em" color={c.text}>
-          {title}
+      <Flex align="center" gap="8px" px="4px" pt="16px" pb="12px">
+        <Box w="9px" h="9px" borderRadius="50%" bg={accentColor} />
+        <Text fontFamily="heading" fontWeight={600} fontSize="0.85rem" color={c.text}>
+          {displayTitle}
         </Text>
-        <Text
-          fontFamily="heading" fontWeight={700} fontSize="0.75rem"
-          bg={accentColor} color={getContrastColor(accentColor)}
-          px={2.5} py="3px" borderRadius="4px"
-        >
+        <Text fontFamily="body" fontWeight={500} fontSize="0.8rem" color={c.textMuted}>
           {tasks.length}
         </Text>
       </Flex>
 
       {/* Task list */}
       <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <Box ref={setNodeRef} flex="1" minH="80px" maxH="calc(100vh - 360px)" overflowY="auto"
-          display="flex" flexDir="column" gap={3} px={1} pb="60px">
+        <Box ref={setNodeRef} flex="1" minH={0} overflowY="auto"
+          display="flex" flexDir="column" gap="8px" pb="8px">
           {tasks.length === 0 ? (
             <Box
               border={`1px dashed ${c.border}`} borderRadius="8px"
@@ -66,7 +65,7 @@ export default function Column({ columnId, title, color, tasks, showAddForm }: C
         </Box>
       </SortableContext>
 
-      {showAddForm && <AddTaskForm columnId={columnId} />}
+      {showAddForm && <Box flexShrink={0} mt="auto" pt="4px"><AddTaskForm columnId={columnId} /></Box>}
     </Box>
   )
 }

@@ -82,8 +82,8 @@ export default function Board() {
         display="flex"
         gap={6}
         overflowX="auto"
-        pb={6}
-        minH="calc(100vh - 200px)"
+        flex="1"
+        minH={0}
       >
         {state.currentView === 'status' ? <StatusView /> : <TagView />}
       </Box>

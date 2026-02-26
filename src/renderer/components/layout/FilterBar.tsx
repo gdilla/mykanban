@@ -2,7 +2,6 @@ import React from 'react'
 import { Flex, Box, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
-import { getContrastColor } from '../../utils/color'
 
 const AGE_OPTIONS = ['1d', '3d', '1w', '2w', '1m']
 
@@ -22,8 +21,8 @@ export default function FilterBar() {
   const hasFilters = activeFilters.tags.length > 0 || activeFilters.age !== null
 
   return (
-    <Flex align="center" gap={3} mb={5} p="12px 16px" bg={c.surface} border={`1px solid ${c.borderStrong}`} borderRadius="10px" flexWrap="wrap">
-      <Text fontFamily="heading" fontWeight={700} fontSize="0.75rem" textTransform="uppercase" letterSpacing="0.1em" color={c.textSecondary}>
+    <Flex align="center" gap={3} mb={5} p="10px 16px" bg={c.surface} borderRadius="10px" flexWrap="wrap">
+      <Text fontFamily="body" fontWeight={500} fontSize="0.75rem" color={c.textMuted}>
         Filter
       </Text>
 
@@ -34,20 +33,20 @@ export default function FilterBar() {
               const isActive = activeFilters.tags.includes(tag.id)
               return (
                 <Box
-                  key={tag.id} as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={600}
-                  px={3} py="5px" borderRadius="6px" textTransform="uppercase" letterSpacing="0.05em"
-                  bg={isActive ? tag.color : `${tag.color}22`}
-                  color={isActive ? getContrastColor(tag.color) : tag.color}
-                  border={`1px solid ${isActive ? tag.color : `${tag.color}44`}`}
+                  key={tag.id} as="button" fontFamily="body" fontSize="0.7rem" fontWeight={500}
+                  px={3} py="4px" borderRadius="8px"
+                  bg={isActive ? `${tag.color}30` : 'transparent'}
+                  color={isActive ? tag.color : c.textMuted}
+                  border={`1px solid ${isActive ? `${tag.color}44` : c.border}`}
                   cursor="pointer" transition="all 0.15s ease"
-                  _hover={{ bg: isActive ? tag.color : `${tag.color}33` }}
+                  _hover={{ bg: `${tag.color}20`, color: tag.color }}
                   onClick={() => toggleTag(tag.id)}
                 >
                   {tag.name}
                 </Box>
               )
             })}
-            <Box w="1px" h="20px" bg={c.border} mx={1} />
+            <Box w="1px" h="16px" bg={c.border} mx={1} />
           </>
         )}
 
@@ -55,13 +54,13 @@ export default function FilterBar() {
           const isActive = activeFilters.age === age
           return (
             <Box
-              key={age} as="button" fontFamily="mono" fontSize="0.7rem" fontWeight={500}
-              px={3} py="5px" borderRadius="6px" textTransform="uppercase"
-              bg={isActive ? c.accent : 'transparent'}
-              color={isActive ? '#fff' : c.textMuted}
-              border={`1px solid ${isActive ? c.accent : c.border}`}
+              key={age} as="button" fontFamily="body" fontSize="0.7rem" fontWeight={500}
+              px={3} py="4px" borderRadius="8px"
+              bg={isActive ? c.accentSoft : 'transparent'}
+              color={isActive ? c.accent : c.textMuted}
+              border={`1px solid ${isActive ? c.accentAlpha40 : c.border}`}
               cursor="pointer" transition="all 0.15s ease"
-              _hover={{ bg: isActive ? c.accent : c.card }}
+              _hover={{ bg: isActive ? c.accentSoft : c.card }}
               onClick={() => setAge(age)}
             >
               {age}
@@ -71,13 +70,13 @@ export default function FilterBar() {
       </Flex>
 
       {hasFilters && (
-        <Box as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={700} px={3} py="5px"
-          borderRadius="6px" bg="transparent" color={c.textSecondary} cursor="pointer"
+        <Box as="button" fontFamily="body" fontSize="0.7rem" fontWeight={500} px={3} py="4px"
+          borderRadius="8px" bg="transparent" color={c.textMuted} cursor="pointer"
           border={`1px solid ${c.border}`}
           _hover={{ color: c.text, borderColor: c.borderStrong }}
           onClick={() => dispatch({ type: 'SET_FILTERS', filters: { tags: [], age: null } })}
         >
-          × Clear
+          Clear
         </Box>
       )}
     </Flex>

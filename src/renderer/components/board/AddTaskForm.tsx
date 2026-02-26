@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
-import { Flex, Input, Button } from '@chakra-ui/react'
+import { Flex, Box, Input, Button } from '@chakra-ui/react'
+import { Plus } from 'lucide-react'
 import { useApp } from '../../state/AppContext'
 import { Task } from '../../state/types'
+import { colors as c } from '../../theme'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -10,6 +12,7 @@ function generateId(): string {
 export default function AddTaskForm({ columnId }: { columnId: string }) {
   const { state, dispatch } = useApp()
   const [title, setTitle] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
 
   const handleSubmit = () => {
     if (!title.trim()) return
@@ -30,13 +33,53 @@ export default function AddTaskForm({ columnId }: { columnId: string }) {
   }
 
   return (
-    <Flex mt={3} gap={2} px={1}>
-      <Input size="sm" placeholder="What needs to be done?" value={title}
-        onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-        variant="brutalist" borderRadius="6px" />
-      <Button size="sm" variant="brutalist" onClick={handleSubmit} flexShrink={0} borderRadius="6px">
-        Add
-      </Button>
-    </Flex>
+    <Box mt={2}>
+      <Flex
+        align="center" gap={2}
+        borderRadius="8px"
+        border={`1px solid ${isFocused ? c.accentAlpha40 : c.border}`}
+        bg={isFocused ? c.card : c.cardAlpha80}
+        transition="all 0.15s ease"
+        boxShadow={isFocused ? `0 0 0 3px ${c.accentAlpha10}` : undefined}
+        _hover={!isFocused ? { bg: c.card, borderColor: c.borderStrong } : undefined}
+      >
+        <Box pl={3} color={c.textMuted} display="flex" alignItems="center">
+          <Plus size={14} />
+        </Box>
+        <Input
+          size="sm"
+          variant="unstyled"
+          placeholder="Add a task..."
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+          py={2}
+          pr={2}
+          fontSize="0.82rem"
+          fontFamily="body"
+          color={c.text}
+          _placeholder={{ color: c.textMutedAlpha60 }}
+        />
+        {title.trim() && (
+          <Button
+            size="xs"
+            mr="6px"
+            px={3}
+            fontSize="0.7rem"
+            fontWeight={500}
+            bg={c.accent}
+            color="#fff"
+            borderRadius="6px"
+            flexShrink={0}
+            _hover={{ bg: c.accentHover }}
+            onClick={handleSubmit}
+          >
+            Add
+          </Button>
+        )}
+      </Flex>
+    </Box>
   )
 }

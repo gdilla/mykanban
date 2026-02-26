@@ -6,7 +6,20 @@
     <title>Kanban</title>
 </head>
 <body>
-    <script>localStorage.setItem('chakra-ui-color-mode', 'dark')</script>
+    <script>
+    // Apply palette before React hydrates to prevent flash
+    (function() {
+      var darkPalettes = { 'linear':1, 'github-dark':1, 'vercel':1, 'spotify':1, 'slack':1 };
+      var p = localStorage.getItem('kanban-palette') || 'linear';
+      var isDark = !!darkPalettes[p];
+      var h = document.documentElement;
+      h.setAttribute('data-palette', p);
+      h.classList.add(isDark ? 'chakra-ui-dark' : 'chakra-ui-light');
+      h.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      h.style.colorScheme = isDark ? 'dark' : 'light';
+      localStorage.setItem('chakra-ui-color-mode', isDark ? 'dark' : 'light');
+    })();
+    </script>
     <div id="root"></div>
     <script type="module" src="./main.tsx"></script>
 </body>

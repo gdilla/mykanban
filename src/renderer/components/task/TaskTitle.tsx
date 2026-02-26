@@ -8,7 +8,7 @@ export default function TaskTitle({ task }: { task: Task }) {
 
   return (
     <Text
-      fontFamily="body" fontWeight={500} fontSize="0.88rem" lineHeight="1.5"
+      fontFamily="body" fontWeight={500} fontSize="0.84rem" lineHeight="1.4"
       color={isDone ? c.textSecondary : c.text}
       textDecoration={isDone ? 'line-through' : undefined}
       wordBreak="break-word"

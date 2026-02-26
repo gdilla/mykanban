@@ -1,14 +1,37 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
-  ModalCloseButton, Input, Textarea, Button, Box, Text,
+  ModalCloseButton, Input, Textarea, Button, Box, Flex, Text,
 } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { useIpc } from '../../hooks/useIpc'
 import { colors as c } from '../../theme'
-import TagSelector from '../shared/TagSelector'
 import AttachmentGrid from '../shared/AttachmentGrid'
 import { Attachment } from '../../state/types'
+
+const fieldLabel = {
+  fontFamily: 'body',
+  fontWeight: 600,
+  color: c.textMuted,
+  fontSize: '0.68rem',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.08em',
+  mb: '6px',
+}
+
+const fieldInput = {
+  bg: c.bg,
+  border: `1px solid var(--c-border-strong)`,
+  borderRadius: '8px',
+  fontFamily: 'body',
+  fontSize: '0.9rem',
+  color: c.text,
+  _focus: {
+    borderColor: '#7c8aff',
+    boxShadow: '0 0 0 3px rgba(124, 138, 255, 0.15)',
+  },
+  _placeholder: { color: c.textMuted },
+}
 
 export default function EditTaskModal() {
   const { state, dispatch } = useApp()
@@ -87,37 +110,120 @@ export default function EditTaskModal() {
     }
   }, [ipc])
 
+  const toggleTag = (tagId: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]
+    )
+  }
+
   if (!isOpen) return null
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="lg">
-      <ModalOverlay bg="rgba(13, 13, 26, 0.85)" />
-      <ModalContent maxW="480px" bg={c.surface} color={c.text} onPaste={handlePaste}>
-        <ModalHeader>Edit Task</ModalHeader>
+      <ModalOverlay bg="var(--c-modal-overlay)" backdropFilter="blur(2px)" />
+      <ModalContent maxW="520px" bg={c.surface} color={c.text} borderRadius="12px" border={`1px solid ${c.borderStrong}`} onPaste={handlePaste}>
+        <ModalHeader fontFamily="body" fontWeight={600} fontSize="0.95rem" borderBottom={`1px solid ${c.border}`} pb={3}>
+          Edit task
+        </ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
+        <ModalBody pt={5} pb={2}>
+          {/* Title */}
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">Title</Text>
-            <Input ref={titleRef} value={title} onChange={e => setTitle(e.target.value)} variant="brutalist" />
+            <Text {...fieldLabel}>Title</Text>
+            <Input
+              ref={titleRef}
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              variant="unstyled"
+              px={3} py={2}
+              {...fieldInput}
+            />
           </Box>
+
+          {/* Description */}
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">Description</Text>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} variant="brutalist" minH="120px" resize="vertical" />
-            <Text fontSize="0.75rem" color={c.textMuted} mt={1}>Paste images with ⌘V</Text>
+            <Text {...fieldLabel}>Description</Text>
+            <Textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              variant="unstyled"
+              px={3} py={2}
+              minH="120px"
+              resize="vertical"
+              {...fieldInput}
+            />
           </Box>
+
+          {/* Attachments */}
           <AttachmentGrid attachments={attachments} onRemove={f => setAttachments(prev => prev.filter(a => a.filename !== f))} onFileAttach={handleFileAttach} showAlways />
+
+          {/* Due Date */}
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">Due Date</Text>
-            <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} variant="brutalist" />
+            <Text {...fieldLabel}>Due date</Text>
+            <Input
+              type="date"
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
+              variant="unstyled"
+              px={3} py="6px"
+              {...fieldInput}
+            />
           </Box>
-          <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">Tags</Text>
-            <TagSelector selectedTags={selectedTags} onChange={setSelectedTags} />
+
+          {/* Tags */}
+          <Box mb={4}>
+            <Text {...fieldLabel}>Tags</Text>
+            <Flex gap={2} flexWrap="wrap">
+              {state.tags.map(tag => {
+                const isSelected = selectedTags.includes(tag.id)
+                return (
+                  <Box
+                    key={tag.id}
+                    as="button"
+                    fontFamily="body" fontSize="0.72rem" fontWeight={500}
+                    px="10px" py="3px" borderRadius="6px"
+                    bg={isSelected ? `${tag.color}25` : 'transparent'}
+                    color={isSelected ? tag.color : c.textMuted}
+                    border={`1px solid ${isSelected ? `${tag.color}40` : c.border}`}
+                    cursor="pointer"
+                    transition="all 0.15s ease"
+                    opacity={isSelected ? 1 : 0.5}
+                    _hover={{ opacity: isSelected ? 1 : 0.8 }}
+                    onClick={() => toggleTag(tag.id)}
+                  >
+                    {tag.name.toLowerCase()}
+                  </Box>
+                )
+              })}
+              {state.tags.length === 0 && (
+                <Text fontSize="0.7rem" color={c.textMuted}>No tags yet</Text>
+              )}
+            </Flex>
           </Box>
         </ModalBody>
-        <ModalFooter gap={3}>
-          <Button variant="brutalist-outline" onClick={handleClose}>Cancel</Button>
-          <Button variant="brutalist" onClick={handleSave}>Save</Button>
+
+        <ModalFooter borderTop={`1px solid ${c.border}`} gap={3} pt={4}>
+          <Button
+            variant="unstyled"
+            fontSize="0.82rem" fontWeight={500} fontFamily="body"
+            color={c.textSecondary}
+            px={4} py={2}
+            _hover={{ color: c.text, bg: c.card }}
+            borderRadius="8px"
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            fontSize="0.82rem" fontWeight={500} fontFamily="body"
+            bg="var(--c-save-btn-bg)" color="var(--c-save-btn-color)"
+            px={4} py={2}
+            borderRadius="8px"
+            _hover={{ bg: 'var(--c-save-btn-hover)' }}
+            onClick={handleSave}
+          >
+            Save changes
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

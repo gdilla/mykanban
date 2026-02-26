@@ -17,7 +17,7 @@ export default function App() {
   useKeyboardNav()
 
   return (
-    <Box minH="100vh" p={8} className="app-enter">
+    <Box h="100vh" display="flex" flexDir="column" overflow="hidden" p={8} className="app-enter">
       <Header showFilters={showFilters} onToggleFilters={() => setShowFilters(f => !f)} />
       {showFilters && <FilterBar />}
       <Board />
