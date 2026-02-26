@@ -5,6 +5,7 @@ import {
 } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { Task } from '../../state/types'
+import { colors as c } from '../../theme'
 import TagSelector from '../shared/TagSelector'
 
 function generateId(): string {
@@ -63,13 +64,13 @@ export default function QuickAddModal() {
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="md">
-      <ModalOverlay bg="rgba(45, 42, 38, 0.8)" />
-      <ModalContent maxW="400px">
+      <ModalOverlay bg="rgba(0, 0, 0, 0.7)" />
+      <ModalContent maxW="400px" bg={c.surface} color={c.text}>
         <ModalHeader>Quick Add Task</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
+            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Title
             </Text>
             <Input
@@ -84,7 +85,7 @@ export default function QuickAddModal() {
 
           {showDesc ? (
             <Box mb={5}>
-              <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
+              <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
                 Description
               </Text>
               <Textarea
@@ -98,7 +99,7 @@ export default function QuickAddModal() {
           ) : (
             <Link
               fontSize="0.8rem"
-              color="#6B6B6B"
+              color={c.textSecondary}
               onClick={() => setShowDesc(true)}
               mb={4}
               display="block"
@@ -108,7 +109,7 @@ export default function QuickAddModal() {
           )}
 
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
+            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Due Date
             </Text>
             <Input
@@ -120,7 +121,7 @@ export default function QuickAddModal() {
           </Box>
 
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
+            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Status
             </Text>
             <Select
@@ -128,14 +129,14 @@ export default function QuickAddModal() {
               onChange={e => setStatus(e.target.value as Task['status'])}
               variant="brutalist"
             >
-              <option value="todo">To Do</option>
-              <option value="doing">In Progress</option>
-              <option value="done">Done</option>
+              <option style={{ background: '#0c0c0c', color: '#ececec' }} value="todo">To Do</option>
+              <option style={{ background: '#0c0c0c', color: '#ececec' }} value="doing">In Progress</option>
+              <option style={{ background: '#0c0c0c', color: '#ececec' }} value="done">Done</option>
             </Select>
           </Box>
 
           <Box mb={5}>
-            <Text fontFamily="heading" fontWeight={500} color="#6B6B6B" mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
+            <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">
               Tags
             </Text>
             <TagSelector selectedTags={selectedTags} onChange={setSelectedTags} />

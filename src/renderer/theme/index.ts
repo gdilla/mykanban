@@ -46,14 +46,15 @@ const theme = extendTheme({
   },
   fonts: {
     heading: `'Space Grotesk', -apple-system, sans-serif`,
-    body: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
+    body: `'Space Grotesk', -apple-system, sans-serif`,
+    mono: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
   },
   styles: {
     global: {
       body: {
         bg: c.bg,
         color: c.text,
-        fontFamily: `'JetBrains Mono', 'SF Mono', Menlo, monospace`,
+        fontFamily: `'Space Grotesk', -apple-system, sans-serif`,
         backgroundImage: `
           linear-gradient(90deg, ${c.border}55 1px, transparent 1px),
           linear-gradient(${c.border}55 1px, transparent 1px)
@@ -133,7 +134,7 @@ const theme = extendTheme({
           pt: 5,
         },
         closeButton: {
-          color: c.textMuted,
+          color: c.textSecondary,
           _hover: { color: c.text, bg: c.card },
         },
       },

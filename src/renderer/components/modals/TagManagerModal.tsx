@@ -5,6 +5,7 @@ import {
 } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
+import ConfirmDialog from '../shared/ConfirmDialog'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -15,6 +16,7 @@ export default function TagManagerModal() {
   const [isOpen, setIsOpen] = useState(false)
   const [newName, setNewName] = useState('')
   const [newColor, setNewColor] = useState('#6bcb77')
+  const [deleteTagId, setDeleteTagId] = useState<string | null>(null)
 
   useEffect(() => {
     const handler = () => setIsOpen(true)
@@ -30,15 +32,13 @@ export default function TagManagerModal() {
   }
 
   const handleDelete = (tagId: string) => {
-    if (confirm('Delete this tag? It will be removed from all tasks.')) {
-      dispatch({ type: 'DELETE_TAG', id: tagId })
-    }
+    setDeleteTagId(tagId)
   }
 
   return (
     <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="md">
       <ModalOverlay bg="rgba(13, 13, 26, 0.85)" />
-      <ModalContent>
+      <ModalContent bg={c.surface} color={c.text}>
         <ModalHeader>Manage Tags</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -57,6 +57,13 @@ export default function TagManagerModal() {
               >
                 DEL
               </Box>
+              <ConfirmDialog
+                isOpen={deleteTagId === tag.id}
+                onClose={() => setDeleteTagId(null)}
+                onConfirm={() => dispatch({ type: 'DELETE_TAG', id: tag.id })}
+                title="Delete Tag"
+                message={`Delete "${tag.name}"? It will be removed from all tasks.`}
+              />
             </Flex>
           ))}
           <Flex gap={2} mt={4}>

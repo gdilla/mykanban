@@ -29,7 +29,7 @@ export default function SummaryViewerModal() {
   return (
     <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="xl">
       <ModalOverlay bg="rgba(13, 13, 26, 0.85)" />
-      <ModalContent maxW="700px">
+      <ModalContent maxW="700px" bg={c.surface} color={c.text}>
         <ModalHeader>Historical Summaries</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -41,7 +41,7 @@ export default function SummaryViewerModal() {
                   bg={selectedFile === file ? c.accent : 'transparent'}
                   color={selectedFile === file ? '#fff' : c.textSecondary}
                   onClick={() => selectSummary(file)}
-                  _hover={{ bg: selectedFile === file ? c.accent : c.surfaceHover }}
+                  _hover={{ bg: selectedFile === file ? c.accent : c.cardHover }}
                 >
                   {file.replace('summary-', '').replace('.md', '')}
                 </Text>

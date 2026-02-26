@@ -1,6 +1,8 @@
 import { useEffect, useCallback } from 'react'
 import { useApp } from '../state/AppContext'
-import { getFilteredTasks } from '../state/selectors'
+import { getFilteredTasks, getTasksByStatus } from '../state/selectors'
+
+const COLUMN_ORDER = ['todo', 'doing', 'done'] as const
 
 export function useKeyboardNav() {
   const { state, dispatch } = useApp()
@@ -40,6 +42,12 @@ export function useKeyboardNav() {
       e.preventDefault()
       const prev = currentIndex > 0 ? currentIndex - 1 : tasks.length - 1
       dispatch({ type: 'SET_FOCUSED_TASK', id: tasks[prev].id })
+    } else if (e.key === 'ArrowLeft' || e.key === 'h') {
+      e.preventDefault()
+      moveFocusToColumn(-1, state, dispatch)
+    } else if (e.key === 'ArrowRight' || e.key === 'l') {
+      e.preventDefault()
+      moveFocusToColumn(1, state, dispatch)
     } else if (e.key === 'Enter' && state.focusedTaskId) {
       e.preventDefault()
       dispatch({ type: 'SET_EDITING_TASK', id: state.focusedTaskId })
@@ -62,4 +70,32 @@ export function useKeyboardNav() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
+}
+
+function moveFocusToColumn(direction: -1 | 1, state: ReturnType<typeof useApp>['state'], dispatch: ReturnType<typeof useApp>['dispatch']) {
+  const focusedTask = state.focusedTaskId
+    ? state.tasks.find(t => t.id === state.focusedTaskId)
+    : null
+
+  if (!focusedTask) {
+    // No focus — focus first task in first column
+    const firstCol = getTasksByStatus(state, 'todo')
+    if (firstCol.length > 0) dispatch({ type: 'SET_FOCUSED_TASK', id: firstCol[0].id })
+    return
+  }
+
+  const currentColIndex = COLUMN_ORDER.indexOf(focusedTask.status as typeof COLUMN_ORDER[number])
+  const targetColIndex = currentColIndex + direction
+  if (targetColIndex < 0 || targetColIndex >= COLUMN_ORDER.length) return
+
+  const targetStatus = COLUMN_ORDER[targetColIndex]
+  const targetTasks = getTasksByStatus(state, targetStatus)
+  if (targetTasks.length === 0) return
+
+  // Find the index of the focused task in its current column
+  const currentColTasks = getTasksByStatus(state, focusedTask.status)
+  const indexInCol = currentColTasks.findIndex(t => t.id === focusedTask.id)
+  const targetIndex = Math.min(indexInCol, targetTasks.length - 1)
+
+  dispatch({ type: 'SET_FOCUSED_TASK', id: targetTasks[targetIndex].id })
 }

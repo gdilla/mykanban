@@ -3,7 +3,7 @@ import { Flex, Heading, Button, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
 
-export default function Header() {
+export default function Header({ showFilters, onToggleFilters }: { showFilters: boolean; onToggleFilters: () => void }) {
   const { state, dispatch } = useApp()
 
   return (
@@ -51,6 +51,15 @@ export default function Header() {
             </Button>
           ))}
         </Flex>
+        <Button
+          variant="brutalist-outline" size="sm"
+          bg={showFilters ? c.accent : undefined}
+          color={showFilters ? '#fff' : undefined}
+          _hover={showFilters ? { bg: c.accentHover } : undefined}
+          onClick={onToggleFilters}
+        >
+          Filters
+        </Button>
         <Button variant="brutalist-outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('open-tag-manager'))}>
           Tags
         </Button>

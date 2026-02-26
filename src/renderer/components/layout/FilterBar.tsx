@@ -2,20 +2,13 @@ import React from 'react'
 import { Flex, Box, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
+import { getContrastColor } from '../../utils/color'
 
 const AGE_OPTIONS = ['1d', '3d', '1w', '2w', '1m']
-
-function getContrastColor(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#0c0c0c' : '#fff'
-}
 
 export default function FilterBar() {
   const { state, dispatch } = useApp()
   const { tags, activeFilters } = state
-  if (tags.length === 0) return null
 
   const toggleTag = (tagId: string) => {
     const next = activeFilters.tags.includes(tagId)
@@ -35,31 +28,34 @@ export default function FilterBar() {
       </Text>
 
       <Flex gap={2} flex={1} flexWrap="wrap" align="center">
-        {tags.map(tag => {
-          const isActive = activeFilters.tags.includes(tag.id)
-          return (
-            <Box
-              key={tag.id} as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={600}
-              px={3} py="5px" borderRadius="6px" textTransform="uppercase" letterSpacing="0.05em"
-              bg={isActive ? tag.color : `${tag.color}22`}
-              color={isActive ? getContrastColor(tag.color) : tag.color}
-              border={`1px solid ${isActive ? tag.color : `${tag.color}44`}`}
-              cursor="pointer" transition="all 0.15s ease"
-              _hover={{ bg: isActive ? tag.color : `${tag.color}33` }}
-              onClick={() => toggleTag(tag.id)}
-            >
-              {tag.name}
-            </Box>
-          )
-        })}
-
-        <Box w="1px" h="20px" bg={c.border} mx={1} />
+        {tags.length > 0 && (
+          <>
+            {tags.map(tag => {
+              const isActive = activeFilters.tags.includes(tag.id)
+              return (
+                <Box
+                  key={tag.id} as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={600}
+                  px={3} py="5px" borderRadius="6px" textTransform="uppercase" letterSpacing="0.05em"
+                  bg={isActive ? tag.color : `${tag.color}22`}
+                  color={isActive ? getContrastColor(tag.color) : tag.color}
+                  border={`1px solid ${isActive ? tag.color : `${tag.color}44`}`}
+                  cursor="pointer" transition="all 0.15s ease"
+                  _hover={{ bg: isActive ? tag.color : `${tag.color}33` }}
+                  onClick={() => toggleTag(tag.id)}
+                >
+                  {tag.name}
+                </Box>
+              )
+            })}
+            <Box w="1px" h="20px" bg={c.border} mx={1} />
+          </>
+        )}
 
         {AGE_OPTIONS.map(age => {
           const isActive = activeFilters.age === age
           return (
             <Box
-              key={age} as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={500}
+              key={age} as="button" fontFamily="mono" fontSize="0.7rem" fontWeight={500}
               px={3} py="5px" borderRadius="6px" textTransform="uppercase"
               bg={isActive ? c.accent : 'transparent'}
               color={isActive ? '#fff' : c.textMuted}
@@ -76,11 +72,12 @@ export default function FilterBar() {
 
       {hasFilters && (
         <Box as="button" fontFamily="heading" fontSize="0.7rem" fontWeight={700} px={3} py="5px"
-          borderRadius="6px" bg={c.danger} color="white" cursor="pointer"
-          _hover={{ bg: '#dc2626' }}
+          borderRadius="6px" bg="transparent" color={c.textSecondary} cursor="pointer"
+          border={`1px solid ${c.border}`}
+          _hover={{ color: c.text, borderColor: c.borderStrong }}
           onClick={() => dispatch({ type: 'SET_FILTERS', filters: { tags: [], age: null } })}
         >
-          Clear
+          × Clear
         </Box>
       )}
     </Flex>

@@ -38,7 +38,7 @@ export default function TaskBadges({ task }: { task: Task }) {
   const due = task.dueDate ? formatDue(task.dueDate) : null
 
   const badge = (bg: string, color: string, text: string, className?: string) => (
-    <Box fontFamily="body" fontSize="0.68rem" px="7px" py="3px" borderRadius="4px"
+    <Box fontFamily="mono" fontSize="0.68rem" px="7px" py="3px" borderRadius="4px"
       bg={bg} color={color} className={className}>
       {text}
     </Box>
@@ -53,7 +53,7 @@ export default function TaskBadges({ task }: { task: Task }) {
         due.label
       )}
       {task.timeSpent > 0 && badge(c.doneSoft, c.done, formatTime(task.timeSpent))}
-      {isTimerActive && badge(c.done, '#fff', '● tracking', 'timer-badge')}
+      {isTimerActive && badge(c.doingSoft, c.doing, '● tracking', 'timer-badge')}
       {task.attachments.length > 0 && badge(c.surface, c.textMuted, `${task.attachments.length} file${task.attachments.length > 1 ? 's' : ''}`)}
     </Flex>
   )

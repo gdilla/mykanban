@@ -92,7 +92,7 @@ export default function EditTaskModal() {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="lg">
       <ModalOverlay bg="rgba(13, 13, 26, 0.85)" />
-      <ModalContent maxW="480px" onPaste={handlePaste}>
+      <ModalContent maxW="480px" bg={c.surface} color={c.text} onPaste={handlePaste}>
         <ModalHeader>Edit Task</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
@@ -105,7 +105,7 @@ export default function EditTaskModal() {
             <Textarea value={description} onChange={e => setDescription(e.target.value)} variant="brutalist" minH="120px" resize="vertical" />
             <Text fontSize="0.75rem" color={c.textMuted} mt={1}>Paste images with ⌘V</Text>
           </Box>
-          <AttachmentGrid attachments={attachments} onRemove={f => setAttachments(prev => prev.filter(a => a.filename !== f))} onFileAttach={handleFileAttach} />
+          <AttachmentGrid attachments={attachments} onRemove={f => setAttachments(prev => prev.filter(a => a.filename !== f))} onFileAttach={handleFileAttach} showAlways />
           <Box mb={5}>
             <Text fontFamily="heading" fontWeight={500} color={c.textSecondary} mb={2} fontSize="0.85rem" textTransform="uppercase" letterSpacing="0.05em">Due Date</Text>
             <Input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} variant="brutalist" />
