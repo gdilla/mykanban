@@ -38,10 +38,10 @@ export default function Header({ showFilters, onToggleFilters }: { showFilters: 
           ].map(([key, label], i) => (
             <Flex key={key} align="center" gap={1}>
               {i > 0 && <Text color={c.border} mx="2px" fontSize="0.6rem">·</Text>}
-              <Text as="kbd" bg={c.card} border={`1px solid ${c.border}`} borderRadius="4px" px={1.5} py={0.5} fontSize="0.62rem" color={c.textMuted} fontFamily="mono">
+              <Text as="kbd" bg={c.card} border={`1px solid ${c.border}`} borderRadius="4px" px={1.5} py={0.5} fontSize="0.62rem" color={c.textSecondary} fontFamily="mono">
                 {key}
               </Text>
-              <Text fontSize="0.62rem" color={c.textMuted}>{label}</Text>
+              <Text fontSize="0.62rem" color={c.textSecondary}>{label}</Text>
             </Flex>
           ))}
         </Flex>

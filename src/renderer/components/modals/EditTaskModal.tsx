@@ -12,23 +12,23 @@ import { Attachment } from '../../state/types'
 const fieldLabel = {
   fontFamily: 'body',
   fontWeight: 600,
-  color: c.textMuted,
-  fontSize: '0.68rem',
+  color: c.textSecondary,
+  fontSize: '0.7rem',
   textTransform: 'uppercase' as const,
   letterSpacing: '0.08em',
   mb: '6px',
 }
 
 const fieldInput = {
-  bg: c.bg,
+  bg: c.card,
   border: `1px solid var(--c-border-strong)`,
   borderRadius: '8px',
   fontFamily: 'body',
   fontSize: '0.9rem',
   color: c.text,
   _focus: {
-    borderColor: '#7c8aff',
-    boxShadow: '0 0 0 3px rgba(124, 138, 255, 0.15)',
+    borderColor: 'var(--c-focus-outline)',
+    boxShadow: '0 0 0 3px var(--c-accent-soft)',
   },
   _placeholder: { color: c.textMuted },
 }

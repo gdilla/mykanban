@@ -22,9 +22,9 @@ const c = {
   done: '#10b981',
   doneSoft: 'rgba(16, 185, 129, 0.12)',
 
-  accent: '#7c8aff',
-  accentHover: '#6b79f0',
-  accentSoft: 'rgba(124, 138, 255, 0.12)',
+  accent: 'var(--c-accent)',
+  accentHover: 'var(--c-accent-hover)',
+  accentSoft: 'var(--c-accent-soft)',
 
   // Pre-computed alpha variants for template literal usage
   accentAlpha40: 'var(--c-accent-a40)',
@@ -71,7 +71,7 @@ const theme = extendTheme({
           _hover: {
             bg: c.accentHover,
             transform: 'translateY(-1px)',
-            boxShadow: `0 4px 12px rgba(124, 138, 255, 0.2)`,
+            boxShadow: `0 4px 12px var(--c-accent-soft)`,
           },
           _active: {
             transform: 'translateY(0)',
@@ -138,8 +138,8 @@ const theme = extendTheme({
             fontFamily: `'Inter', -apple-system, sans-serif`,
             fontSize: '0.9rem',
             _focus: {
-              borderColor: '#7c8aff',
-              boxShadow: '0 0 0 3px rgba(124, 138, 255, 0.15)',
+              borderColor: 'var(--c-focus-outline)',
+              boxShadow: '0 0 0 3px var(--c-accent-soft)',
             },
             _placeholder: { color: c.textMuted },
           },
@@ -157,8 +157,8 @@ const theme = extendTheme({
           fontFamily: `'Inter', -apple-system, sans-serif`,
           fontSize: '0.9rem',
           _focus: {
-            borderColor: '#7c8aff',
-            boxShadow: '0 0 0 3px rgba(124, 138, 255, 0.15)',
+            borderColor: 'var(--c-focus-outline)',
+            boxShadow: '0 0 0 3px var(--c-accent-soft)',
           },
           _placeholder: { color: c.textMuted },
         },

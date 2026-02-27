@@ -22,7 +22,7 @@ export default function FilterBar() {
 
   return (
     <Flex align="center" gap={3} mb={5} p="10px 16px" bg={c.surface} borderRadius="10px" flexWrap="wrap">
-      <Text fontFamily="body" fontWeight={500} fontSize="0.75rem" color={c.textMuted}>
+      <Text fontFamily="body" fontWeight={500} fontSize="0.75rem" color={c.textSecondary}>
         Filter
       </Text>
 
@@ -36,7 +36,7 @@ export default function FilterBar() {
                   key={tag.id} as="button" fontFamily="body" fontSize="0.7rem" fontWeight={500}
                   px={3} py="4px" borderRadius="8px"
                   bg={isActive ? `${tag.color}30` : 'transparent'}
-                  color={isActive ? tag.color : c.textMuted}
+                  color={isActive ? tag.color : c.textSecondary}
                   border={`1px solid ${isActive ? `${tag.color}44` : c.border}`}
                   cursor="pointer" transition="all 0.15s ease"
                   _hover={{ bg: `${tag.color}20`, color: tag.color }}
@@ -57,7 +57,7 @@ export default function FilterBar() {
               key={age} as="button" fontFamily="body" fontSize="0.7rem" fontWeight={500}
               px={3} py="4px" borderRadius="8px"
               bg={isActive ? c.accentSoft : 'transparent'}
-              color={isActive ? c.accent : c.textMuted}
+              color={isActive ? c.accent : c.textSecondary}
               border={`1px solid ${isActive ? c.accentAlpha40 : c.border}`}
               cursor="pointer" transition="all 0.15s ease"
               _hover={{ bg: isActive ? c.accentSoft : c.card }}

@@ -18,7 +18,7 @@ export default function ConfirmDialog({ isOpen, onClose, onConfirm, title, messa
 
   return (
     <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose} isCentered>
-      <AlertDialogOverlay bg="rgba(13, 13, 26, 0.85)" />
+      <AlertDialogOverlay bg="var(--c-modal-overlay)" />
       <AlertDialogContent bg={c.surface} border={`1px solid ${c.borderStrong}`} borderRadius="12px" color={c.text}
         boxShadow="0 24px 48px rgba(0,0,0,0.5)">
         <AlertDialogHeader fontFamily="heading" fontWeight={700} fontSize="1.1rem" textTransform="uppercase"
