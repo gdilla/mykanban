@@ -35,7 +35,10 @@ export default function CommandPalette() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault(); setIsOpen(prev => !prev); setQuery(''); setSelectedIndex(0)
+        e.preventDefault()
+        // Not over another dialog: running a palette item would replace it and drop what was typed in it.
+        if (document.querySelector('[role="dialog"]:not([aria-label="Command palette"]), [role="alertdialog"]')) return
+        setIsOpen(prev => !prev); setQuery(''); setSelectedIndex(0)
       }
     }
     window.addEventListener('keydown', handler)
