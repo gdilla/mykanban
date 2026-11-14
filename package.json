@@ -4,11 +4,13 @@
   "description": "Local Kanban board with reminders and daily summaries",
   "main": "dist/main/main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron-vite build && electron .",
     "dev": "electron-vite dev",
     "build:vite": "electron-vite build",
-    "build": "electron-builder --mac",
-    "preview": "electron-vite preview"
+    "build": "electron-vite build && electron-builder --mac",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run"
   },
   "author": "G",
   "license": "MIT",
@@ -16,7 +18,7 @@
     "appId": "com.local.kanban",
     "productName": "Kanban",
     "directories": {
-      "output": "dist"
+      "output": "release"
     },
     "mac": {
       "category": "public.app-category.productivity",
@@ -40,7 +42,8 @@
     "electron-builder": "^24.9.1",
     "electron-vite": "^5.0.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vitest": "^5.1.0"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.10.9",
