@@ -25,3 +25,10 @@ export function newTask(
   createdAt: string
   tagSortOrders: Record<string, number>
 }
+
+interface Tagged {
+  tags: string[]
+  tagSortOrders: Record<string, number>
+}
+
+export function withTagOrders<T extends Tagged>(task: T, tasks: readonly Tagged[]): T

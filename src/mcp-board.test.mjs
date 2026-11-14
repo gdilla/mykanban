@@ -196,7 +196,7 @@ describe('addTask', () => {
     expect(b.tasks.at(-1)).toEqual({
       id: row.id, title: 'Buy milk', description: 'oat', status: 'todo', dueDate: '2026-11-20', tags: ['g2'],
       attachments: [], createdAt: '2026-11-14T10:00:00.000Z', startedAt: null, completedAt: null,
-      timeSpent: 0, sortOrder: 4, tagSortOrders: {},
+      timeSpent: 0, sortOrder: 4, tagSortOrders: { g2: 1 }, // below t1, the other Home task
     })
   })
 
@@ -216,7 +216,8 @@ describe('updateTask', () => {
     const b = board()
     const row = updateTask(b, 't1', { title: 'New title', tags: ['Deep Focus'] })
     expect(row).toEqual({ id: 't1', title: 'New title', status: 'todo', due: '2026-11-14', tags: ['Deep Focus'] })
-    expect(b.tasks[1]).toEqual({ ...board().tasks[1], title: 'New title', tags: ['g3'] })
+    // bottom of the Deep Focus column, below d1
+    expect(b.tasks[1]).toEqual({ ...board().tasks[1], title: 'New title', tags: ['g3'], tagSortOrders: { g3: 1 } })
   })
 
   it('an empty string or null clears the due date; an empty list clears the tags', () => {

@@ -48,3 +48,17 @@ export function newTask(fields, tasks, now = Date.now()) {
     tagSortOrders: {},
   }
 }
+
+// A copy of `task` whose tagSortOrders match its tags. Call it whenever a task's tags are set.
+// A tag it has no place under yet puts it at the bottom of that tag column; places under tags it no
+// longer has are dropped (its place in the Untagged column is kept). `tasks` is the whole board.
+export function withTagOrders(task, tasks) {
+  const old = task.tagSortOrders || {}
+  const tagSortOrders = '__untagged__' in old ? { __untagged__: old.__untagged__ } : {}
+  for (const tagId of task.tags || []) {
+    tagSortOrders[tagId] = old[tagId] ?? tasks
+      .filter(t => (t.tags || []).includes(tagId))
+      .reduce((max, t) => Math.max(max, t.tagSortOrders?.[tagId] || 0), -1) + 1
+  }
+  return { ...task, tagSortOrders }
+}

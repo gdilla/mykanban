@@ -77,10 +77,3 @@ export function getBoardColumns(state: AppState): Task[][] {
   }
   return snapshot.columns
 }
-
-// tagSortOrders value that puts a new task at the bottom of a tag column
-export function endOfTagColumn(tasks: Task[], tagId: string): number {
-  return tasks
-    .filter(t => t.tags.includes(tagId))
-    .reduce((max, t) => Math.max(max, t.tagSortOrders?.[tagId] || 0), -1) + 1
-}

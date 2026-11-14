@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { DONE_LIMIT, endOfTagColumn, getBoardColumns, getDoneTasks } from './selectors'
+import { DONE_LIMIT, getBoardColumns, getDoneTasks } from './selectors'
 import { getVisibleColumns } from './nav'
 import { initialState } from './reducer'
 import { AppState, Task } from './types'
@@ -76,13 +76,5 @@ describe('getBoardColumns snapshot', () => {
 
     // the filter is re-applied as soon as the data or the filters change
     expect(getVisibleColumns({ ...later, tasks: [...later.tasks] })).toEqual([[], [], []])
-  })
-})
-
-describe('endOfTagColumn', () => {
-  it('is one past the last card of that tag column', () => {
-    const tasks = [task('a', { tags: ['t1'], tagSortOrders: { t1: 4 } }), task('b', { tags: ['t1'] }), task('c', { tags: ['t2'], tagSortOrders: { t2: 9 } })]
-    expect(endOfTagColumn(tasks, 't1')).toBe(5)
-    expect(endOfTagColumn(tasks, 'empty')).toBe(0)
   })
 })

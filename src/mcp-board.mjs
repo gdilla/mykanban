@@ -3,7 +3,7 @@
 // Anything invalid throws an Error whose message tells the agent how to recover.
 import path from 'path'
 import dates from './dates.js' // CommonJS, shared with the Electron main process
-import { applyStatusChange, newTask } from './shared/task-rules.mjs'
+import { applyStatusChange, newTask, withTagOrders } from './shared/task-rules.mjs'
 
 const STATUSES = ['todo', 'doing', 'done']
 
@@ -134,13 +134,13 @@ function checkTitle(title) {
 }
 
 export function addTask(board, { title, description, due, tags = [], status }, now = Date.now()) {
-  const task = newTask({
+  const task = withTagOrders(newTask({
     title: checkTitle(title),
     description,
     status,
     dueDate: due ? checkDate(due) : '',
     tags: tagIds(tags, board.tags),
-  }, board.tasks, now)
+  }, board.tasks, now), board.tasks)
   board.tasks.push(task)
   return row(task, board.tags)
 }
@@ -158,6 +158,7 @@ export function updateTask(board, id, { title, description, due, tags }) {
   if (due !== undefined) changes.dueDate = due ? checkDate(due) : ''
   if (tags !== undefined) changes.tags = tagIds(tags, board.tags)
   Object.assign(task, changes)
+  if (changes.tags) task.tagSortOrders = withTagOrders(task, board.tasks).tagSortOrders
   return row(task, board.tags)
 }
 

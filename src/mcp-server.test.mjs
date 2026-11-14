@@ -37,6 +37,7 @@ function fixture() {
   Object.assign(tasks[0], { dueDate: '2020-01-01', tags: ['tag0', 'tag1'] })
   Object.assign(tasks[1], { dueDate: TODAY, title: 'Call the plumber', description: 'About the LEAK under the sink' })
   tasks[2].attachments = [{ filename: '1700000000_abc.png', originalName: 'screenshot.png', type: 'image/png' }]
+  tasks[5].tagSortOrders = { tag5: 2 } // the Health column was reordered in the app
   return { tasks, tags }
 }
 
@@ -208,7 +209,7 @@ describe('writing', () => {
     expect(stored(addedId)).toEqual({
       id: addedId, title: 'Book dentist', description: 'Ask about Friday', status: 'todo', dueDate: '2026-12-01',
       tags: ['tag5', 'tag2'], attachments: [], createdAt: expect.any(String), startedAt: null, completedAt: null,
-      timeSpent: 0, sortOrder: 24, tagSortOrders: {},
+      timeSpent: 0, sortOrder: 24, tagSortOrders: { tag5: 3, tag2: 1 },
     })
   })
 
@@ -216,6 +217,10 @@ describe('writing', () => {
     const { json } = await call('update_task', { id: addedId, title: 'Book the dentist', due: '', tags: ['Health'] })
     expect(json).toEqual({ id: addedId, title: 'Book the dentist', status: 'todo', due: null, tags: ['Health'] })
     expect(stored(addedId)).toMatchObject({ title: 'Book the dentist', dueDate: '', tags: ['tag5'], description: 'Ask about Friday' })
+    expect(stored(addedId).tagSortOrders).toEqual({ tag5: 3 }) // its place under Errands went with the tag
+    await call('update_task', { id: addedId, tags: ['Health', 'Work'] })
+    expect(stored(addedId).tagSortOrders).toEqual({ tag5: 3, tag0: 1 }) // and it joins Work at the bottom
+    await call('update_task', { id: addedId, tags: ['Health'] })
   })
 
   it('move_task follows the app rules: doing starts the clock, done records the time, todo resets', async () => {

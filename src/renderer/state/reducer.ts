@@ -1,6 +1,6 @@
 import { AppState, AppAction, Task } from './types'
 import { isStatus } from './drop'
-import { applyStatusChange } from '../../shared/task-rules.mjs'
+import { applyStatusChange, withTagOrders } from '../../shared/task-rules.mjs'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -33,14 +33,18 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         loaded: true,
       }
 
+    // Whoever sets a task's tags (quick add, the edit window, a drop in tag view), the reducer gives it
+    // its place in those tag columns: the rule shared with the MCP server.
     case 'ADD_TASK': {
-      return { ...state, tasks: [...state.tasks, action.task] }
+      return { ...state, tasks: [...state.tasks, withTagOrders(action.task, state.tasks)] }
     }
 
     case 'UPDATE_TASK': {
-      const tasks = state.tasks.map(t =>
-        t.id === action.id ? { ...t, ...action.updates } : t
-      )
+      const tasks = state.tasks.map(t => {
+        if (t.id !== action.id) return t
+        const updated = { ...t, ...action.updates }
+        return action.updates.tags ? withTagOrders(updated, state.tasks) : updated
+      })
       return { ...state, tasks }
     }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { appReducer, initialState } from '../renderer/state/reducer'
-import { applyStatusChange, newTask } from './task-rules.mjs'
+import { applyStatusChange, newTask, withTagOrders } from './task-rules.mjs'
 
 const NOW = Date.parse('2026-11-14T10:00:00.000Z')
 const NOW_ISO = '2026-11-14T10:00:00.000Z'
@@ -118,5 +118,48 @@ describe('newTask', () => {
   it('created in doing it is started; created in done it is completed (as the app does)', () => {
     expect(newTask({ title: 'x', status: 'doing' }, others, NOW)).toMatchObject({ startedAt: NOW_ISO, completedAt: null, sortOrder: 0 })
     expect(newTask({ title: 'x', status: 'done' }, others, NOW)).toMatchObject({ startedAt: null, completedAt: NOW_ISO, sortOrder: 10 })
+  })
+})
+
+describe('withTagOrders', () => {
+  // The g1 column has been reordered (p, then q); q is also second in g2
+  const board = [
+    task({ id: 'p', tags: ['g1'], tagSortOrders: { g1: 0 } }),
+    task({ id: 'q', tags: ['g1', 'g2'], tagSortOrders: { g1: 7, g2: 2 } }),
+  ]
+
+  it('puts a task at the bottom of every tag column it has no place in yet', () => {
+    const t = withTagOrders(task({ id: 'n', tags: ['g1', 'g2', 'g3'], tagSortOrders: {} }), board)
+    expect(t.tagSortOrders).toEqual({ g1: 8, g2: 3, g3: 0 })
+  })
+
+  it('keeps the place it already has in a column', () => {
+    const t = withTagOrders(task({ id: 'n', tags: ['g1', 'g2'], tagSortOrders: { g1: 0 } }), board)
+    expect(t.tagSortOrders).toEqual({ g1: 0, g2: 3 })
+  })
+
+  it('drops its place in tag columns it has left, but keeps its place among the untagged', () => {
+    const t = withTagOrders(task({ id: 'q', tags: ['g2'], tagSortOrders: { g1: 7, g2: 2, __untagged__: 4 } }), board)
+    expect(t.tagSortOrders).toEqual({ g2: 2, __untagged__: 4 })
+  })
+
+  it('reads a task from an old file (no tagSortOrders) and does not change the task it is given', () => {
+    const old = task({ id: 'n', tags: ['g1'], tagSortOrders: undefined })
+    const before = JSON.stringify(old)
+    expect(withTagOrders(old, [...board, old]).tagSortOrders).toEqual({ g1: 8 })
+    expect(JSON.stringify(old)).toBe(before)
+  })
+
+  it('the reducer applies it when a task is added with tags (quick add) or its tags are edited', () => {
+    const state = { ...initialState, tasks: board }
+    const added = appReducer(state, { type: 'ADD_TASK', task: task({ id: 'n', tags: ['g1'], tagSortOrders: {} }) })
+    expect(added.tasks[2].tagSortOrders).toEqual({ g1: 8 })
+
+    const retagged = appReducer(state, { type: 'UPDATE_TASK', id: 'p', updates: { tags: ['g2'] } })
+    expect(retagged.tasks[0].tagSortOrders).toEqual({ g2: 3 })
+
+    // An update that does not set tags leaves the order alone
+    const renamed = appReducer(state, { type: 'UPDATE_TASK', id: 'q', updates: { title: 'renamed' } })
+    expect(renamed.tasks[1].tagSortOrders).toBe(board[1].tagSortOrders)
   })
 })

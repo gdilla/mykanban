@@ -4,8 +4,6 @@ import { Flex, Box, Button } from '@chakra-ui/react'
 import { Plus } from 'lucide-react'
 import { useApp } from '../../state/AppContext'
 import { isStatus } from '../../state/drop'
-import { endOfTagColumn } from '../../state/selectors'
-import { Task } from '../../state/types'
 import { newTask } from '../../../shared/task-rules.mjs'
 import { colors as c } from '../../theme'
 
@@ -16,13 +14,8 @@ export default function AddTaskForm({ columnId }: { columnId: string }) {
   const handleSubmit = () => {
     if (!title.trim()) return
     // Same defaults as a task the MCP server adds: the bottom of its status column.
-    // Added from a tag column it carries that tag and goes to the bottom of that column too.
-    const task: Task = isStatus(columnId)
-      ? newTask({ title: title.trim(), status: columnId }, state.tasks)
-      : {
-        ...newTask({ title: title.trim(), tags: [columnId] }, state.tasks),
-        tagSortOrders: { [columnId]: endOfTagColumn(state.tasks, columnId) },
-      }
+    // Added from a tag column it carries that tag and goes to the bottom of that column too (the reducer).
+    const task = newTask({ title: title.trim(), ...(isStatus(columnId) ? { status: columnId } : { tags: [columnId] }) }, state.tasks)
     flushSync(() => dispatch({ type: 'ADD_TASK', task })) // draw the card now, so it can be scrolled to
     setTitle('')
     // Not there when the active filters hide the new task.
