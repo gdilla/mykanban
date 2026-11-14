@@ -112,7 +112,10 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach, sh
         type="file"
         multiple
         style={{ display: 'none' }}
-        onChange={e => e.target.files && onFileAttach(e.target.files)}
+        onChange={e => {
+          if (e.target.files) onFileAttach(e.target.files)
+          e.target.value = '' // or choosing the same file again (after removing it) fires no change event
+        }}
       />
       <Button
         ref={attachButtonRef}
