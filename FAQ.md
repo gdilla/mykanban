@@ -96,7 +96,7 @@ Yes, completely independent. Reordering tasks in Status view does not affect the
 | Badge | Meaning |
 |-------|---------|
 | Red "Xd overdue" badge | Task is overdue |
-| Highlighted due date ("today", "tomorrow") | Task is due soon |
+| Highlighted due date ("today", "tomorrow", "in 2d") | Task is due within 3 days |
 | Plain due date (e.g., "feb 15") | Task is due later |
 | Clock badge (e.g., "2h 15m") | Total time tracked on this task |
 | Paperclip badge with a number | Number of attachments |

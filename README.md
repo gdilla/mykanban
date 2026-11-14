@@ -315,14 +315,14 @@ The server reads `~/Library/Application Support/kanban-app/` by default. Set the
 
 ## Configuration
 
-Edit `src/main.js` to customize:
+Edit `src/main.js` (and `src/dates.js` for the summary time) to customize, then restart the app:
 
 | Setting | Default | Location |
 |---------|---------|----------|
 | Work hours start | 8am | `isWorkHours()` function |
 | Work hours end | 5pm | `isWorkHours()` function |
 | Reminder frequency | 30 min | `setupScheduler()` - checks at :00 and :30 |
-| Summary generation time | 9pm | `setupScheduler()` - hour === 21 |
+| Summary generation time | 9pm | `SUMMARY_HOUR` in `src/dates.js` |
 
 ## Development
 

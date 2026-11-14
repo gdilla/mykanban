@@ -23,7 +23,7 @@ The app is now React only, shares its data file safely with AI agents, and has o
 - **Keyboard** — Arrow keys or `h`/`j`/`k`/`l` follow what is on screen in both views. `1`/`2`/`3` move the focused task to To do / In progress / Done. `x` deletes with an Undo toast instead of deleting for good. Shortcuts are ignored while a window is open or a modifier key is held.
 - **Quick add hotkeys** — The global hotkey moved from Cmd+T to Control+Option+K. Cmd+N opens quick add inside the app.
 - **Due labels** — A task due today reads "today", due yesterday reads "1d overdue", due tomorrow reads "tomorrow". Dates are handled as local dates.
-- **Daily summary** — Named for and counted by the local date. If the Mac was asleep at 9pm, the summary is written when the app next checks.
+- **Daily summary** — Named for and counted by the local date. If the Mac was asleep at 9pm, the summary is written when the app next checks that evening.
 
 ### Edit window and attachments
 

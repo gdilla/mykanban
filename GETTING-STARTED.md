@@ -72,7 +72,7 @@ Each card shows:
 ### Visual States
 
 - **Red "overdue" badge** — Task is overdue (e.g., "1d overdue")
-- **Highlighted due date** — Task is due soon (e.g., "today", "tomorrow")
+- **Highlighted due date** — Task is due within 3 days (e.g., "today", "tomorrow", "in 2d")
 - **Outlined card** — The card has keyboard focus
 
 ---

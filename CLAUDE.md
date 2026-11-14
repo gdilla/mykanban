@@ -15,6 +15,7 @@ npm run build      # package a macOS DMG into release/
 ## Architecture
 
 - `src/main.js` — Electron main process: window, IPC handlers, file watcher, reminders, daily summary, global hotkey. Bundled by electron-vite to `dist/main/main.js` (the `main` entry in `package.json`).
+- `src/dates.js` — local-date helpers for the main process (summary date, overdue, completed-on). Pure, so vitest can load them.
 - `src/store.js` — the data store (CommonJS), shared by the main process and the MCP server: strict `load(path)`, atomic `save(path, data)`.
 - `src/shared/task-rules.mjs` — status-transition rules (timestamps, `timeSpent`, `sortOrder`), shared by the renderer reducer and the MCP server. Change them here, not in either caller.
 - `src/renderer/` — React 19 + Chakra UI 2 + @dnd-kit, TypeScript, built by electron-vite to `dist/renderer/`. Entry: `index.html` → `main.tsx` → `App.tsx`.
