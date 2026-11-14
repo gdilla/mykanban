@@ -96,3 +96,18 @@ describe('delete and restore', () => {
     expect(appReducer(shrunk, { type: 'RESTORE_TASK', id: 'c' }).tasks.map(t => t.id)).toEqual(['c'])
   })
 })
+
+describe('tag filters follow the tags', () => {
+  const tags = [{ id: 't1', name: 'Work', color: '#111' }, { id: 't2', name: 'Home', color: '#222' }]
+  const filtering = { ...initialState, tags, activeFilters: { tags: ['t1', 't2'], age: '1w' } }
+
+  it('DELETE_TAG also switches off the filter on that tag (its chip is gone, so nothing else could)', () => {
+    const next = appReducer(filtering, { type: 'DELETE_TAG', id: 't1' })
+    expect(next.activeFilters).toEqual({ tags: ['t2'], age: '1w' })
+  })
+
+  it('SET_DATA drops filters on tags that no longer exist (an agent deleted the tag)', () => {
+    const next = appReducer(filtering, { type: 'SET_DATA', tasks: [], tags: [tags[1]] })
+    expect(next.activeFilters).toEqual({ tags: ['t2'], age: '1w' })
+  })
+})

@@ -28,6 +28,8 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         tasks: action.tasks.map(t => (isStatus(t.status) ? t : { ...t, status: 'todo' })),
         tags: action.tags,
+        // A filter on a tag that is gone (deleted by an agent) would hide every card, with no chip to switch it off.
+        activeFilters: { ...state.activeFilters, tags: state.activeFilters.tags.filter(id => action.tags.some(t => t.id === id)) },
         loaded: true,
       }
 
@@ -108,7 +110,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...t,
         tags: t.tags.filter(tagId => tagId !== action.id),
       }))
-      return { ...state, tags, tasks }
+      // Its filter chip goes with it, so the filter must too.
+      const activeFilters = { ...state.activeFilters, tags: state.activeFilters.tags.filter(id => id !== action.id) }
+      return { ...state, tags, tasks, activeFilters }
     }
 
     case 'SET_EDITING_TASK':
