@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { filesToDelete, editedFields } from './editTask'
+import { filesToDelete, editedFields, orphanedFiles } from './editTask'
 import { Attachment, Task } from '../state/types'
 
 const att = (filename: string): Attachment => ({ filename, originalName: filename, type: 'image/png' })
@@ -53,5 +53,22 @@ describe('editedFields', () => {
 
   it('changed attachments are written', () => {
     expect(editedFields(opened, { ...draft, attachments: [] }, ['a', 'b'])).toEqual({ attachments: [] })
+  })
+})
+
+describe('orphanedFiles', () => {
+  const withFiles = (id: string, ...files: string[]) => ({ id, attachments: files.map(att) }) as Task
+  const deleted = withFiles('gone', 'a.png', 'b.pdf')
+
+  it('a deleted task leaves all of its files behind when nothing else uses them', () => {
+    expect(orphanedFiles(deleted, [withFiles('other', 'c.png'), withFiles('bare')])).toEqual(['a.png', 'b.pdf'])
+  })
+
+  it('keeps a file another task still shows (a duplicate shares its files)', () => {
+    expect(orphanedFiles(deleted, [withFiles('copy', 'a.png')])).toEqual(['b.pdf'])
+  })
+
+  it('keeps everything when the task is back on the board (Undo, or a reload from disk)', () => {
+    expect(orphanedFiles(deleted, [withFiles('other'), deleted])).toEqual([])
   })
 })

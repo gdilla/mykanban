@@ -4,6 +4,8 @@ import { Button, Flex, Text, useToast } from '@chakra-ui/react'
 import { useApp } from '../state/AppContext'
 import { getVisibleColumns, nextFocus, focusedColumn, boardKey, NAV_KEYS } from '../state/nav'
 import { Task } from '../state/types'
+import { orphanedFiles } from '../utils/editTask'
+import { deleteFilesAfterSave } from './useIpc'
 import { colors as c } from '../theme'
 
 const STATUS_KEYS: Record<string, Task['status']> = { '1': 'todo', '2': 'doing', '3': 'done' }
@@ -12,6 +14,9 @@ export function useKeyboardNav() {
   const { state, dispatch } = useApp()
   const toast = useToast()
 
+  const tasks = useRef(state.tasks)
+  tasks.current = state.tasks
+
   // Every delete (keyboard or mouse) lands in state.lastDeleted, so the undo toast lives here once.
   useEffect(() => {
     const deleted = state.lastDeleted
@@ -19,6 +24,11 @@ export function useKeyboardNav() {
     const id = toast({
       duration: 6000,
       position: 'bottom',
+      // The toast is gone (timed out, or retired by a newer delete), and Undo with it: delete the task's
+      // attachment files. After an Undo the task is back on the board, so none of them are orphans.
+      // ponytail: quitting while the toast is up (or in the 2 s after) leaves the files in images/ for good.
+      // Sweep images/ against the board at launch if the folder ever grows.
+      onCloseComplete: () => deleteFilesAfterSave(orphanedFiles(deleted.task, tasks.current)),
       render: ({ onClose }) => createElement(Flex, {
         align: 'center', gap: 3, px: 4, py: 2, bg: c.surface, color: c.text,
         border: `1px solid ${c.borderStrong}`, borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',

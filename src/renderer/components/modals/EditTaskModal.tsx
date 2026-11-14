@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { Textarea, TextareaProps, Button } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
-import { useIpc } from '../../hooks/useIpc'
+import { useIpc, deleteFiles, deleteFilesAfterSave } from '../../hooks/useIpc'
 import AttachmentGrid from '../shared/AttachmentGrid'
 import Dialog, { Field, fieldStyle } from '../shared/Dialog'
 import TagSelector from '../shared/TagSelector'
@@ -73,15 +73,8 @@ function EditTaskForm({ task }: { task: Task }) {
     )
     if (Object.keys(updates).length) dispatch({ type: 'UPDATE_TASK', id: task.id, updates })
     if (status !== opened.status) dispatch({ type: 'MOVE_TASK', id: task.id, status })
-    // Main refuses to delete a file the saved board still lists, and the save that
-    // drops these is debounced, so ask once it has had time to reach disk.
-    // ponytail: fixed 2 s wait; if the save has not landed (or was refused) the file stays on disk,
-    // an orphan rather than a broken attachment. Upgrade: delete from the save path once it reports success.
-    if (unwanted.length) setTimeout(() => deleteFiles(unwanted), 2000)
+    deleteFilesAfterSave(unwanted)
   }
-
-  const deleteFiles = (filenames: string[]) => filenames.forEach(f =>
-    ipc.deleteImage(f).catch((e: Error) => console.error(`Could not delete attachment file ${f}:`, e)))
 
   const close = (outcome: 'save' | 'cancel') => {
     commit(outcome)

@@ -35,3 +35,13 @@ export function filesToDelete(atOpen: Attachment[], now: Attachment[], outcome: 
   const keep = new Set(kept.map(a => a.filename))
   return from.map(a => a.filename).filter(f => !keep.has(f))
 }
+
+/**
+ * Which attachment files to delete from disk once a deleted task can no longer be restored:
+ * its files that no task on the board shows. A duplicate shares its files, and if the task
+ * itself is back (Undo, or a reload from disk) that is every one of them.
+ */
+export function orphanedFiles(deleted: Task, tasks: Task[]): string[] {
+  const used = new Set(tasks.flatMap(t => t.attachments.map(a => a.filename)))
+  return deleted.attachments.map(a => a.filename).filter(f => !used.has(f))
+}
