@@ -17,9 +17,19 @@ function read(file) {
 function parse(text) {
     if (text === null) return { tasks: [], tags: [] };
     const data = JSON.parse(text);
-    if (Array.isArray(data)) return { tasks: data, tags: [] }; // legacy: bare task array
     if (!data || typeof data !== 'object') throw new Error('not a kanban board');
-    return { tasks: data.tasks || [], tags: data.tags || [] };
+    const board = Array.isArray(data) // legacy: bare task array
+        ? { tasks: data, tags: [] }
+        : { tasks: data.tasks || [], tags: data.tags || [] };
+    // Legacy: `content` became `title` + `description`. In memory only; whoever saves next persists it.
+    for (const task of board.tasks) {
+        if (task.content !== undefined && task.title === undefined) {
+            task.title = task.content;
+            task.description = '';
+            delete task.content;
+        }
+    }
+    return board;
 }
 
 function load(file) {

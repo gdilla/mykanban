@@ -38,6 +38,16 @@ describe('store', () => {
     expect(store.load(file)).toEqual({ tasks: board.tasks, tags: [] })
   })
 
+  it('reads legacy `content` tasks as title + description, without rewriting the file', () => {
+    const legacy = JSON.stringify({ tasks: [{ id: 'a', content: 'old title', status: 'doing' }, { id: 'b', title: 'new', description: 'd' }], tags: [] })
+    fs.writeFileSync(file, legacy)
+    expect(store.load(file).tasks).toEqual([
+      { id: 'a', title: 'old title', description: '', status: 'doing' },
+      { id: 'b', title: 'new', description: 'd' },
+    ])
+    expect(fs.readFileSync(file, 'utf8')).toBe(legacy)
+  })
+
   it('leaves no temp file behind', () => {
     store.save(file, board)
     expect(fs.readdirSync(dir)).toEqual(['kanban-data.json'])
