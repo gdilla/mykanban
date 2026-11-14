@@ -22,6 +22,10 @@ export default function BoardColumns() {
   const doneCount = useMemo(() => getTasksByStatus(state, 'done').length, [columns])
   const focusCol = focusedColumn(state, columns.map(column => column.map(t => t.id)))
   const filtered = activeFilters.tags.length > 0 || !!activeFilters.age
+  // Local midnight: a prop that changes once a day, so memoised cards redraw their due labels ("today",
+  // "2d overdue") on the first render after the date changes.
+  // ponytail: a board left untouched overnight still waits for that first render; add a midnight timer if it matters.
+  const today = new Date().setHours(0, 0, 0, 0)
 
   const defs = currentView === 'status'
     ? STATUS_COLUMNS
@@ -46,6 +50,7 @@ export default function BoardColumns() {
             tags={tags}
             focusedTaskId={i === focusCol ? state.focusedTaskId : null}
             activeTimerTaskId={state.activeTimerTaskId}
+            today={today}
             emptyText={filtered ? 'No tasks match the filters.' : def.emptyText}
             showAddForm={def.id !== UNTAGGED}
           />

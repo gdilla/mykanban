@@ -30,8 +30,9 @@ export function hasBadges(task: Task, isTimerActive: boolean): boolean {
   return (!!task.dueDate && task.status !== 'done') || task.timeSpent > 0 || isTimerActive || task.attachments.length > 0
 }
 
-export default function TaskBadges({ task, isTimerActive }: { task: Task; isTimerActive: boolean }) {
-  const due = task.dueDate && task.status !== 'done' ? dueLabel(task.dueDate, new Date()) : null
+// `today`: local midnight in ms. A prop rather than `new Date()` here, so a memoised card is redrawn when the date changes.
+export default function TaskBadges({ task, isTimerActive, today }: { task: Task; isTimerActive: boolean; today: number }) {
+  const due = task.dueDate && task.status !== 'done' ? dueLabel(task.dueDate, new Date(today)) : null
 
   return (
     <Flex gap="8px" align="center" flexShrink={0} whiteSpace="nowrap" fontFamily="body" fontSize="11px" color={c.textMuted}>

@@ -28,6 +28,8 @@ export default function AddTaskForm({ columnId }: { columnId: string }) {
     // Not there when the active filters hide the new task.
     const card = document.querySelector(`[data-column="${columnId}"] [data-task-id="${task.id}"]`)
     card?.scrollIntoView({ block: 'nearest' })
+    // The global reduced-motion rule covers CSS animations only, so this one asks for itself.
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     card?.animate({ boxShadow: [`0 0 0 2px ${c.accent}`, '0 0 0 2px transparent'] }, { duration: 1200, easing: 'ease-in' })
   }
 

@@ -27,12 +27,14 @@ interface ColumnProps {
   /** Set only on the column whose copy of the focused card is the highlighted one. */
   focusedTaskId: string | null
   activeTimerTaskId: string | null
+  /** Local midnight today (ms): what due labels are counted from. */
+  today: number
   emptyText: string
   showAddForm?: boolean
 }
 
 // memo: a column is re-rendered only when its own cards, focus or the tag list change.
-function Column({ columnId, title, color, tasks, count, expanded, tags, focusedTaskId, activeTimerTaskId, emptyText, showAddForm }: ColumnProps) {
+function Column({ columnId, title, color, tasks, count, expanded, tags, focusedTaskId, activeTimerTaskId, today, emptyText, showAddForm }: ColumnProps) {
   const dispatch = useAppDispatch()
   const { setNodeRef } = useDroppable({ id: `column-${columnId}`, data: { columnId } })
   // A task can sit in several tag columns at once, so a card's drag id is unique per column (Board.tsx parses it).
@@ -58,7 +60,7 @@ function Column({ columnId, title, color, tasks, count, expanded, tags, focusedT
           )}
           {tasks.map((task, i) => (
             <TaskCard
-              key={task.id} task={task} tags={tags} sortableId={sortableIds[i]}
+              key={task.id} task={task} tags={tags} today={today} sortableId={sortableIds[i]}
               isFocused={task.id === focusedTaskId} isTimerActive={task.id === activeTimerTaskId}
             />
           ))}

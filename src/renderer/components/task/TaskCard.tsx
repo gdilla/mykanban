@@ -19,12 +19,14 @@ interface TaskCardProps {
   tags: Tag[]
   isFocused: boolean
   isTimerActive: boolean
+  /** Local midnight today (ms), for the due label. */
+  today: number
   sortableId: string
 }
 
 // Everything the card needs arrives as props and it reads only the dispatch context,
 // so memo skips it unless its own task, focus or the tag list changed.
-function TaskCardInner({ task, tags, isFocused, isTimerActive, sortableId }: TaskCardProps) {
+function TaskCardInner({ task, tags, isFocused, isTimerActive, today, sortableId }: TaskCardProps) {
   const dispatch = useAppDispatch()
   const [editingTitle, setEditingTitle] = useState(false)
   const openTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -97,7 +99,7 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, sortableId }: Tas
           {hasMeta && (
             <Flex align="center" gap="8px" mt="4px" minH="20px">
               <TaskTags task={task} tags={tags} />
-              <TaskBadges task={task} isTimerActive={isTimerActive} />
+              <TaskBadges task={task} isTimerActive={isTimerActive} today={today} />
             </Flex>
           )}
         </Box>
