@@ -97,7 +97,9 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, today, sortableId
             </Text>
           )}
           {hasMeta && (
-            <Flex align="center" gap="8px" mt="4px" minH="20px">
+            // Tags and badges share a line while both fit; otherwise the badges take a line of their own,
+            // instead of the tags being cut off against them.
+            <Flex align="center" columnGap="8px" rowGap="4px" flexWrap="wrap" mt="4px" minH="20px">
               <TaskTags task={task} tags={tags} />
               <TaskBadges task={task} isTimerActive={isTimerActive} today={today} />
             </Flex>
