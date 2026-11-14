@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { DONE_LIMIT, endOfTagColumn, getBoardColumns, getDoneTasks } from './selectors'
 import { getVisibleColumns } from './nav'
 import { initialState } from './reducer'
@@ -53,6 +53,29 @@ describe('getBoardColumns', () => {
     const tasks = [task('a', { tags: ['t1'] }), ...done]
     const columns = getBoardColumns(board({ tasks, tags, currentView: 'tags' }))
     expect(columns.map(c => c.length)).toEqual([1, 15])
+  })
+})
+
+describe('getBoardColumns snapshot', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('gives the view and keyboard navigation the same columns even after an age-filter cutoff has passed', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-14T12:00:00.000Z'))
+    // created 23h59m ago: inside the "1d" filter now, outside it two minutes later
+    const young = task('young', { createdAt: '2026-11-13T12:01:00.000Z' })
+    const state = board({ tasks: [young], activeFilters: { tags: [], age: '1d' } })
+    const drawn = getBoardColumns(state)
+    expect(drawn.map(ids)).toEqual([['young'], [], []])
+
+    vi.setSystemTime(new Date('2026-11-14T12:02:00.000Z'))
+    // a keypress later: another state object (focus changed), same tasks and filters
+    const later = { ...state, focusedTaskId: 'young' }
+    expect(getBoardColumns(later)).toBe(drawn)
+    expect(getVisibleColumns(later)).toEqual([['young'], [], []])
+
+    // the filter is re-applied as soon as the data or the filters change
+    expect(getVisibleColumns({ ...later, tasks: [...later.tasks] })).toEqual([[], [], []])
   })
 })
 

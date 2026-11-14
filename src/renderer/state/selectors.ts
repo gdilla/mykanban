@@ -63,10 +63,19 @@ export function getDoneTasks(state: AppState): Task[] {
 
 // The board as it is drawn: the cards of each column, left to right, top to bottom.
 // The views, keyboard navigation and drag all read this, so they agree on what is on screen.
+// One snapshot is kept per (tasks, tags, filters, view, Done expanded): every reader gets the same arrays
+// (so memoised columns stay put) and the same answer, even though an age filter depends on the clock.
+// ponytail: so an age filter is re-applied when the data or filters change, not the minute a card ages out.
+let snapshot: { key: unknown[]; columns: Task[][] } | undefined
 export function getBoardColumns(state: AppState): Task[][] {
-  return state.currentView === 'status'
-    ? [getTasksByStatus(state, 'todo'), getTasksByStatus(state, 'doing'), getDoneTasks(state)]
-    : [...state.tags.map(tag => getTasksByTag(state, tag.id)), getUntaggedTasks(state)]
+  const key = [state.tasks, state.tags, state.activeFilters, state.currentView, state.showAllDone]
+  if (!snapshot || key.some((k, i) => k !== snapshot!.key[i])) {
+    const columns = state.currentView === 'status'
+      ? [getTasksByStatus(state, 'todo'), getTasksByStatus(state, 'doing'), getDoneTasks(state)]
+      : [...state.tags.map(tag => getTasksByTag(state, tag.id)), getUntaggedTasks(state)]
+    snapshot = { key, columns }
+  }
+  return snapshot.columns
 }
 
 // tagSortOrders value that puts a new task at the bottom of a tag column

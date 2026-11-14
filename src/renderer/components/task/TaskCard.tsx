@@ -10,6 +10,9 @@ import TaskTitle from './TaskTitle'
 import TaskBadges, { hasBadges } from './TaskBadges'
 import TaskTags from './TaskTags'
 
+// The status mark is a coloured dot: this is its name for tooltips and screen readers
+const STATUS_LABEL = { todo: 'To do', doing: 'In progress', done: 'Done' }
+
 interface TaskCardProps {
   task: Task
   /** Every tag on the board, not just this task's: that array only changes when tags do, so memo holds. */
@@ -72,7 +75,10 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, sortableId }: Tas
     >
       <Flex align="flex-start" gap="8px">
         {/* Status mark, centred on the first line of the title */}
-        <Flex w="14px" h="1.215rem" flexShrink={0} align="center" justify="center" color={c[task.status]}>
+        <Flex
+          w="14px" h="1.215rem" flexShrink={0} align="center" justify="center" color={c[task.status]}
+          role="img" aria-label={STATUS_LABEL[task.status]} title={STATUS_LABEL[task.status]}
+        >
           {isDone ? <Check size={14} strokeWidth={3} /> : <Box w="8px" h="8px" borderRadius="50%" bg="currentColor" />}
         </Flex>
         <Box flex="1" minW={0}>
@@ -97,10 +103,11 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, sortableId }: Tas
         </Box>
       </Flex>
 
-      {/* Quick actions: bottom-right, over the end of the last row (meta, else description), never the title.
-          Hidden with `visibility`, so they cannot take keyboard focus while invisible. */}
+      {/* Quick actions: bottom-right, over the end of the last row (meta, else description), never the title,
+          and gone while the title is being edited (the field takes the full width). Hidden with `visibility`,
+          so they cannot take keyboard focus while invisible. */}
       <Flex
-        className="task-quick-actions"
+        className="task-quick-actions" display={editingTitle ? 'none' : undefined}
         position="absolute" right="6px" bottom="9px" pl="16px"
         bg={`linear-gradient(to right, transparent, ${c.cardHover} 14px)`}
         onClick={e => e.stopPropagation()}

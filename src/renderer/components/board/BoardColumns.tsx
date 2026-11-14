@@ -16,12 +16,10 @@ const STATUS_COLUMNS = [
 // focused id only if the focus is in it), so a keypress re-renders one or two columns, not the board.
 export default function BoardColumns() {
   const state = useAppState()
-  const { tasks, tags, activeFilters, currentView, showAllDone } = state
+  const { tags, activeFilters, currentView, showAllDone } = state
 
-  const { columns, doneCount } = useMemo(
-    () => ({ columns: getBoardColumns(state), doneCount: getTasksByStatus(state, 'done').length }),
-    [tasks, tags, activeFilters, currentView, showAllDone],
-  )
+  const columns = getBoardColumns(state) // the same arrays until tasks, tags, filters or the view change
+  const doneCount = useMemo(() => getTasksByStatus(state, 'done').length, [columns])
   const focusCol = focusedColumn(state, columns.map(column => column.map(t => t.id)))
   const filtered = activeFilters.tags.length > 0 || !!activeFilters.age
 
