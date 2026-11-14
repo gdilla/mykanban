@@ -1,4 +1,5 @@
 import React from 'react'
+import { flushSync } from 'react-dom'
 import { Box } from '@chakra-ui/react'
 import {
   Active, CollisionDetection, DndContext, DragEndEvent, DragOverlay, DragStartEvent, DroppableContainer,
@@ -124,7 +125,8 @@ export default function Board() {
 
     const { columnId, taskId: overTaskId } = parse(over)
     const dragged = active.rect.current.translated
-    resolveDrop(state.tasks, {
+    const keyboard = event.activatorEvent instanceof KeyboardEvent
+    const actions = resolveDrop(state.tasks, {
       view: state.currentView,
       taskId,
       fromColumnId,
@@ -132,8 +134,16 @@ export default function Board() {
       overTaskId,
       // ponytail: a card from another column shows no gap while hovering, it just lands above or below the card
       // it is dropped on (landsAfter). Move it between columns in onDragOver if a live preview is wanted.
-      after: !!dragged && landsAfter(dragged, over.rect, event.activatorEvent instanceof KeyboardEvent),
-    }).forEach(dispatch)
+      after: !!dragged && landsAfter(dragged, over.rect, keyboard),
+    })
+    if (!keyboard) return actions.forEach(dispatch)
+    // A keyboard drop into another column draws the card anew there (in tag view: when it left the column it
+    // was picked up in), and the element that had native focus is gone. Focus the new one, so the keyboard
+    // still has the card: handleFocus highlights it, and Space picks it up again.
+    flushSync(() => actions.forEach(dispatch))
+    if (!(event.activatorEvent.target as Node).isConnected) {
+      document.querySelector<HTMLElement>(`[data-column="${columnId}"] [data-task-id="${taskId}"]`)?.focus()
+    }
   }
 
   // A card took native focus: make it the highlighted card as well (see focusTaken).
