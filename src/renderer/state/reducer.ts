@@ -1,5 +1,6 @@
 import { AppState, AppAction, Task } from './types'
 import { isStatus } from './drop'
+import { applyStatusChange } from '../../shared/task-rules.mjs'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -59,30 +60,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'MOVE_TASK': {
       if (!isStatus(action.status)) return state
-      const now = new Date().toISOString()
-      const tasks = state.tasks.map(t => {
-        if (t.id !== action.id) return t
-        const updates: Partial<Task> = { status: action.status }
-        if (action.status === 'doing' && t.status !== 'doing') {
-          updates.startedAt = now
-        }
-        if (action.status === 'done' && t.status !== 'done') {
-          updates.completedAt = now
-          if (t.startedAt) {
-            updates.timeSpent = (t.timeSpent || 0) + (Date.now() - new Date(t.startedAt).getTime())
-          }
-        }
-        if (action.status === 'todo') {
-          updates.startedAt = null
-          updates.completedAt = null
-        }
-        // Assign sortOrder at end of target column
-        const maxSort = state.tasks
-          .filter(x => x.status === action.status)
-          .reduce((max, x) => Math.max(max, x.sortOrder || 0), -1)
-        updates.sortOrder = maxSort + 1
-        return { ...t, ...updates }
-      })
+      // Timestamps, timeSpent and sortOrder: the rules shared with the MCP server
+      const tasks = state.tasks.map(t =>
+        t.id === action.id ? applyStatusChange(t, action.status, state.tasks) : t
+      )
       // Stop timer if task moves away from doing
       let activeTimerTaskId = state.activeTimerTaskId
       if (action.id === activeTimerTaskId && action.status !== 'doing') {
