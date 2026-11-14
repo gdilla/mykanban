@@ -343,7 +343,7 @@ npm run build
 
 ### Tech Stack
 
-- **Electron 28** - Desktop app framework
+- **Electron 45** - Desktop app framework
 - **React 19 + TypeScript** - Frontend
 - **Chakra UI 2** - UI components
 - **dnd-kit** - Drag & drop

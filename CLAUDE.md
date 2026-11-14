@@ -76,7 +76,7 @@ Handlers that take a filename reject anything where `path.basename(name) !== nam
 - `sortOrder` orders a task within its status column; `tagSortOrders[tagId]` orders it within each tag column. They are independent.
 - In tag view a column id is a tag id or `__untagged__`. Never write one into `status`.
 - The renderer has no Node (`sandbox`, `contextIsolation` on, `nodeIntegration` off). It reaches main only through `window.kanban.invoke(channel, ...)` / `window.kanban.on(channel, listener)` (returns an unsubscribe), exposed by `src/preload.js`. A new IPC channel must be added to the allowlist in `src/shared/ipc-bridge.mjs` or the renderer cannot use it (`ipc-bridge.test.ts` fails until it is). The window cannot navigate away from the app or open new windows.
-- Since Electron 42, macOS shows notifications only for a code-signed app: under `npm run dev`/`npm start` (ad-hoc signed Electron binary) reminders and summary notifications do not appear. The packaged app shows them only if electron-builder signed it (it uses a signing certificate from the keychain when one is present).
+- Since Electron 42, macOS shows notifications only for a code-signed app: under `npm run dev`/`npm start` (ad-hoc signed Electron binary) reminders and summary notifications do not appear. The packaged app shows them only if electron-builder signed it (it uses a signing certificate from the keychain when one is present), and only after the user allows notifications for Kanban in the macOS prompt or System Settings → Notifications.
 - Closing the window hides it; the app keeps running for reminders and the global hotkey until Cmd+Q. There is no tray icon.
 
 ## Code Style
