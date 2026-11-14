@@ -144,6 +144,6 @@ Owns: `CLAUDE.md`, `README.md`, `FAQ.md`, `GETTING-STARTED.md`, `RELEASE-NOTES.m
 
 ### Backlog (not in this pass)
 
-- **T12 — Electron hardening.** Upgrade Electron from 28, `contextIsolation: true`, a `contextBridge` preload, `sandbox: true`. Deferred: the app loads no remote content once T8 removes Google Fonts.
+- **T12 — Electron hardening.** Done: Electron 45, `contextIsolation: true`, a `contextBridge` preload (`window.kanban`, channel allowlist in `src/shared/ipc-bridge.mjs`), `sandbox: true`, navigation and new windows blocked.
 - Time badges show elapsed calendar time rather than work time.
 - Single-instance lock; separate data dir for dev runs; card attachment thumbnails; deleting a task's attachment files when the task is deleted.
