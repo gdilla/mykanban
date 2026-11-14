@@ -45,6 +45,12 @@ describe('isAttachmentReferenced', () => {
     expect(isAttachmentReferenced(board, 'orphan.png')).toBe(false)
   })
 
+  it('ignores a legacy images list once the task has attachments, as the loader does', () => {
+    // a migrated task keeps its old `images` key; the attachment was then removed and saved
+    const migrated = { tasks: [{ id: 'd', attachments: [], images: ['legacy.png'] }] }
+    expect(isAttachmentReferenced(migrated, 'legacy.png')).toBe(false)
+  })
+
   it('reads the legacy bare-array board format', () => {
     expect(isAttachmentReferenced(board.tasks, 'kept.png')).toBe(true)
     expect(isAttachmentReferenced([], 'kept.png')).toBe(false)
