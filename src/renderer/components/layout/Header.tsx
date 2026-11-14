@@ -42,7 +42,9 @@ export default function Header({ showFilters, onToggleFilters }: { showFilters: 
           {[
             ['↑↓←→', 'nav'],
             ['Enter', 'edit'],
+            ['1 2 3', 'move'],
             ['d', 'done'],
+            ['x', 'delete'],
             ['⌘K', 'search'],
           ].map(([key, label], i) => (
             <Flex key={key} align="center" gap={1}>

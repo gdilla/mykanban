@@ -11,6 +11,7 @@ export const initialState: AppState = {
   activeFilters: { tags: [], age: null },
   currentView: (localStorage.getItem('kanban-view') as 'status' | 'tags') || 'status',
   focusedTaskId: null,
+  lastDeleted: null,
   activeTimerTaskId: null,
 }
 
@@ -31,8 +32,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'DELETE_TASK': {
+      const index = state.tasks.findIndex(t => t.id === action.id)
+      if (index === -1) return state
       const tasks = state.tasks.filter(t => t.id !== action.id)
-      return { ...state, tasks }
+      return { ...state, tasks, lastDeleted: { task: state.tasks[index], index } }
+    }
+
+    case 'RESTORE_TASK': {
+      const { lastDeleted } = state
+      if (!lastDeleted) return state
+      // Already back (an external reload can return it): just forget it.
+      if (state.tasks.some(t => t.id === lastDeleted.task.id)) return { ...state, lastDeleted: null }
+      const tasks = [...state.tasks]
+      tasks.splice(lastDeleted.index, 0, lastDeleted.task) // splice clamps an index past the end
+      return { ...state, tasks, lastDeleted: null }
     }
 
     case 'MOVE_TASK': {

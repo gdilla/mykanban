@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback } from 'react'
+import React, { memo, useCallback } from 'react'
 import { Box, Flex } from '@chakra-ui/react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -9,7 +9,6 @@ import { colors as c } from '../../theme'
 import TaskTitle from './TaskTitle'
 import TaskBadges from './TaskBadges'
 import TaskTags from './TaskTags'
-import ConfirmDialog from '../shared/ConfirmDialog'
 
 const STATUS_COLOR: Record<string, string> = {
   todo: '#7c8aff',
@@ -21,7 +20,6 @@ function TaskCardInner({ task }: { task: Task }) {
   const { state, dispatch } = useApp()
   const isFocused = state.focusedTaskId === task.id
   const isDone = task.status === 'done'
-  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
 
@@ -43,7 +41,7 @@ function TaskCardInner({ task }: { task: Task }) {
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setConfirmOpen(true)
+    dispatch({ type: 'DELETE_TASK', id: task.id }) // undoable: see the toast in useKeyboardNav
   }
 
   const statusColor = STATUS_COLOR[task.status] || c.textMuted
@@ -124,13 +122,6 @@ function TaskCardInner({ task }: { task: Task }) {
           )}
         </Box>
       </Box>
-      <ConfirmDialog
-        isOpen={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={() => dispatch({ type: 'DELETE_TASK', id: task.id })}
-        title="Delete Task"
-        message={`Delete "${task.title}"? This cannot be undone.`}
-      />
     </>
   )
 }

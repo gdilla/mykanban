@@ -54,6 +54,7 @@ export default function CommandPalette() {
       zIndex={2000} display="flex" justifyContent="center" pt="15vh" onClick={() => setIsOpen(false)}>
       <Box bg={c.surface} border={`1px solid ${c.borderStrong}`} borderRadius="12px"
         boxShadow="0 24px 48px rgba(0,0,0,0.5)" w="520px" maxH="400px" overflow="hidden"
+        role="dialog" aria-modal="true" aria-label="Search tasks"
         onClick={e => e.stopPropagation()}>
         <Input ref={inputRef} value={query}
           onChange={e => { setQuery(e.target.value); setSelectedIndex(0) }}
