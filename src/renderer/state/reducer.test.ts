@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { appReducer, initialState } from './reducer'
 import { Task } from './types'
+import { timeSpentAt } from '../utils/date'
 
 describe('appReducer', () => {
   it('SET_DATA loads tasks and tags', () => {
@@ -134,5 +135,27 @@ describe('tag filters follow the tags', () => {
   it('SET_DATA drops filters on tags that no longer exist (an agent deleted the tag)', () => {
     const next = appReducer(filtering, { type: 'SET_DATA', tasks: [], tags: [tags[1]] })
     expect(next.activeFilters).toEqual({ tags: ['t2'], age: '1w' })
+  })
+})
+
+describe('the running timer follows the status', () => {
+  const todo: Task = {
+    id: 'a', title: 'A', description: '', status: 'todo', dueDate: '', tags: [], attachments: [],
+    createdAt: '2026-11-01T10:00:00.000Z', startedAt: null, completedAt: null, timeSpent: 0, sortOrder: 0, tagSortOrders: {},
+  }
+  const loaded = { ...initialState, tasks: [todo] }
+
+  it('starting a task starts its clock; finishing it records the time and the clock stops', () => {
+    const started = appReducer(loaded, { type: 'MOVE_TASK', id: 'a', status: 'doing' }).tasks[0]
+    const t0 = Date.parse(started.startedAt!)
+    expect(timeSpentAt(started, t0 + 90 * 60_000)).toBe(90 * 60_000)
+    const done = appReducer({ ...loaded, tasks: [started] }, { type: 'MOVE_TASK', id: 'a', status: 'done' }).tasks[0]
+    expect(done.timeSpent).toBeGreaterThanOrEqual(0)
+    // later reads of a done task do not keep counting
+    expect(timeSpentAt(done, Date.now() + 3_600_000)).toBe(done.timeSpent)
+  })
+
+  it('there is no separate timer state to drift from the status', () => {
+    expect('activeTimerTaskId' in initialState).toBe(false)
   })
 })

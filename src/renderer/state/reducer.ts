@@ -17,7 +17,6 @@ export const initialState: AppState = {
   loaded: false,
   showAllDone: false,
   lastDeleted: null,
-  activeTimerTaskId: null,
 }
 
 export function appReducer(state: AppState, action: AppAction): AppState {
@@ -83,12 +82,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       const tasks = state.tasks.map(t =>
         t.id === action.id ? applyStatusChange(t, action.status, state.tasks) : t
       )
-      // Stop timer if task moves away from doing
-      let activeTimerTaskId = state.activeTimerTaskId
-      if (action.id === activeTimerTaskId && action.status !== 'doing') {
-        activeTimerTaskId = null
-      }
-      return { ...state, tasks, activeTimerTaskId }
+      return { ...state, tasks }
     }
 
     case 'REORDER_TASKS': {
@@ -142,30 +136,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'SET_SHOW_ALL_DONE':
       return { ...state, showAllDone: action.show }
-
-    case 'TOGGLE_TIMER': {
-      const task = state.tasks.find(t => t.id === action.id)
-      if (!task || task.status !== 'doing') return state
-
-      if (state.activeTimerTaskId === action.id) {
-        // Stop timer — accumulate time
-        const elapsed = task.startedAt
-          ? Date.now() - new Date(task.startedAt).getTime()
-          : 0
-        const tasks = state.tasks.map(t =>
-          t.id === action.id
-            ? { ...t, timeSpent: (t.timeSpent || 0) + elapsed, startedAt: new Date().toISOString() }
-            : t
-        )
-        return { ...state, tasks, activeTimerTaskId: null }
-      } else {
-        // Start timer — reset startedAt
-        const tasks = state.tasks.map(t =>
-          t.id === action.id ? { ...t, startedAt: new Date().toISOString() } : t
-        )
-        return { ...state, tasks, activeTimerTaskId: action.id }
-      }
-    }
 
     case 'DUPLICATE_TASK': {
       const src = state.tasks.find(t => t.id === action.id)

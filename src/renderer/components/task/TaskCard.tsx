@@ -18,7 +18,6 @@ interface TaskCardProps {
   /** Every tag on the board, not just this task's: that array only changes when tags do, so memo holds. */
   tags: Tag[]
   isFocused: boolean
-  isTimerActive: boolean
   /** Local midnight today (ms), for the due label. */
   today: number
   sortableId: string
@@ -26,7 +25,7 @@ interface TaskCardProps {
 
 // Everything the card needs arrives as props and it reads only the dispatch context,
 // so memo skips it unless its own task, focus or the tag list changed.
-function TaskCardInner({ task, tags, isFocused, isTimerActive, today, sortableId }: TaskCardProps) {
+function TaskCardInner({ task, tags, isFocused, today, sortableId }: TaskCardProps) {
   const dispatch = useAppDispatch()
   const [editingTitle, setEditingTitle] = useState(false)
   const openTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -38,7 +37,7 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, today, sortableId
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortableId })
   const isDone = task.status === 'done'
   const description = !isDone && task.description
-  const hasMeta = task.tags.length > 0 || hasBadges(task, isTimerActive)
+  const hasMeta = task.tags.length > 0 || hasBadges(task)
 
   const open = () => dispatch({ type: 'SET_EDITING_TASK', id: task.id })
   const handleClick = (e: React.MouseEvent) => {
@@ -101,7 +100,7 @@ function TaskCardInner({ task, tags, isFocused, isTimerActive, today, sortableId
             // instead of the tags being cut off against them.
             <Flex align="center" columnGap="8px" rowGap="4px" flexWrap="wrap" mt="4px" minH="20px">
               <TaskTags task={task} tags={tags} />
-              <TaskBadges task={task} isTimerActive={isTimerActive} today={today} />
+              <TaskBadges task={task} today={today} />
             </Flex>
           )}
         </Box>

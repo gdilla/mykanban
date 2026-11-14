@@ -299,16 +299,6 @@ html, body { background: var(--c-bg); }
   z-index: 10;
 }
 
-/* Badge animations */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.timer-badge {
-  animation: pulse 2s infinite;
-}
-
 /* Scrollbar — minimal */
 ::-webkit-scrollbar { width: 5px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
