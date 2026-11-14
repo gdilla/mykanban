@@ -1,7 +1,7 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { ChakraProvider } from '@chakra-ui/react'
-import { SaasProvider } from '@saas-ui/react'
+import { MotionConfig } from 'framer-motion'
 import theme from './theme'
 import { AppProvider } from './state/AppContext'
 import App from './App'
@@ -11,11 +11,12 @@ const root = createRoot(document.getElementById('root')!)
 root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <SaasProvider>
+      {/* Chakra's dialogs and menus animate with framer-motion; this makes them honour "Reduce motion" */}
+      <MotionConfig reducedMotion="user">
         <AppProvider>
           <App />
         </AppProvider>
-      </SaasProvider>
+      </MotionConfig>
     </ChakraProvider>
   </React.StrictMode>
 )

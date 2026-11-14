@@ -1,51 +1,55 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { useColorMode } from '@chakra-ui/react'
 import { palettes, getPalette, defaultPaletteId } from './palettes'
-import type { Palette } from './palettes'
 
 const STORAGE_KEY = 'kanban-palette'
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)')
 
-function readStoredPalette(): string {
-  return localStorage.getItem(STORAGE_KEY) || defaultPaletteId
+// One palette for the whole window, shared by every component that calls usePalette().
+// `chosen` is the user's explicit pick; null means "follow the system appearance".
+let chosen = localStorage.getItem(STORAGE_KEY)
+const listeners = new Set<() => void>()
+
+const currentId = () => getPalette(chosen ?? defaultPaletteId(systemDark.matches)).id
+
+function apply() {
+  const palette = getPalette(currentId())
+  const mode = palette.isDark ? 'dark' : 'light'
+  const root = document.documentElement
+  root.setAttribute('data-palette', palette.id)
+  root.setAttribute('data-theme', mode)
+  root.classList.toggle('chakra-ui-dark', palette.isDark)
+  root.classList.toggle('chakra-ui-light', !palette.isDark)
+  root.style.colorScheme = mode
+  localStorage.setItem('chakra-ui-color-mode', mode)
+  listeners.forEach(notify => notify())
 }
 
-function applyPalette(id: string) {
-  const palette = getPalette(id)
-  document.documentElement.setAttribute('data-palette', palette.id)
-  // Sync Chakra color mode class
-  if (palette.isDark) {
-    document.documentElement.classList.add('chakra-ui-dark')
-    document.documentElement.classList.remove('chakra-ui-light')
-    document.documentElement.setAttribute('data-theme', 'dark')
-    document.documentElement.style.colorScheme = 'dark'
-  } else {
-    document.documentElement.classList.add('chakra-ui-light')
-    document.documentElement.classList.remove('chakra-ui-dark')
-    document.documentElement.setAttribute('data-theme', 'light')
-    document.documentElement.style.colorScheme = 'light'
-  }
-  localStorage.setItem(STORAGE_KEY, id)
-  localStorage.setItem('chakra-ui-color-mode', palette.isDark ? 'dark' : 'light')
+/** Pick a palette by id, or pass null to go back to following the system appearance. */
+export function setPalette(id: string | null) {
+  chosen = id
+  if (id) localStorage.setItem(STORAGE_KEY, id)
+  else localStorage.removeItem(STORAGE_KEY)
+  apply()
+}
+
+systemDark.addEventListener('change', apply)
+apply()
+
+function subscribe(notify: () => void) {
+  listeners.add(notify)
+  return () => void listeners.delete(notify)
 }
 
 export function usePalette() {
-  const [paletteId, setPaletteId] = useState(readStoredPalette)
+  const palette = getPalette(useSyncExternalStore(subscribe, currentId))
+  const followsSystem = useSyncExternalStore(subscribe, () => chosen === null)
   const { setColorMode } = useColorMode()
 
-  // Apply on mount and when palette changes
+  // Keep Chakra's own light/dark mode in step with the palette
   useEffect(() => {
-    const palette = getPalette(paletteId)
-    applyPalette(paletteId)
     setColorMode(palette.isDark ? 'dark' : 'light')
-  }, [paletteId, setColorMode])
+  }, [palette.isDark, setColorMode])
 
-  const setPalette = useCallback((id: string) => {
-    setPaletteId(id)
-  }, [])
-
-  return {
-    palette: getPalette(paletteId),
-    setPalette,
-    palettes,
-  }
+  return { palette, followsSystem, setPalette, palettes }
 }

@@ -1,7 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 /* === Palette Engine: app-inspired themes === */
-/* Contrast principle: bg → surface → card should have ≥10% lightness spread on dark themes */
+/* One block per palette in theme/palettes.ts. theme/index.ts exposes these tokens to components.
+   Rules enforced by theme/palettes.test.ts, in every palette:
+   - text, text-secondary, text-muted, accent-text, todo, doing, done and danger are at least 4.5:1
+     on bg, surface, card and card-hover;
+   - save-btn-color is at least 4.5:1 on save-btn-bg and save-btn-hover;
+   - surface (the header) is never darker than bg (the page).
+   Token values must be 6-digit hex for the test to read them. */
+
+html, body { background: var(--c-bg); }
+
+[data-palette] {
+  --c-text-muted-a60: color-mix(in srgb, var(--c-text-muted) 60%, transparent);
+}
 
 /* --- Linear (dark) — deep navy, violet accents --- */
 [data-palette="linear"] {
@@ -13,12 +23,11 @@
   --c-border-strong: #3f4060;
   --c-border-accent: #535578;
   --c-text: #f3f2f8;
-  --c-text-secondary: #9e9cb8;
-  --c-text-muted: #55547a;
+  --c-text-secondary: #bbbacd;
+  --c-text-muted: #9594b5;
   --c-accent-a40: rgba(94, 106, 210, 0.3);
   --c-accent-a10: rgba(94, 106, 210, 0.08);
   --c-card-a80: rgba(35, 36, 58, 0.88);
-  --c-text-muted-a60: rgba(85, 84, 122, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.6);
   --c-save-btn-bg: #5e6ad2;
   --c-save-btn-color: #ffffff;
@@ -32,6 +41,11 @@
   --c-accent: #5e6ad2;
   --c-accent-hover: #4e5abc;
   --c-accent-soft: rgba(94, 106, 210, 0.12);
+  --c-accent-text: #8891de;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger: #f87171;
 }
 
 /* --- GitHub Dark — deep navy, blue accents --- */
@@ -44,12 +58,11 @@
   --c-border-strong: #484f58;
   --c-border-accent: #6e7681;
   --c-text: #f0f6fc;
-  --c-text-secondary: #9198a1;
-  --c-text-muted: #5d6370;
+  --c-text-secondary: #b4b9bf;
+  --c-text-muted: #8e94a1;
   --c-accent-a40: rgba(88, 166, 255, 0.25);
   --c-accent-a10: rgba(88, 166, 255, 0.06);
   --c-card-a80: rgba(26, 33, 48, 0.88);
-  --c-text-muted-a60: rgba(93, 99, 112, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.6);
   --c-save-btn-bg: #f0f6fc;
   --c-save-btn-color: #010409;
@@ -63,6 +76,11 @@
   --c-accent: #58a6ff;
   --c-accent-hover: #4090e0;
   --c-accent-soft: rgba(88, 166, 255, 0.10);
+  --c-accent-text: #58a6ff;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger: #f87171;
 }
 
 /* --- Vercel (dark) — pure black, stark white, extreme contrast --- */
@@ -75,12 +93,11 @@
   --c-border-strong: #454545;
   --c-border-accent: #666666;
   --c-text: #fafafa;
-  --c-text-secondary: #a0a0a0;
-  --c-text-muted: #5c5c5c;
+  --c-text-secondary: #aaaaaa;
+  --c-text-muted: #888888;
   --c-accent-a40: rgba(255, 255, 255, 0.15);
   --c-accent-a10: rgba(255, 255, 255, 0.04);
   --c-card-a80: rgba(23, 23, 23, 0.9);
-  --c-text-muted-a60: rgba(92, 92, 92, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.7);
   --c-save-btn-bg: #fafafa;
   --c-save-btn-color: #000000;
@@ -94,6 +111,11 @@
   --c-accent: #fafafa;
   --c-accent-hover: #e0e0e0;
   --c-accent-soft: rgba(255, 255, 255, 0.08);
+  --c-accent-text: #fafafa;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger: #f87171;
 }
 
 /* --- Spotify (dark) — warm black, green energy --- */
@@ -106,12 +128,11 @@
   --c-border-strong: #484848;
   --c-border-accent: #5e5e5e;
   --c-text: #ffffff;
-  --c-text-secondary: #b3b3b3;
-  --c-text-muted: #616161;
+  --c-text-secondary: #b6b6b6;
+  --c-text-muted: #929292;
   --c-accent-a40: rgba(29, 185, 84, 0.25);
   --c-accent-a10: rgba(29, 185, 84, 0.06);
   --c-card-a80: rgba(35, 35, 35, 0.9);
-  --c-text-muted-a60: rgba(97, 97, 97, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.65);
   --c-save-btn-bg: #1db954;
   --c-save-btn-color: #000000;
@@ -125,6 +146,11 @@
   --c-accent: #1db954;
   --c-accent-hover: #1ed760;
   --c-accent-soft: rgba(29, 185, 84, 0.12);
+  --c-accent-text: #1db954;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger: #f87171;
 }
 
 /* --- Slack (dark) — aubergine tinted, warm grays --- */
@@ -137,12 +163,11 @@
   --c-border-strong: #50535a;
   --c-border-accent: #696c73;
   --c-text: #e8e8e9;
-  --c-text-secondary: #b0b1b3;
-  --c-text-muted: #696b6e;
+  --c-text-secondary: #c5c6c7;
+  --c-text-muted: #9ea0a3;
   --c-accent-a40: rgba(74, 21, 75, 0.35);
   --c-accent-a10: rgba(74, 21, 75, 0.1);
   --c-card-a80: rgba(42, 45, 51, 0.9);
-  --c-text-muted-a60: rgba(105, 107, 110, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.6);
   --c-save-btn-bg: #007a5a;
   --c-save-btn-color: #ffffff;
@@ -156,6 +181,11 @@
   --c-accent: #1264a3;
   --c-accent-hover: #0f5491;
   --c-accent-soft: rgba(18, 100, 163, 0.12);
+  --c-accent-text: #4da7eb;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger: #f87a7a;
 }
 
 /* --- Notion (light) — warm off-white, bookish readability --- */
@@ -168,14 +198,13 @@
   --c-border-strong: #d0cec8;
   --c-border-accent: #b0aea8;
   --c-text: #1f1f1f;
-  --c-text-secondary: #5f5e5b;
-  --c-text-muted: #9b9a97;
+  --c-text-secondary: #504f4d;
+  --c-text-muted: #6c6b68;
   --c-accent-a40: rgba(35, 131, 226, 0.2);
   --c-accent-a10: rgba(35, 131, 226, 0.06);
   --c-card-a80: rgba(255, 255, 255, 0.9);
-  --c-text-muted-a60: rgba(155, 154, 151, 0.6);
   --c-modal-overlay: rgba(15, 15, 15, 0.45);
-  --c-save-btn-bg: #2383e2;
+  --c-save-btn-bg: #1a73d1;
   --c-save-btn-color: #ffffff;
   --c-save-btn-hover: #0b6bcb;
   --c-scrollbar: #d0cec8;
@@ -187,6 +216,11 @@
   --c-accent: #2383e2;
   --c-accent-hover: #0b6bcb;
   --c-accent-soft: rgba(35, 131, 226, 0.10);
+  --c-accent-text: #196cbe;
+  --c-todo: #1d4ed8;
+  --c-doing: #92400e;
+  --c-done: #065f46;
+  --c-danger: #b91c1c;
 }
 
 /* --- Arc (light) — crisp white, cool tones, Apple-like --- */
@@ -199,16 +233,15 @@
   --c-border-strong: #bbbbc2;
   --c-border-accent: #98989f;
   --c-text: #1d1d1f;
-  --c-text-secondary: #58585e;
-  --c-text-muted: #97979d;
+  --c-text-secondary: #4b4b50;
+  --c-text-muted: #67676d;
   --c-accent-a40: rgba(0, 122, 255, 0.2);
   --c-accent-a10: rgba(0, 122, 255, 0.06);
   --c-card-a80: rgba(255, 255, 255, 0.9);
-  --c-text-muted-a60: rgba(151, 151, 157, 0.6);
   --c-modal-overlay: rgba(0, 0, 0, 0.3);
-  --c-save-btn-bg: #007aff;
+  --c-save-btn-bg: #006ee6;
   --c-save-btn-color: #ffffff;
-  --c-save-btn-hover: #0066d6;
+  --c-save-btn-hover: #005fc7;
   --c-scrollbar: #c5c5cb;
   --c-scrollbar-hover: #a8a8af;
   --c-card-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
@@ -218,11 +251,31 @@
   --c-accent: #007aff;
   --c-accent-hover: #0066d6;
   --c-accent-soft: rgba(0, 122, 255, 0.10);
+  --c-accent-text: #0063d0;
+  --c-todo: #1d4ed8;
+  --c-doing: #92400e;
+  --c-done: #065f46;
+  --c-danger: #b91c1c;
 }
 
-/* App loading fade-in */
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-.app-enter { animation: fadeIn 0.3s ease; }
+/* Window chrome: the header is the title bar. Dragging it moves the window; controls stay clickable. */
+.app-header { -webkit-app-region: drag; user-select: none; }
+.app-header button,
+.app-header [role="menu"],
+.chakra-modal__overlay,
+.chakra-modal__content-container { -webkit-app-region: no-drag; }
+
+/* Board runs edge to edge; the gutter is inside the scroll area so columns scroll under the window edge. */
+.board-area { padding: 0 20px 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Task card */
 .task-card {
@@ -260,7 +313,7 @@
 }
 
 /* Scrollbar — minimal */
-::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar { width: 5px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--c-scrollbar); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--c-scrollbar-hover); }
@@ -280,51 +333,3 @@
 /* Force consistent native elements */
 select option { background: var(--c-bg); color: var(--c-text); }
 ::placeholder { color: var(--c-text-muted) !important; }
-
-/* Palette picker dropdown */
-.palette-picker-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  background: var(--c-surface);
-  border: 1px solid var(--c-border-strong);
-  border-radius: 8px;
-  padding: 4px;
-  min-width: 180px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  z-index: 100;
-}
-
-.palette-picker-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px 10px;
-  border: none;
-  background: transparent;
-  color: var(--c-text-secondary);
-  font-size: 0.8rem;
-  font-family: 'Inter', -apple-system, sans-serif;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.1s, color 0.1s;
-}
-
-.palette-picker-item:hover {
-  background: var(--c-card);
-  color: var(--c-text);
-}
-
-.palette-picker-item.active {
-  color: var(--c-text);
-  font-weight: 500;
-}
-
-.palette-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}

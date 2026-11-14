@@ -69,11 +69,11 @@ export default function AddTaskForm({ columnId }: { columnId: string }) {
             px={3}
             fontSize="0.7rem"
             fontWeight={500}
-            bg={c.accent}
-            color="#fff"
+            bg={c.primaryBg}
+            color={c.primaryText}
             borderRadius="6px"
             flexShrink={0}
-            _hover={{ bg: c.accentHover }}
+            _hover={{ bg: c.primaryHover }}
             onClick={handleSubmit}
           >
             Add

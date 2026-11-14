@@ -24,7 +24,7 @@ export default function TagView() {
       <Column
         columnId="__untagged__"
         title="Untagged"
-        color="brand.textSecondary"
+        color="var(--c-text-secondary)"
         tasks={getUntaggedTasks(state)}
       />
     </>

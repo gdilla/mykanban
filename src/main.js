@@ -308,9 +308,19 @@ function setupScheduler() {
 }
 
 function createWindow() {
+    const isMac = process.platform === 'darwin';
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        minWidth: 560,
+        minHeight: 400,
+        // The renderer's 52px header is the title bar: it is the drag region and leaves
+        // 80px on the left for the traffic lights, which this centres in it.
+        ...(isMac && { titleBarStyle: 'hiddenInset', trafficLightPosition: { x: 18, y: 18 } }),
+        // Painted before the page loads, so there is no white flash.
+        // ponytail: page colour of the default dark/light palette, so a user-picked palette of the
+        // other kind flashes once; have the renderer report its --c-bg over IPC if that ever matters.
+        backgroundColor: require('electron').nativeTheme.shouldUseDarkColors ? '#0c0d14' : '#e8e8ed',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false

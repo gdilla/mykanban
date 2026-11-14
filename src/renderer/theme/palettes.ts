@@ -15,7 +15,9 @@ export const palettes: Palette[] = [
   { id: 'arc', name: 'Arc', isDark: false, preview: '#007aff' },
 ]
 
-export const defaultPaletteId = 'linear'
+// Used until the user picks a palette: follows the system appearance.
+// The boot script in index.html repeats these two ids and the dark list (palettes.test.ts checks they agree).
+export const defaultPaletteId = (prefersDark: boolean) => (prefersDark ? 'linear' : 'arc')
 
 export function getPalette(id: string): Palette {
   return palettes.find(p => p.id === id) ?? palettes[0]
