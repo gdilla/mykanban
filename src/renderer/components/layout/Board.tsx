@@ -7,6 +7,7 @@ import {
 } from '@dnd-kit/core'
 import { useApp } from '../../state/AppContext'
 import { keyboardMove, landsAfter, resolveDrop } from '../../state/drop'
+import { focusTaken } from '../../state/nav'
 import BoardColumns from '../board/BoardColumns'
 import DragOverlayCard from '../task/DragOverlay'
 
@@ -135,6 +136,15 @@ export default function Board() {
     }).forEach(dispatch)
   }
 
+  // A card took native focus: make it the highlighted card as well (see focusTaken).
+  const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
+    const card = e.target
+    if (!card.classList.contains('task-card')) return // a button or the title field inside a card
+    const column = card.closest('[data-column]')
+    const focus = focusTaken(state, card.dataset.taskId!, Array.from(e.currentTarget.children).indexOf(column!))
+    if (focus) dispatch({ type: 'SET_FOCUSED_TASK', ...focus })
+  }
+
   const handleBoardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
     if (target.classList.contains('board-area') || target.closest('.column-area')) {
@@ -154,6 +164,7 @@ export default function Board() {
       <Box
         className="board-area"
         onClick={handleBoardClick}
+        onFocus={handleFocus}
         display="flex"
         gap="16px"
         overflowX="auto"

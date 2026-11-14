@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { nextFocus, getVisibleColumns, boardKey, focusedColumn } from './nav'
+import { nextFocus, getVisibleColumns, boardKey, focusedColumn, focusTaken } from './nav'
 import { initialState } from './reducer'
 import { Task } from './types'
 
@@ -118,6 +118,26 @@ describe('focusedColumn', () => {
     expect(focusedColumn({ ...tagView, focusedTaskId: 'gone', focusedCol: 0 })).toBe(-1)
     const hidden = { ...tagView, focusedTaskId: 'none', activeFilters: { tags: ['t1'], age: null } }
     expect(focusedColumn(hidden)).toBe(-1)
+  })
+})
+
+describe('focusTaken (a card took native focus: Tab, a click, a closing dialog handing focus back)', () => {
+  const tags = [{ id: 't1', name: 'one', color: '#111' }, { id: 't2', name: 'two', color: '#222' }]
+  const tasks = [task('both', { tags: ['t1', 't2'] }), task('one', { tags: ['t1'] }), task('none')]
+  const tagView = { ...initialState, tasks, tags, currentView: 'tags' as const }
+
+  it('the highlight moves to that card, so Enter, x, d and 1-3 act on the card Space would pick up', () => {
+    expect(focusTaken(tagView, 'one', 0)).toEqual({ id: 'one', col: 0 }) // nothing was highlighted
+    expect(focusTaken({ ...tagView, focusedTaskId: 'both', focusedCol: 0 }, 'one', 0)).toEqual({ id: 'one', col: 0 })
+  })
+
+  it('in tag view it is that copy of the card: the column it took focus in', () => {
+    expect(focusTaken({ ...tagView, focusedTaskId: 'both', focusedCol: 0 }, 'both', 1)).toEqual({ id: 'both', col: 1 })
+  })
+
+  it('is null when that copy is already the highlighted one (no dispatch, so no loop with highlight -> focus)', () => {
+    expect(focusTaken({ ...tagView, focusedTaskId: 'both', focusedCol: 1 }, 'both', 1)).toBeNull()
+    expect(focusTaken({ ...tagView, focusedTaskId: 'both', focusedCol: -1 }, 'both', 0)).toBeNull() // first copy by default
   })
 })
 

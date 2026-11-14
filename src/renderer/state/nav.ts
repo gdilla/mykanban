@@ -65,3 +65,12 @@ export function nextFocus(columns: string[][], focusedId: string | null, key: Na
 export function focusedColumn(state: AppState, columns = getVisibleColumns(state)): number {
   return columnOf(columns, state.focusedTaskId, state.focusedCol)
 }
+
+// A card took native focus (Tab, a click, a closing dialog handing focus back): the highlight follows it,
+// so the keys that act on the highlighted card (Enter, x, d, 1-3) and Space, which picks up the natively
+// focused one, always mean the same card. `col` is the column that copy of the card is drawn in.
+// Null when that copy is already the highlighted one: nothing to dispatch, which is also what keeps this
+// from looping with the keyboard handler giving the highlighted card native focus.
+export function focusTaken(state: AppState, id: string, col: number): Focus | null {
+  return state.focusedTaskId === id && focusedColumn(state) === col ? null : { id, col }
+}
