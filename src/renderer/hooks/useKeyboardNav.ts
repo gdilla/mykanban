@@ -92,6 +92,9 @@ export function useKeyboardNav() {
       const next = nextFocus(columns, state.focusedTaskId, navKey, focusCol.current)
       if (!next) return
       focusCol.current = next.col
+      // The board now has the keyboard: drop native focus from a button the user clicked earlier
+      // (a header button, Undo), or the next Enter would press that instead of opening the card.
+      if (onControl) (e.target as HTMLElement).blur()
       flushSync(() => dispatch({ type: 'SET_FOCUSED_TASK', id: next.id })) // render before measuring
       reveal(next.id, next.col)
       return
