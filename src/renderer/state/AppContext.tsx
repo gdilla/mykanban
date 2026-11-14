@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef, useState } from 'react'
-import { Box, useToast } from '@chakra-ui/react'
+import { Box, Flex, Text, useToast } from '@chakra-ui/react'
+import { colors as c } from '../theme'
 import { AppState, AppAction, Task, Tag } from './types'
 import { appReducer, initialState } from './reducer'
 
@@ -124,7 +125,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   if (loadError) {
-    return <Box p={8} role="alert">Could not read {loadError}. Fix or remove the file and the board will reload.</Box>
+    // No header on this screen, so it brings its own strip to drag the window by (.app-header in global.css).
+    return (
+      <Flex direction="column" h="100vh" bg={c.bg} color={c.text}>
+        <Box className="app-header" h="52px" flexShrink={0} />
+        <Flex role="alert" flex="1" minH={0} direction="column" align="center" justify="center" gap="6px" px={8} pb="52px" textAlign="center" fontSize="13px">
+          <Text fontSize="15px" fontWeight={600}>Could not read the board file</Text>
+          <Text maxW="640px" color={c.textSecondary} wordBreak="break-word" userSelect="text">{loadError}</Text>
+          <Text color={c.textSecondary}>Fix or remove the file and the board will reload.</Text>
+        </Flex>
+      </Flex>
+    )
   }
 
   return (
