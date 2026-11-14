@@ -47,5 +47,6 @@ export function getTasksByTag(state: AppState, tagId: string): Task[] {
 export function getUntaggedTasks(state: AppState): Task[] {
   return getFilteredTasks(state)
     .filter(t => !t.tags || t.tags.length === 0)
-    .sort((a, b) => (a.tagSortOrders?.__untagged__ || 0) - (b.tagSortOrders?.__untagged__ || 0))
+    // Its own order once reordered in tag view (tagSortOrders.__untagged__); until then the order it always had.
+    .sort((a, b) => (a.tagSortOrders?.__untagged__ ?? a.sortOrder ?? 0) - (b.tagSortOrders?.__untagged__ ?? b.sortOrder ?? 0))
 }

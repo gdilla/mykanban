@@ -1,12 +1,13 @@
 import React from 'react'
 import { Box } from '@chakra-ui/react'
 import {
-  Active, CollisionDetection, DndContext, DragEndEvent, DragOverlay, DragStartEvent, KeyboardSensor, Over,
-  PointerSensor, closestCenter, pointerWithin, rectIntersection, useSensor, useSensors,
+  Active, CollisionDetection, DndContext, DragEndEvent, DragOverlay, DragStartEvent, DroppableContainer,
+  KeyboardSensor, Over, PointerSensor, closestCenter, getClientRect, pointerWithin, rectIntersection, useSensor,
+  useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useApp } from '../../state/AppContext'
-import { resolveDrop } from '../../state/drop'
+import { landsAfter, resolveDrop, snapDistance } from '../../state/drop'
 import StatusView from '../board/StatusView'
 import TagView from '../board/TagView'
 import DragOverlayCard from '../task/DragOverlay'
@@ -20,17 +21,29 @@ function parse({ id, data }: Active | Over): { columnId: string; taskId: string 
     : { columnId: containerId, taskId: String(id).slice(String(containerId).length + 1) }
 }
 
-// The column under the pointer (or, for keyboard drags, under the dragged card), then the nearest card inside it.
+// The column under the pointer (or, for keyboard drags, under the dragged card), then one card inside it:
+// the nearest by centre for a pointer, the one the dragged card was snapped onto for the keyboard.
 const collisionDetection: CollisionDetection = args => {
   const columns = args.droppableContainers.filter(d => !d.data.current?.sortable)
-  const column = (pointerWithin({ ...args, droppableContainers: columns })[0]
+  const column: DroppableContainer | undefined = (pointerWithin({ ...args, droppableContainers: columns })[0]
     ?? rectIntersection({ ...args, droppableContainers: columns })[0])?.data?.droppableContainer
   if (!column) return []
   const cards = args.droppableContainers.filter(
     d => d.data.current?.sortable?.containerId === column.data.current?.columnId)
-  const card = closestCenter({ ...args, droppableContainers: cards })[0]
-  return [card ?? { id: column.id, data: { droppableContainer: column } }]
+  const snap = (d: DroppableContainer) => {
+    const rect = args.droppableRects.get(d.id)
+    return rect ? snapDistance(args.collisionRect, rect) : Infinity
+  }
+  const card = args.pointerCoordinates
+    ? closestCenter({ ...args, droppableContainers: cards })[0]?.data?.droppableContainer
+    : cards.reduce<DroppableContainer | undefined>((best, d) => (best && snap(best) <= snap(d) ? best : d), undefined)
+  const hit = card ?? column
+  return [{ id: hit.id, data: { droppableContainer: hit } }]
 }
+
+// Collide with the picked-up card's own box (the overlay wrapper), not the smaller, tilted preview drawn inside it.
+// The tilt alone shifts the box by under a pixel, enough to send the first ArrowRight to a card in the same column.
+const measuring = { dragOverlay: { measure: (node: HTMLElement) => getClientRect(node.parentElement ?? node) } }
 
 // Only the card itself starts a keyboard drag: Space on a button inside the card still presses that button.
 class CardKeyboardSensor extends KeyboardSensor {
@@ -64,7 +77,7 @@ export default function Board() {
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveId(null)
     const { active, over } = event
-    const taskId = parse(active).taskId
+    const { columnId: fromColumnId, taskId } = parse(active)
     if (!over || !taskId) return
 
     const { columnId, taskId: overTaskId } = parse(over)
@@ -72,11 +85,12 @@ export default function Board() {
     resolveDrop(state.tasks, {
       view: state.currentView,
       taskId,
+      fromColumnId,
       columnId,
       overTaskId,
-      // ponytail: a card from another column shows no gap while hovering; it lands below the card it is dropped
-      // on when its centre is past that card's centre. Move it between columns in onDragOver if a live preview is wanted.
-      after: !!dragged && dragged.top + dragged.height / 2 > over.rect.top + over.rect.height / 2,
+      // ponytail: a card from another column shows no gap while hovering, it just lands above or below the card
+      // it is dropped on (landsAfter). Move it between columns in onDragOver if a live preview is wanted.
+      after: !!dragged && landsAfter(dragged, over.rect, event.activatorEvent instanceof KeyboardEvent),
     }).forEach(dispatch)
   }
 
@@ -91,6 +105,7 @@ export default function Board() {
     <DndContext
       sensors={sensors}
       collisionDetection={collisionDetection}
+      measuring={measuring}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
