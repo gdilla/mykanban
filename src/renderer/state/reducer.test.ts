@@ -8,6 +8,17 @@ describe('appReducer', () => {
     expect(next.tags).toHaveLength(1)
     expect(next.tasks).toEqual([])
   })
+
+  it('SET_DATA repairs a status that is not todo/doing/done to todo', () => {
+    const tasks = [{ id: 'a', status: 'mkohl2jwshr9tgpt60e' }, { id: 'b', status: 'done' }, { id: 'c' }]
+    const next = appReducer(initialState, { type: 'SET_DATA', tasks, tags: [] } as any)
+    expect(next.tasks.map(t => t.status)).toEqual(['todo', 'done', 'todo'])
+  })
+
+  it('MOVE_TASK ignores a status that is not todo/doing/done', () => {
+    const state = { ...initialState, tasks: [{ id: 'a', status: 'doing', sortOrder: 3 }] } as any
+    expect(appReducer(state, { type: 'MOVE_TASK', id: 'a', status: 'mkohl2jwshr9tgpt60e' } as any)).toBe(state)
+  })
 })
 
 describe('delete and restore', () => {

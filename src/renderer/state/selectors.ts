@@ -47,5 +47,5 @@ export function getTasksByTag(state: AppState, tagId: string): Task[] {
 export function getUntaggedTasks(state: AppState): Task[] {
   return getFilteredTasks(state)
     .filter(t => !t.tags || t.tags.length === 0)
-    .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+    .sort((a, b) => (a.tagSortOrders?.__untagged__ || 0) - (b.tagSortOrders?.__untagged__ || 0))
 }

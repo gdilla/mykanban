@@ -16,12 +16,12 @@ const STATUS_COLOR: Record<string, string> = {
   done: '#10b981',
 }
 
-function TaskCardInner({ task }: { task: Task }) {
+function TaskCardInner({ task, sortableId }: { task: Task; sortableId?: string }) {
   const { state, dispatch } = useApp()
   const isFocused = state.focusedTaskId === task.id
   const isDone = task.status === 'done'
 
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sortableId ?? task.id })
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),

@@ -1,4 +1,5 @@
 import { AppState, AppAction, Task } from './types'
+import { isStatus } from './drop'
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8)
@@ -18,7 +19,12 @@ export const initialState: AppState = {
 export function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_DATA':
-      return { ...state, tasks: action.tasks, tags: action.tags }
+      // Repair statuses the old tag-view drop bug wrote (a tag id in `status`), so the task is back on the board.
+      return {
+        ...state,
+        tasks: action.tasks.map(t => (isStatus(t.status) ? t : { ...t, status: 'todo' })),
+        tags: action.tags,
+      }
 
     case 'ADD_TASK': {
       return { ...state, tasks: [...state.tasks, action.task] }
@@ -52,6 +58,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'MOVE_TASK': {
+      if (!isStatus(action.status)) return state
       const now = new Date().toISOString()
       const tasks = state.tasks.map(t => {
         if (t.id !== action.id) return t

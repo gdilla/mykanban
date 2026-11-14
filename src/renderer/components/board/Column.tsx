@@ -28,12 +28,14 @@ interface ColumnProps {
 }
 
 export default function Column({ columnId, title, color, tasks, showAddForm }: ColumnProps) {
-  const { setNodeRef } = useDroppable({ id: `column-${columnId}` })
+  const { setNodeRef } = useDroppable({ id: `column-${columnId}`, data: { columnId } })
+  // A task can sit in several tag columns at once, so a card's drag id is unique per column (Board.tsx parses it).
+  const sortableId = (task: Task) => `${columnId}:${task.id}`
   const accentColor = color || STATUS_COLORS[columnId] || c.textMuted
   const displayTitle = STATUS_LABELS[columnId] || title
 
   return (
-    <Box flex="1" minW="300px" display="flex" flexDir="column" minH={0}>
+    <Box ref={setNodeRef} flex="1" minW="300px" display="flex" flexDir="column" minH={0}>
       {/* Column header */}
       <Flex align="center" gap="8px" px="4px" pt="16px" pb="12px">
         <Box w="9px" h="9px" borderRadius="50%" bg={accentColor} />
@@ -46,8 +48,8 @@ export default function Column({ columnId, title, color, tasks, showAddForm }: C
       </Flex>
 
       {/* Task list */}
-      <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-        <Box ref={setNodeRef} flex="1" minH={0} overflowY="auto"
+      <SortableContext id={columnId} items={tasks.map(sortableId)} strategy={verticalListSortingStrategy}>
+        <Box flex="1" minH={0} overflowY="auto"
           display="flex" flexDir="column" gap="8px" pb="8px">
           {tasks.length === 0 ? (
             <Box
@@ -59,7 +61,7 @@ export default function Column({ columnId, title, color, tasks, showAddForm }: C
             </Box>
           ) : (
             tasks.map(task => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} sortableId={sortableId(task)} />
             ))
           )}
         </Box>
