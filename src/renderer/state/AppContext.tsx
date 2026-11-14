@@ -43,15 +43,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     saveTimeoutRef.current = undefined
   }, [])
 
+  // A change made in the app was dropped because the file changed underneath: say so, rather than let it vanish.
+  const warnClash = useCallback(() => {
+    if (toast.isActive('save-clashed')) return
+    toast({ id: 'save-clashed', title: "Your last change clashed with an outside edit and wasn't saved.", status: 'warning', duration: 5000, isClosable: true })
+  }, [toast])
+
   // Load from disk: on mount, when the file changes externally, and when a save is refused as stale
   const reload = useCallback(async () => {
-    // ponytail: a UI change not yet saved when the file changes underneath is dropped, disk wins.
-    // Merge per task if that ever bites.
+    // ponytail: a UI change not yet saved when the file changes underneath is dropped, disk wins (and the
+    // user is told). Merge per task if that ever bites.
+    let clashed = !!saveTimeoutRef.current
     cancelPendingSave()
     const data = await ipcRenderer.invoke('load-data')
     // Again: an edit made during the await scheduled a save of the pre-reload board, and main now treats
     // the reloaded file as seen, so its stale-write guard would let that save overwrite it.
+    clashed ||= !!saveTimeoutRef.current
     cancelPendingSave()
+    if (clashed) warnClash()
     if (data.error) {
       loadedRef.current = false
       setLoadError(data.error)
@@ -61,20 +70,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     loadedRef.current = true
     fromDiskRef.current = true
     dispatch({ type: 'SET_DATA', ...migrate(data) })
-  }, [cancelPendingSave])
+  }, [cancelPendingSave, warnClash])
 
   const save = useCallback(async () => {
     saveTimeoutRef.current = undefined
     try {
       const { tasks, tags } = stateRef.current
       const written = await ipcRenderer.invoke('save-data', { tasks, tags })
-      if (!written) reload() // refused: the file changed underneath us
+      if (!written) { warnClash(); reload() } // refused: the file changed underneath us
     } catch (e) {
       if (!toast.isActive('save-failed')) {
         toast({ id: 'save-failed', title: 'Could not save', description: String(e), status: 'error', duration: null, isClosable: true })
       }
     }
-  }, [reload, toast])
+  }, [reload, toast, warnClash])
 
   useEffect(() => {
     reload()
