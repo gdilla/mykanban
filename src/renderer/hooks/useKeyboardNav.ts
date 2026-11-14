@@ -33,7 +33,7 @@ export function useKeyboardNav() {
       },
         createElement(Text, { flex: 1, noOfLines: 1 }, `Deleted "${deleted.task.title}"`),
         createElement(Button, {
-          size: 'sm', variant: 'brutalist-outline',
+          size: 'sm', variant: 'secondary',
           onClick: () => { dispatch({ type: 'RESTORE_TASK', id: deleted.task.id }); onClose() },
         }, 'Undo'),
       ),

@@ -126,10 +126,6 @@ const theme = extendTheme({
         primary: primaryButton,
         secondary: secondaryButton,
         danger: dangerButton,
-        // ponytail: old names kept as aliases because the modals still use them; delete once T9 has migrated.
-        brutalist: primaryButton,
-        'brutalist-outline': secondaryButton,
-        'brutalist-danger': dangerButton,
       },
     },
     Modal: {
@@ -186,23 +182,23 @@ const theme = extendTheme({
     },
     Input: {
       variants: {
-        brutalist: {
+        field: {
           field: { ...field, _focus: fieldFocus, _placeholder: { color: c.textMuted } },
         },
       },
-      defaultProps: { variant: 'brutalist' },
+      defaultProps: { variant: 'field' },
     },
     Textarea: {
       variants: {
-        brutalist: { ...field, _focus: fieldFocus, _placeholder: { color: c.textMuted } },
+        field: { ...field, _focus: fieldFocus, _placeholder: { color: c.textMuted } },
       },
-      defaultProps: { variant: 'brutalist' },
+      defaultProps: { variant: 'field' },
     },
     Select: {
       variants: {
-        brutalist: { field },
+        field: { field },
       },
-      defaultProps: { variant: 'brutalist' },
+      defaultProps: { variant: 'field' },
     },
   },
 })
