@@ -2,7 +2,7 @@
   "name": "kanban-app",
   "version": "1.0.0",
   "description": "Local Kanban board with reminders and daily summaries",
-  "main": "src/main.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron-vite dev",
@@ -26,8 +26,10 @@
       ]
     },
     "files": [
-      "src/**/*",
-      "assets/**/*"
+      "dist/main/**/*",
+      "dist/preload/**/*",
+      "dist/renderer/**/*",
+      "!node_modules"
     ]
   },
   "devDependencies": {

@@ -364,7 +364,7 @@ function createWindow() {
 // IPC handlers for renderer
 ipcMain.handle('load-data', () => loadData());
 ipcMain.handle('save-data', (event, data) => {
-    saveData(data);
+    saveDataTracked(data);
     return true;
 });
 ipcMain.handle('get-paths', () => ({
@@ -433,10 +433,65 @@ ipcMain.handle('save-file', async (event, { base64Data, originalName, mimeType }
     return filename;
 });
 
+// Watch data file for external changes (e.g. MCP server)
+let lastKnownTaskIds = new Set();
+let fileWatcher = null;
+let ignoreNextChange = false; // skip changes we made ourselves
+
+function startFileWatcher() {
+    // Seed known task IDs
+    const initial = loadData();
+    lastKnownTaskIds = new Set(initial.tasks.map(t => t.id));
+
+    let debounce = null;
+    fileWatcher = fs.watch(dataPath, () => {
+        if (ignoreNextChange) { ignoreNextChange = false; return; }
+        if (debounce) clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            try {
+                const data = loadData();
+                const currentIds = new Set(data.tasks.map(t => t.id));
+                const newTasks = data.tasks.filter(t => !lastKnownTaskIds.has(t.id));
+
+                if (newTasks.length > 0) {
+                    const titles = newTasks.map(t => t.title).join(', ');
+                    const notification = new Notification({
+                        title: `📋 ${newTasks.length} new task${newTasks.length > 1 ? 's' : ''} added`,
+                        body: titles,
+                        silent: false
+                    });
+                    notification.on('click', () => {
+                        if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
+                    });
+                    notification.show();
+                }
+
+                lastKnownTaskIds = currentIds;
+
+                // Tell renderer to reload
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.webContents.send('data-changed-external');
+                }
+            } catch (e) {
+                // File might be mid-write, ignore
+            }
+        }, 500);
+    });
+}
+
+// Mark our own saves so the watcher ignores them
+const _origSaveData = saveData;
+function saveDataTracked(data) {
+    ignoreNextChange = true;
+    _origSaveData(data);
+    lastKnownTaskIds = new Set(data.tasks.map(t => t.id));
+}
+
 app.whenReady().then(() => {
     ensureSummariesDir();
     ensureImagesDir();
     createWindow();
+    startFileWatcher();
     setupScheduler();
 
     // Register global Cmd+T hotkey for quick add

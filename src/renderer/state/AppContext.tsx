@@ -64,6 +64,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => { ipcRenderer.removeListener('quick-add-task', handler) }
   }, [])
 
+  // Reload data when changed externally (e.g. MCP server)
+  useEffect(() => {
+    const handler = async () => {
+      const data = await ipcRenderer.invoke('load-data')
+      if (data) {
+        const tasks = (data.tasks || []).map((t: any) => ({
+          ...t,
+          title: t.title ?? t.content ?? '',
+          description: t.description ?? '',
+          tags: t.tags ?? [],
+          attachments: t.attachments ?? (t.images ? t.images.map((f: string) => ({
+            filename: f, originalName: f, type: 'image/png'
+          })) : []),
+          tagSortOrders: t.tagSortOrders ?? {},
+          timeSpent: t.timeSpent ?? 0,
+          sortOrder: t.sortOrder ?? 0,
+        }))
+        const tags = data.tags || []
+        dispatch({ type: 'SET_DATA', tasks, tags })
+      }
+    }
+    ipcRenderer.on('data-changed-external', handler)
+    return () => { ipcRenderer.removeListener('data-changed-external', handler) }
+  }, [])
+
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}
