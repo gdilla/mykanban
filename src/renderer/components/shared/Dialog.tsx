@@ -17,14 +17,19 @@ interface DialogProps {
   footer?: React.ReactNode
   width?: number
   initialFocusRef?: React.RefObject<HTMLElement | null>
+  /** What takes focus when the dialog closes. Default: whatever had it when the dialog opened. */
+  finalFocusRef?: React.RefObject<HTMLElement | null>
   /** Extra props for the panel itself: role, aria-label, onKeyDown, onPaste. */
   contentProps?: ModalContentProps
   children: React.ReactNode
 }
 
-export default function Dialog({ isOpen, onClose, title, footer, width = 480, initialFocusRef, contentProps, children }: DialogProps) {
+export default function Dialog({ isOpen, onClose, title, footer, width = 480, initialFocusRef, finalFocusRef, contentProps, children }: DialogProps) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} scrollBehavior="inside" initialFocusRef={initialFocusRef as React.RefObject<HTMLElement>}>
+    <Modal
+      isOpen={isOpen} onClose={onClose} scrollBehavior="inside"
+      initialFocusRef={initialFocusRef as React.RefObject<HTMLElement>} finalFocusRef={finalFocusRef as React.RefObject<HTMLElement>}
+    >
       <ModalOverlay bg="var(--c-modal-overlay)" backdropFilter="blur(2px)" />
       <ModalContent maxW={`min(${width}px, calc(100vw - 32px))`} overflow="hidden" {...contentProps}>
         {title === undefined ? children : (

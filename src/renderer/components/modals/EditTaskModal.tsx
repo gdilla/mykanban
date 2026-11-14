@@ -58,6 +58,15 @@ function EditTaskForm({ task }: { task: Task }) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const closed = useRef(false)
+  // Closing hands the keyboard back to the card that was edited, however the window was opened (a click,
+  // Enter, the command palette) and wherever the card is now: the highlighted copy, else the first on screen.
+  // Board highlights the card that takes focus. Read when the window closes, hence the getter.
+  const cardRef = useRef({
+    get current() {
+      const card = `.task-card[data-task-id="${opened.id}"]`
+      return document.querySelector<HTMLElement>(`${card}.focused`) ?? document.querySelector<HTMLElement>(card)
+    },
+  }).current
 
   // Every way out of the window ends here, once. Escape, an overlay click, the
   // close button and Cmd+Enter save; the Cancel button is the only discard.
@@ -134,7 +143,7 @@ function EditTaskForm({ task }: { task: Task }) {
 
   return (
     <Dialog
-      isOpen onClose={() => close('save')} title="Edit task" width={520} initialFocusRef={titleRef}
+      isOpen onClose={() => close('save')} title="Edit task" width={520} initialFocusRef={titleRef} finalFocusRef={cardRef}
       contentProps={{
         onPaste: handlePaste,
         onKeyDown: e => {
