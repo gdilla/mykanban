@@ -25,10 +25,14 @@ export function useKeyboardNav() {
       duration: 6000,
       position: 'bottom',
       // The toast is gone (timed out, or retired by a newer delete), and Undo with it: delete the task's
-      // attachment files. After an Undo the task is back on the board, so none of them are orphans.
+      // attachment files, and forget the delete so nothing can offer to undo it later (this hook is
+      // remounted after a load error). After an Undo the task is back on the board, so none are orphans.
       // ponytail: quitting while the toast is up (or in the 2 s after) leaves the files in images/ for good.
       // Sweep images/ against the board at launch if the folder ever grows.
-      onCloseComplete: () => deleteFilesAfterSave(orphanedFiles(deleted.task, latest.current)),
+      onCloseComplete: () => {
+        deleteFilesAfterSave(orphanedFiles(deleted.task, latest.current))
+        dispatch({ type: 'FORGET_DELETED', id: deleted.task.id })
+      },
       render: ({ onClose }) => createElement(Flex, {
         align: 'center', gap: 3, px: 4, py: 2, bg: c.surface, color: c.text,
         border: `1px solid ${c.borderStrong}`, borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',

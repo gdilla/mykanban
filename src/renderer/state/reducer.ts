@@ -73,6 +73,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, tasks, lastDeleted: null }
     }
 
+    // The Undo toast for this delete is gone: it can no longer be restored (a newer delete still can).
+    case 'FORGET_DELETED':
+      return state.lastDeleted?.task.id === action.id ? { ...state, lastDeleted: null } : state
+
     case 'MOVE_TASK': {
       if (!isStatus(action.status)) return state
       // Timestamps, timeSpent and sortOrder: the rules shared with the MCP server

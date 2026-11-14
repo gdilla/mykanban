@@ -96,6 +96,15 @@ describe('delete and restore', () => {
     expect(next.tasks[3]).toBe(other)
   })
 
+  it('FORGET_DELETED ends the offer of Undo for that delete (its files are about to go), but not for a newer one', () => {
+    const deleted = appReducer(loaded, { type: 'DELETE_TASK', id: 'b' })
+    const forgotten = appReducer(deleted, { type: 'FORGET_DELETED', id: 'b' })
+    expect(forgotten.lastDeleted).toBeNull()
+    expect(appReducer(forgotten, { type: 'RESTORE_TASK', id: 'b' })).toBe(forgotten)
+    const newer = appReducer(deleted, { type: 'DELETE_TASK', id: 'c' })
+    expect(appReducer(newer, { type: 'FORGET_DELETED', id: 'b' })).toBe(newer)
+  })
+
   it('DELETE_TASK for an unknown id changes nothing', () => {
     expect(appReducer(loaded, { type: 'DELETE_TASK', id: 'nope' })).toBe(loaded)
   })

@@ -51,6 +51,7 @@ export type AppAction =
   | { type: 'UPDATE_TASK'; id: string; updates: Partial<Task> }
   | { type: 'DELETE_TASK'; id: string }
   | { type: 'RESTORE_TASK'; id: string }
+  | { type: 'FORGET_DELETED'; id: string }
   | { type: 'MOVE_TASK'; id: string; status: Task['status'] }
   | { type: 'REORDER_TASKS'; columnId: string; orderedIds: string[]; view: 'status' | 'tags' }
   | { type: 'ADD_TAG'; tag: Tag }
