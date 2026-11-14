@@ -31,7 +31,7 @@ export default function BoardColumns() {
     ? STATUS_COLUMNS
     : [
       ...tags.map(tag => ({ id: tag.id, title: tag.name, color: tag.color, emptyText: 'No tasks with this tag yet.' })),
-      { id: UNTAGGED, title: 'Untagged', color: c.textMuted, emptyText: 'Every task has a tag.' },
+      { id: UNTAGGED, title: 'Untagged', color: c.textMuted, emptyText: state.tasks.length ? 'Every task has a tag.' : 'No tasks yet.' },
     ]
 
   return (
