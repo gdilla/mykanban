@@ -196,7 +196,7 @@ On the board:
 |----------|--------|
 | Arrow keys or `h` `j` `k` `l` | Move focus between cards and columns |
 | Enter | Edit the focused task |
-| `d` | Mark the focused task done |
+| `d` | Mark the focused task done (on a task that is already done, move it back to To Do) |
 | `x` | Delete the focused task (an Undo toast restores it) |
 | `1` / `2` / `3` | Move the focused task to To do / In progress / Done |
 | Cmd+K | Command palette: search tasks, run actions, filter by tag |
@@ -303,7 +303,7 @@ command = "/usr/local/bin/node"
 args = ["/Applications/kanban-app/src/mcp-server.mjs"]
 ```
 
-Claude Desktop, in `~/Library/Application Support/Claude/claude_desktop_config.json` (restart Claude Desktop afterwards):
+Claude Desktop: add this entry inside the top-level `{ }` of `~/Library/Application Support/Claude/claude_desktop_config.json` (if the file already has an `mcpServers` object, add `kanban` to it instead), then restart Claude Desktop:
 
 ```json
 "mcpServers": { "kanban": { "command": "/usr/local/bin/node", "args": ["/Applications/kanban-app/src/mcp-server.mjs"] } }

@@ -200,7 +200,7 @@ Set the title, description, due date, status, and tags all in one form. Press **
 | **Cmd+K** | Command palette: search tasks, run actions, filter by tag |
 | **Arrow keys** or **h / j / k / l** | Move focus between cards and columns |
 | **Enter** | Edit the focused task; in a form, submit it |
-| **d** | Mark the focused task done |
+| **d** | Mark the focused task done (on a task that is already done, move it back to To Do) |
 | **x** | Delete the focused task (an Undo toast restores it) |
 | **1 / 2 / 3** | Move the focused task to To Do / In Progress / Done |
 | **Cmd+Enter** | Save in the edit window |

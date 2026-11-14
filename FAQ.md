@@ -28,7 +28,7 @@ Not with built-in sync. The data is stored locally. You could manually copy the 
 
 Drag the task card to a different column in Status view. Dragging to "In Progress" records the start time. Dragging to "Done" records the completion time and adds the elapsed time to the task's total.
 
-From the keyboard, focus a card and press `1`, `2` or `3` to move it to To Do, In Progress or Done, or `d` to mark it done. Hovering a card also shows quick action buttons.
+From the keyboard, focus a card and press `1`, `2` or `3` to move it to To Do, In Progress or Done, or `d` to mark it done (pressing `d` on a done task moves it back to To Do). Hovering a card also shows quick action buttons.
 
 ---
 
@@ -180,7 +180,7 @@ Yes. The repo includes an MCP server that lets Claude Code, Claude Desktop and C
 | Cmd+K | Command palette: search tasks, run actions, filter by tag |
 | Arrow keys or `h` `j` `k` `l` | Move focus between cards and columns |
 | Enter | Edit the focused task; in a form, submit it (add task, quick add, new tag) |
-| `d` | Mark the focused task done |
+| `d` | Mark the focused task done (on a task that is already done, move it back to To Do) |
 | `x` | Delete the focused task (an Undo toast restores it) |
 | `1` / `2` / `3` | Move the focused task to To Do / In Progress / Done |
 | Cmd+Enter | Save in the edit window |

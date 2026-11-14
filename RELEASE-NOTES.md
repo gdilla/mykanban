@@ -116,7 +116,7 @@ First release of the local-first Kanban board for macOS. The notes below were co
 | Cmd+K | Command palette |
 | Arrow keys or `h` `j` `k` `l` | Move focus between cards and columns |
 | Enter | Edit the focused task; submit forms (add task, quick add, new tag) |
-| `d` | Mark the focused task done |
+| `d` | Mark the focused task done (on a task that is already done, move it back to To Do) |
 | `x` | Delete the focused task, with Undo |
 | `1` / `2` / `3` | Move the focused task to To Do / In Progress / Done |
 | Cmd+Enter | Save in the edit window |
