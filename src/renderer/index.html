@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Local content only. The sha256 is the hash of the inline boot script below: if you edit that
+         script, palettes.test.ts fails and prints the new hash. `npm run dev` loosens this policy for
+         hot reload (see electron.vite.config.ts). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-Gf25UBmwj2dmbci3N0ykqGkyUHgmt0JOVOop8eOSx9o='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'">
+    <title>Kanban</title>
+</head>
+<body>
+    <script>
+    // Apply the palette before React loads, so the first paint already has the right colours.
+    // An explicit choice wins; otherwise follow the system appearance (same rule as theme/usePalette.ts).
+    (function() {
+      var darkPalettes = { 'linear':1, 'github-dark':1, 'vercel':1, 'spotify':1, 'slack':1 };
+      var p = localStorage.getItem('kanban-palette') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'linear' : 'arc');
+      var isDark = !!darkPalettes[p];
+      var h = document.documentElement;
+      h.setAttribute('data-palette', p);
+      h.classList.add(isDark ? 'chakra-ui-dark' : 'chakra-ui-light');
+      h.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      h.style.colorScheme = isDark ? 'dark' : 'light';
+      localStorage.setItem('chakra-ui-color-mode', isDark ? 'dark' : 'light');
+    })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+</body>
+</html>

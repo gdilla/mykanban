@@ -1,0 +1,332 @@
+/* === Palette Engine: app-inspired themes === */
+/* One block per palette in theme/palettes.ts. theme/index.ts exposes these tokens to components.
+   Rules enforced by theme/palettes.test.ts, in every palette:
+   - text, text-secondary, text-muted, accent-text, danger-text, todo, doing and done are at least 4.5:1
+     on bg, surface, card and card-hover;
+   - save-btn-color is at least 4.5:1 on save-btn-bg and save-btn-hover;
+   - surface (the header) is never darker than bg (the page).
+   Token values must be 6-digit hex for the test to read them. */
+
+html, body { background: var(--c-bg); }
+
+[data-palette] {
+  --c-text-muted-a60: color-mix(in srgb, var(--c-text-muted) 60%, transparent);
+}
+
+/* --- Linear (dark) — deep navy, violet accents --- */
+[data-palette="linear"] {
+  --c-bg: #0c0d14;
+  --c-surface: #151620;
+  --c-card: #23243a;
+  --c-card-hover: #2b2c45;
+  --c-border: #2e2f48;
+  --c-border-strong: #3f4060;
+  --c-border-accent: #535578;
+  --c-text: #f3f2f8;
+  --c-text-secondary: #bbbacd;
+  --c-text-muted: #9594b5;
+  --c-accent-a40: rgba(94, 106, 210, 0.3);
+  --c-accent-a10: rgba(94, 106, 210, 0.08);
+  --c-card-a80: rgba(35, 36, 58, 0.88);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #5e6ad2;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #4e5abc;
+  --c-scrollbar: #2e2f48;
+  --c-scrollbar-hover: #3f4060;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px rgba(94,106,210,0.06);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(94,106,210,0.1);
+  --c-focus-outline: #5e6ad2;
+  --c-focus-shadow: 0 0 16px rgba(94, 106, 210, 0.25);
+  --c-accent: #5e6ad2;
+  --c-accent-hover: #4e5abc;
+  --c-accent-soft: rgba(94, 106, 210, 0.12);
+  --c-accent-text: #8891de;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger-text:#f87171;
+}
+
+/* --- GitHub Dark — deep navy, blue accents --- */
+[data-palette="github-dark"] {
+  --c-bg: #010409;
+  --c-surface: #0d1117;
+  --c-card: #1a2130;
+  --c-card-hover: #222c3c;
+  --c-border: #30363d;
+  --c-border-strong: #484f58;
+  --c-border-accent: #6e7681;
+  --c-text: #f0f6fc;
+  --c-text-secondary: #b4b9bf;
+  --c-text-muted: #8e94a1;
+  --c-accent-a40: rgba(88, 166, 255, 0.25);
+  --c-accent-a10: rgba(88, 166, 255, 0.06);
+  --c-card-a80: rgba(26, 33, 48, 0.88);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #f0f6fc;
+  --c-save-btn-color: #010409;
+  --c-save-btn-hover: #ffffff;
+  --c-scrollbar: #30363d;
+  --c-scrollbar-hover: #484f58;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.3), 0 0 0 1px rgba(48,54,61,0.5);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.45);
+  --c-focus-outline: #58a6ff;
+  --c-focus-shadow: 0 0 16px rgba(88, 166, 255, 0.2);
+  --c-accent: #58a6ff;
+  --c-accent-hover: #4090e0;
+  --c-accent-soft: rgba(88, 166, 255, 0.10);
+  --c-accent-text: #58a6ff;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger-text:#f87171;
+}
+
+/* --- Vercel (dark) — pure black, stark white, extreme contrast --- */
+[data-palette="vercel"] {
+  --c-bg: #000000;
+  --c-surface: #0a0a0a;
+  --c-card: #171717;
+  --c-card-hover: #1f1f1f;
+  --c-border: #2e2e2e;
+  --c-border-strong: #454545;
+  --c-border-accent: #666666;
+  --c-text: #fafafa;
+  --c-text-secondary: #aaaaaa;
+  --c-text-muted: #888888;
+  --c-accent-a40: rgba(255, 255, 255, 0.15);
+  --c-accent-a10: rgba(255, 255, 255, 0.04);
+  --c-card-a80: rgba(23, 23, 23, 0.9);
+  --c-modal-overlay: rgba(0, 0, 0, 0.7);
+  --c-save-btn-bg: #fafafa;
+  --c-save-btn-color: #000000;
+  --c-save-btn-hover: #ffffff;
+  --c-scrollbar: #2e2e2e;
+  --c-scrollbar-hover: #454545;
+  --c-card-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 8px rgba(0,0,0,0.4);
+  --c-card-shadow-hover: 0 0 0 1px rgba(255,255,255,0.1), 0 8px 24px rgba(0,0,0,0.6);
+  --c-focus-outline: #ffffff;
+  --c-focus-shadow: 0 0 16px rgba(255, 255, 255, 0.1);
+  --c-accent: #fafafa;
+  --c-accent-hover: #e0e0e0;
+  --c-accent-soft: rgba(255, 255, 255, 0.08);
+  --c-accent-text: #fafafa;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger-text:#f87171;
+}
+
+/* --- Spotify (dark) — warm black, green energy --- */
+[data-palette="spotify"] {
+  --c-bg: #0a0a0a;
+  --c-surface: #121212;
+  --c-card: #232323;
+  --c-card-hover: #2a2a2a;
+  --c-border: #333333;
+  --c-border-strong: #484848;
+  --c-border-accent: #5e5e5e;
+  --c-text: #ffffff;
+  --c-text-secondary: #b6b6b6;
+  --c-text-muted: #929292;
+  --c-accent-a40: rgba(29, 185, 84, 0.25);
+  --c-accent-a10: rgba(29, 185, 84, 0.06);
+  --c-card-a80: rgba(35, 35, 35, 0.9);
+  --c-modal-overlay: rgba(0, 0, 0, 0.65);
+  --c-save-btn-bg: #1db954;
+  --c-save-btn-color: #000000;
+  --c-save-btn-hover: #1ed760;
+  --c-scrollbar: #333333;
+  --c-scrollbar-hover: #484848;
+  --c-card-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  --c-card-shadow-hover: 0 8px 24px rgba(0,0,0,0.6);
+  --c-focus-outline: #1db954;
+  --c-focus-shadow: 0 0 16px rgba(29, 185, 84, 0.25);
+  --c-accent: #1db954;
+  --c-accent-hover: #1ed760;
+  --c-accent-soft: rgba(29, 185, 84, 0.12);
+  --c-accent-text: #1db954;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger-text:#f87171;
+}
+
+/* --- Slack (dark) — aubergine tinted, warm grays --- */
+[data-palette="slack"] {
+  --c-bg: #111315;
+  --c-surface: #1a1d21;
+  --c-card: #2a2d33;
+  --c-card-hover: #33363d;
+  --c-border: #3b3e45;
+  --c-border-strong: #50535a;
+  --c-border-accent: #696c73;
+  --c-text: #e8e8e9;
+  --c-text-secondary: #c5c6c7;
+  --c-text-muted: #9ea0a3;
+  --c-accent-a40: rgba(74, 21, 75, 0.35);
+  --c-accent-a10: rgba(74, 21, 75, 0.1);
+  --c-card-a80: rgba(42, 45, 51, 0.9);
+  --c-modal-overlay: rgba(0, 0, 0, 0.6);
+  --c-save-btn-bg: #007a5a;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #148567;
+  --c-scrollbar: #3b3e45;
+  --c-scrollbar-hover: #50535a;
+  --c-card-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  --c-card-shadow-hover: 0 8px 20px rgba(0,0,0,0.45);
+  --c-focus-outline: #1264a3;
+  --c-focus-shadow: 0 0 16px rgba(18, 100, 163, 0.25);
+  --c-accent: #1264a3;
+  --c-accent-hover: #0f5491;
+  --c-accent-soft: rgba(18, 100, 163, 0.12);
+  --c-accent-text: #4da7eb;
+  --c-todo: #60a5fa;
+  --c-doing: #fbbf24;
+  --c-done: #34d399;
+  --c-danger-text:#f87a7a;
+}
+
+/* --- Notion (light) — warm off-white, bookish readability --- */
+[data-palette="notion"] {
+  --c-bg: #f0efe9;
+  --c-surface: #f9f8f5;
+  --c-card: #ffffff;
+  --c-card-hover: #f5f4f0;
+  --c-border: #e2e0da;
+  --c-border-strong: #d0cec8;
+  --c-border-accent: #b0aea8;
+  --c-text: #1f1f1f;
+  --c-text-secondary: #504f4d;
+  --c-text-muted: #6c6b68;
+  --c-accent-a40: rgba(35, 131, 226, 0.2);
+  --c-accent-a10: rgba(35, 131, 226, 0.06);
+  --c-card-a80: rgba(255, 255, 255, 0.9);
+  --c-modal-overlay: rgba(15, 15, 15, 0.45);
+  --c-save-btn-bg: #1a73d1;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #0b6bcb;
+  --c-scrollbar: #d0cec8;
+  --c-scrollbar-hover: #b8b6b0;
+  --c-card-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-card-shadow-hover: 0 4px 14px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-focus-outline: #2383e2;
+  --c-focus-shadow: 0 0 16px rgba(35, 131, 226, 0.15);
+  --c-accent: #2383e2;
+  --c-accent-hover: #0b6bcb;
+  --c-accent-soft: rgba(35, 131, 226, 0.10);
+  --c-accent-text: #196cbe;
+  --c-todo: #1d4ed8;
+  --c-doing: #92400e;
+  --c-done: #065f46;
+  --c-danger-text:#b91c1c;
+}
+
+/* --- Arc (light) — crisp white, cool tones, Apple-like --- */
+[data-palette="arc"] {
+  --c-bg: #e8e8ed;
+  --c-surface: #f5f5f7;
+  --c-card: #ffffff;
+  --c-card-hover: #f5f5f7;
+  --c-border: #d5d5da;
+  --c-border-strong: #bbbbc2;
+  --c-border-accent: #98989f;
+  --c-text: #1d1d1f;
+  --c-text-secondary: #4b4b50;
+  --c-text-muted: #67676d;
+  --c-accent-a40: rgba(0, 122, 255, 0.2);
+  --c-accent-a10: rgba(0, 122, 255, 0.06);
+  --c-card-a80: rgba(255, 255, 255, 0.9);
+  --c-modal-overlay: rgba(0, 0, 0, 0.3);
+  --c-save-btn-bg: #006ee6;
+  --c-save-btn-color: #ffffff;
+  --c-save-btn-hover: #005fc7;
+  --c-scrollbar: #c5c5cb;
+  --c-scrollbar-hover: #a8a8af;
+  --c-card-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-card-shadow-hover: 0 4px 14px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04);
+  --c-focus-outline: #007aff;
+  --c-focus-shadow: 0 0 16px rgba(0, 122, 255, 0.18);
+  --c-accent: #007aff;
+  --c-accent-hover: #0066d6;
+  --c-accent-soft: rgba(0, 122, 255, 0.10);
+  --c-accent-text: #0063d0;
+  --c-todo: #1d4ed8;
+  --c-doing: #92400e;
+  --c-done: #065f46;
+  --c-danger-text:#b91c1c;
+}
+
+/* Window chrome: the header is the title bar. Dragging it moves the window; controls stay clickable. */
+.app-header { -webkit-app-region: drag; user-select: none; }
+.app-header button,
+.app-header [role="menu"],
+.chakra-modal__overlay,
+.chakra-modal__content-container { -webkit-app-region: no-drag; }
+
+/* Board runs edge to edge; the gutter is inside the scroll area so columns scroll under the window edge. */
+.board-area { padding: 0 20px 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Task card */
+.task-card {
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.task-card:hover {
+  box-shadow: var(--c-card-shadow-hover) !important;
+}
+
+.task-card:focus-visible {
+  outline: 2px solid var(--c-focus-outline);
+  outline-offset: 2px;
+}
+
+.task-card.focused {
+  outline: 2px solid var(--c-focus-outline);
+  outline-offset: 2px;
+  box-shadow: var(--c-focus-shadow) !important;
+  z-index: 10;
+}
+
+/* Badge animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.timer-badge {
+  animation: pulse 2s infinite;
+}
+
+/* Scrollbar — minimal */
+::-webkit-scrollbar { width: 5px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-scrollbar-hover); }
+
+/* Quick action buttons: shown on hover. visibility (not just opacity) keeps them out of the tab order while hidden. */
+.task-quick-actions {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.12s ease, visibility 0s 0.12s;
+}
+.task-card:hover .task-quick-actions {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+/* Force consistent native elements */
+select option { background: var(--c-bg); color: var(--c-text); }
+::placeholder { color: var(--c-text-muted) !important; }
