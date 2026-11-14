@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, createElement } from 'react'
 import { flushSync } from 'react-dom'
 import { Button, Flex, Text, useToast } from '@chakra-ui/react'
 import { useApp } from '../state/AppContext'
-import { getVisibleColumns, nextFocus, columnOf, boardKey, NavKey } from '../state/nav'
+import { getVisibleColumns, nextFocus, focusedColumn, boardKey, NavKey } from '../state/nav'
 import { Task } from '../state/types'
 import { colors as c } from '../theme'
 
@@ -18,8 +18,6 @@ const STATUS_KEYS: Record<string, Task['status']> = { '1': 'todo', '2': 'doing',
 export function useKeyboardNav() {
   const { state, dispatch } = useApp()
   const toast = useToast()
-  // Column of the focused card: a task can be on screen more than once in tag view.
-  const focusCol = useRef(-1)
 
   // Every delete (keyboard or mouse) lands in state.lastDeleted, so the undo toast lives here once.
   useEffect(() => {
@@ -79,42 +77,44 @@ export function useKeyboardNav() {
     if (key === null) return
 
     const columns = getVisibleColumns(state)
-    // Scroll the focused card into view. In tag view the card can be drawn in several columns;
-    // columns render left to right, so the copy we want is the nth one in the document.
-    const reveal = (id: string, col: number) => {
-      const nth = columns.slice(0, col).filter(ids => ids.includes(id)).length
-      document.querySelectorAll('.task-card.focused')[nth]?.scrollIntoView({ block: 'nearest' })
+    // Call after a flushSync. Scrolls the highlighted card into view and gives it native focus too, so Space
+    // (keyboard drag, which acts on the natively focused card) picks up the card the user sees highlighted.
+    // Only one copy of a task is highlighted (state.focusedCol), so this is the right one in tag view as well.
+    const reveal = () => {
+      const card = document.querySelector<HTMLElement>('.task-card.focused')
+      card?.scrollIntoView({ block: 'nearest' })
+      card?.focus({ preventScroll: true })
     }
 
     const navKey = NAV_KEYS[key]
     if (navKey) {
       e.preventDefault()
-      const next = nextFocus(columns, state.focusedTaskId, navKey, focusCol.current)
+      const next = nextFocus(columns, state.focusedTaskId, navKey, state.focusedCol)
       if (!next) return
-      focusCol.current = next.col
       // The board now has the keyboard: drop native focus from a button the user clicked earlier
       // (a header button, Undo), or the next Enter would press that instead of opening the card.
       if (onControl) (e.target as HTMLElement).blur()
-      flushSync(() => dispatch({ type: 'SET_FOCUSED_TASK', id: next.id })) // render before measuring
-      reveal(next.id, next.col)
+      flushSync(() => dispatch({ type: 'SET_FOCUSED_TASK', id: next.id, col: next.col })) // render before measuring
+      reveal()
       return
     }
 
     if (key === 'Escape') {
       dispatch({ type: 'SET_FOCUSED_TASK', id: null })
+      document.querySelector<HTMLElement>('.task-card:focus')?.blur()
       return
     }
 
     // Everything below acts on the focused card, and only if it is actually on screen
     // (never delete or move a card the active filters are hiding).
-    const col = columnOf(columns, state.focusedTaskId, focusCol.current)
+    const col = focusedColumn(state, columns)
     const task = col === -1 ? undefined : state.tasks.find(t => t.id === state.focusedTaskId)
     if (!task) return
 
     const moveTo = (status: Task['status']) => {
       if (task.status === status) return
       flushSync(() => dispatch({ type: 'MOVE_TASK', id: task.id, status }))
-      reveal(task.id, state.currentView === 'tags' ? col : 0)
+      reveal() // in status view the card is now in another column: a new element
     }
 
     if (key === 'Enter') {
@@ -130,8 +130,11 @@ export function useKeyboardNav() {
       e.preventDefault()
       const row = columns[col].indexOf(task.id)
       const neighbour = columns[col][row + 1] ?? columns[col][row - 1] ?? null
-      dispatch({ type: 'DELETE_TASK', id: task.id })
-      dispatch({ type: 'SET_FOCUSED_TASK', id: neighbour })
+      flushSync(() => {
+        dispatch({ type: 'DELETE_TASK', id: task.id })
+        dispatch({ type: 'SET_FOCUSED_TASK', id: neighbour, col })
+      })
+      reveal()
     }
   }, [state, dispatch])
 
