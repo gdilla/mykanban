@@ -88,7 +88,7 @@ describe('tool list', () => {
     }
     const flagged = hint => tools.filter(t => t.annotations?.[hint]).map(t => t.name)
     expect(flagged('readOnlyHint')).toEqual(['board_summary', 'list_tasks', 'get_task', 'list_tags', 'read_summary'])
-    expect(flagged('destructiveHint')).toEqual(['delete_task'])
+    expect(flagged('destructiveHint')).toEqual(['update_task', 'delete_task']) // the two that can lose what the user wrote
     expect(flagged('idempotentHint')).toEqual(['update_task', 'move_task', 'delete_task'])
   })
 })

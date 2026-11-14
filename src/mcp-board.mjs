@@ -22,16 +22,24 @@ export function checkDate(value, field = 'due') {
   return value
 }
 
-// Tag names -> tag ids. Case-insensitive.
+// The tag called `name`. Exact case wins, so a name the server returned always finds the same tag;
+// otherwise case-insensitive. The app allows duplicate names, so a name can match several tags: that is refused.
+function findTag(name, tags) {
+  const wanted = String(name).trim()
+  const exact = tags.filter(t => t.name === wanted)
+  const matches = exact.length ? exact : tags.filter(t => lower(t.name) === lower(wanted))
+  if (matches.length === 1) return matches[0]
+  if (matches.length > 1) {
+    throw new Error(`Tag name "${name}" is ambiguous: it matches ${matches.map(t => `"${t.name}"`).join(' and ')}. Use the exact name, or rename one in the Kanban app.`)
+  }
+  throw new Error(tags.length
+    ? `Unknown tag "${name}". Valid tags: ${tags.map(t => t.name).join(', ')}.`
+    : `Unknown tag "${name}". The board has no tags yet; tags are created in the Kanban app.`)
+}
+
+// Tag names -> tag ids
 export function tagIds(names, tags) {
-  const ids = names.map(name => {
-    const tag = tags.find(t => lower(t.name) === lower(name).trim())
-    if (tag) return tag.id
-    throw new Error(tags.length
-      ? `Unknown tag "${name}". Valid tags: ${tags.map(t => t.name).join(', ')}.`
-      : `Unknown tag "${name}". The board has no tags yet; tags are created in the Kanban app.`)
-  })
-  return [...new Set(ids)]
+  return [...new Set(names.map(name => findTag(name, tags).id))]
 }
 
 const tagNames = (task, tags) =>
@@ -98,6 +106,10 @@ export function boardSummary(board, today) {
 
 const minutes = ms => Math.round((ms || 0) / 60000)
 
+// Legacy tasks have `images` (filenames) instead of `attachments`; the app reads them the same way
+const attachmentsOf = task =>
+  task.attachments || (task.images || []).map(f => ({ filename: f, originalName: f, type: 'image/png' }))
+
 export function taskDetail(board, id, imagesDir) {
   const task = findTask(board, id)
   return {
@@ -107,7 +119,7 @@ export function taskDetail(board, id, imagesDir) {
     startedAt: task.startedAt || null,
     completedAt: task.completedAt || null,
     timeSpentMin: minutes(task.timeSpent),
-    attachments: (task.attachments || []).map(a => ({
+    attachments: attachmentsOf(task).map(a => ({
       name: a.originalName,
       type: a.type,
       path: path.join(imagesDir, path.basename(a.filename)),

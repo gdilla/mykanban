@@ -57,6 +57,21 @@ describe('tagIds', () => {
     expect(() => tagIds(['g1'], tags)).toThrow(/Unknown tag "g1"/)
   })
 
+  // The app's tag manager allows two tags with the same name, or names that differ only in case
+  it('prefers an exact-case match, so the names the server returns always resolve to the same tag', () => {
+    const twins = [{ id: 'a', name: 'Work', color: '#f00' }, { id: 'b', name: 'work', color: '#0f0' }]
+    expect(tagIds(['Work'], twins)).toEqual(['a'])
+    expect(tagIds(['work'], twins)).toEqual(['b'])
+  })
+
+  it('refuses a name that matches more than one tag instead of picking one', () => {
+    const twins = [{ id: 'a', name: 'Work', color: '#f00' }, { id: 'b', name: 'work', color: '#0f0' }]
+    expect(() => tagIds(['WORK'], twins)).toThrow('Tag name "WORK" is ambiguous: it matches "Work" and "work". Use the exact name, or rename one in the Kanban app.')
+    const same = [{ id: 'a', name: 'Work', color: '#f00' }, { id: 'b', name: 'Work', color: '#0f0' }]
+    expect(() => tagIds(['Work'], same)).toThrow(/ambiguous/)
+    expect(() => listTasks({ tasks: [], tags: same }, { tag: 'work' })).toThrow(/ambiguous/)
+  })
+
   it('says so when the board has no tags', () => {
     expect(() => tagIds(['x'], [])).toThrow(/no tags/)
   })
@@ -150,6 +165,13 @@ describe('taskDetail', () => {
       timeSpentMin: 90,
       attachments: [{ name: 'shot.png', type: 'image/png', path: '/data/images/170_abc.png' }],
     })
+  })
+
+  it('shows legacy `images` (filenames only) as attachments, as the app does', () => {
+    const b = { tags: [], tasks: [{ id: 'old', title: 'Old', status: 'todo', images: ['170_old.png'] }] }
+    expect(taskDetail(b, 'old', '/data/images').attachments).toEqual([
+      { name: '170_old.png', type: 'image/png', path: '/data/images/170_old.png' },
+    ])
   })
 
   it('an unknown id is an error that points at list_tasks', () => {

@@ -115,7 +115,7 @@ server.registerTool('update_task', {
     due: z.string().nullable().optional().describe('Due date, YYYY-MM-DD; "" or null removes it'),
     tags: tagNames.optional().describe('Tag names; replaces the task\'s tags ([] removes them all)'),
   }),
-  annotations: { ...WRITE, idempotentHint: true },
+  annotations: { ...WRITE, destructiveHint: true, idempotentHint: true }, // overwrites text and tags, no undo
 }, ({ id, ...changes }) => json(change(data => board.updateTask(data, id, changes))));
 
 server.registerTool('move_task', {
