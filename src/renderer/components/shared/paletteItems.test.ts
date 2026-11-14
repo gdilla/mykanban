@@ -44,6 +44,12 @@ describe('paletteSections', () => {
     })
   })
 
+  it('a task with no createdAt (old data, a hand edit) is listed last instead of throwing', () => {
+    const undated = { ...task('9', 'Undated'), createdAt: undefined } as unknown as Task
+    const tasks = [undated, ...ctx.tasks.slice(0, 3)]
+    expect(labels('', { ...ctx, tasks })['Recent tasks']).toEqual(['Write requirements', 'Floorplan view in kiosk', 'Wireframe BACnet support', 'Undated'])
+  })
+
   it('lists actions first, then tasks, tag filters and palettes', () => {
     expect(paletteSections('', ctx).map(s => s.heading)).toEqual(['Actions', 'Recent tasks', 'Tag filters', 'Palette'])
     expect(paletteSections('a', ctx).map(s => s.heading)).toEqual(['Actions', 'Tasks', 'Tag filters', 'Palette'])

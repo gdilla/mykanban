@@ -48,7 +48,7 @@ export function paletteSections(query: string, ctx: PaletteContext): PaletteSect
         ...ctx.tasks.filter(t => matches(t.title)),
         ...ctx.tasks.filter(t => !matches(t.title) && matches(`${t.title} ${t.description}`)),
       ].slice(0, CAP)
-    : [...ctx.tasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, RECENT)
+    : [...ctx.tasks].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')).slice(0, RECENT)
 
   const actions: PaletteItem[] = [
     { kind: 'action', key: 'action:new-task', action: 'new-task', label: 'New task', hint: '⌘N' },

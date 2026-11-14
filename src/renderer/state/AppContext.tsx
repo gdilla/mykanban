@@ -21,6 +21,7 @@ function migrate(data: any): { tasks: Task[]; tags: Tag[] } {
       filename: f, originalName: f, type: 'image/png'
     })) : []),
     tagSortOrders: t.tagSortOrders ?? {},
+    createdAt: t.createdAt ?? '', // unknown: sorts as oldest
     timeSpent: t.timeSpent ?? 0,
     sortOrder: t.sortOrder ?? 0,
   }))
