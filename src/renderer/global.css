@@ -1,7 +1,7 @@
 /* === Palette Engine: app-inspired themes === */
 /* One block per palette in theme/palettes.ts. theme/index.ts exposes these tokens to components.
    Rules enforced by theme/palettes.test.ts, in every palette:
-   - text, text-secondary, text-muted, accent-text, todo, doing, done and danger are at least 4.5:1
+   - text, text-secondary, text-muted, accent-text, danger-text, todo, doing and done are at least 4.5:1
      on bg, surface, card and card-hover;
    - save-btn-color is at least 4.5:1 on save-btn-bg and save-btn-hover;
    - surface (the header) is never darker than bg (the page).
@@ -45,7 +45,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #60a5fa;
   --c-doing: #fbbf24;
   --c-done: #34d399;
-  --c-danger: #f87171;
+  --c-danger-text:#f87171;
 }
 
 /* --- GitHub Dark — deep navy, blue accents --- */
@@ -80,7 +80,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #60a5fa;
   --c-doing: #fbbf24;
   --c-done: #34d399;
-  --c-danger: #f87171;
+  --c-danger-text:#f87171;
 }
 
 /* --- Vercel (dark) — pure black, stark white, extreme contrast --- */
@@ -115,7 +115,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #60a5fa;
   --c-doing: #fbbf24;
   --c-done: #34d399;
-  --c-danger: #f87171;
+  --c-danger-text:#f87171;
 }
 
 /* --- Spotify (dark) — warm black, green energy --- */
@@ -150,7 +150,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #60a5fa;
   --c-doing: #fbbf24;
   --c-done: #34d399;
-  --c-danger: #f87171;
+  --c-danger-text:#f87171;
 }
 
 /* --- Slack (dark) — aubergine tinted, warm grays --- */
@@ -185,7 +185,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #60a5fa;
   --c-doing: #fbbf24;
   --c-done: #34d399;
-  --c-danger: #f87a7a;
+  --c-danger-text:#f87a7a;
 }
 
 /* --- Notion (light) — warm off-white, bookish readability --- */
@@ -220,7 +220,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #1d4ed8;
   --c-doing: #92400e;
   --c-done: #065f46;
-  --c-danger: #b91c1c;
+  --c-danger-text:#b91c1c;
 }
 
 /* --- Arc (light) — crisp white, cool tones, Apple-like --- */
@@ -255,7 +255,7 @@ html, body { background: var(--c-bg); }
   --c-todo: #1d4ed8;
   --c-doing: #92400e;
   --c-done: #065f46;
-  --c-danger: #b91c1c;
+  --c-danger-text:#b91c1c;
 }
 
 /* Window chrome: the header is the title bar. Dragging it moves the window; controls stay clickable. */

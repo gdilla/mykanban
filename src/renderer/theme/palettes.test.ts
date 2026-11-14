@@ -14,7 +14,7 @@ function tokens(id: string): Record<string, string> {
 
 const SURFACES = ['bg', 'surface', 'card', 'card-hover']
 // Every token that is used as a text colour on those surfaces.
-const TEXT = ['text', 'text-secondary', 'text-muted', 'accent-text', 'todo', 'doing', 'done', 'danger']
+const TEXT = ['text', 'text-secondary', 'text-muted', 'accent-text', 'danger-text', 'todo', 'doing', 'done']
 const PAIRS: [text: string, surface: string][] = [
   ...TEXT.flatMap(t => SURFACES.map(s => [t, s] as [string, string])),
   ['save-btn-color', 'save-btn-bg'],

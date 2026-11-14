@@ -46,9 +46,11 @@ const c = {
   cardAlpha80: 'var(--c-card-a80)',
   textMutedAlpha60: 'var(--c-text-muted-a60)',
 
-  // danger is red text or a red indicator; dangerSolid is the fill of a destructive button (white label)
-  danger: 'var(--c-danger)',
-  dangerSolid: '#dc2626',
+  // danger is a red fill or indicator, the same in every palette, and too light to read as text
+  // (white on it is 3.8:1 too: destructive buttons use the darker red of the danger button variant).
+  // dangerText is red text.
+  danger: '#ef4444',
+  dangerText: 'var(--c-danger-text)',
 }
 
 const font = `-apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, sans-serif`
@@ -70,7 +72,7 @@ const secondaryButton = {
   },
 }
 const dangerButton = {
-  bg: c.dangerSolid,
+  bg: '#dc2626', // white on this is 4.8:1
   color: '#fff',
   border: 'none',
   _hover: { bg: '#b91c1c' },
