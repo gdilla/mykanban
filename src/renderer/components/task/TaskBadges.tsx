@@ -2,7 +2,6 @@ import React from 'react'
 import { Flex, Box } from '@chakra-ui/react'
 import { Calendar, Clock, Paperclip } from 'lucide-react'
 import { Task } from '../../state/types'
-import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
 import { dueLabel } from '../../utils/date'
 
@@ -14,57 +13,32 @@ function formatTime(ms: number): string {
   return `${minutes}m`
 }
 
-export default function TaskBadges({ task }: { task: Task }) {
-  const { state } = useApp()
-  const isTimerActive = state.activeTimerTaskId === task.id
-  const due = task.dueDate ? dueLabel(task.dueDate, new Date()) : null
+const DUE_COLOR = { overdue: c.dangerText, soon: c.doing, normal: undefined }
+
+function Badge({ icon: Icon, color, strong, className, children }: {
+  icon: typeof Clock; color?: string; strong?: boolean; className?: string; children: React.ReactNode
+}) {
+  return (
+    <Box display="inline-flex" alignItems="center" gap="3px" color={color} fontWeight={strong ? 500 : undefined} className={className}>
+      <Icon size={11} />
+      {children}
+    </Box>
+  )
+}
+
+export function hasBadges(task: Task, isTimerActive: boolean): boolean {
+  return (!!task.dueDate && task.status !== 'done') || task.timeSpent > 0 || isTimerActive || task.attachments.length > 0
+}
+
+export default function TaskBadges({ task, isTimerActive }: { task: Task; isTimerActive: boolean }) {
+  const due = task.dueDate && task.status !== 'done' ? dueLabel(task.dueDate, new Date()) : null
 
   return (
-    <Flex gap="8px" flexWrap="wrap" align="center" ml="auto">
-      {due && task.status !== 'done' && (
-        due.tone === 'overdue' ? (
-          <Box
-            display="inline-flex" alignItems="center" gap="3px"
-            fontFamily="body" fontSize="0.68rem" fontWeight={500}
-            px="6px" py="2px" borderRadius="5px"
-            bg="rgba(239,68,68,0.1)" color="#ef4444"
-            border="1px solid rgba(239,68,68,0.2)"
-          >
-            <Calendar size={11} />
-            {due.label}
-          </Box>
-        ) : (
-          <Box
-            display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem"
-            color={due.tone === 'soon' ? c.doing : c.textMuted}
-            fontWeight={due.tone === 'soon' ? 500 : undefined}
-          >
-            <Calendar size={11} />
-            {due.label}
-          </Box>
-        )
-      )}
-
-      {task.timeSpent > 0 && (
-        <Box display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem" color={c.textMuted}>
-          <Clock size={11} />
-          {formatTime(task.timeSpent)}
-        </Box>
-      )}
-
-      {isTimerActive && (
-        <Box display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem" color={c.doing} className="timer-badge">
-          <Clock size={11} />
-          tracking
-        </Box>
-      )}
-
-      {task.attachments.length > 0 && (
-        <Box display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem" color={c.textMuted}>
-          <Paperclip size={11} />
-          {task.attachments.length}
-        </Box>
-      )}
+    <Flex gap="8px" align="center" flexShrink={0} whiteSpace="nowrap" fontFamily="body" fontSize="11px" color={c.textMuted}>
+      {due && <Badge icon={Calendar} color={DUE_COLOR[due.tone]} strong={due.tone !== 'normal'}>{due.label}</Badge>}
+      {task.timeSpent > 0 && <Badge icon={Clock}>{formatTime(task.timeSpent)}</Badge>}
+      {isTimerActive && <Badge icon={Clock} color={c.doing} className="timer-badge">tracking</Badge>}
+      {task.attachments.length > 0 && <Badge icon={Paperclip}>{task.attachments.length}</Badge>}
     </Flex>
   )
 }

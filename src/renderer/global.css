@@ -280,11 +280,16 @@ html, body { background: var(--c-bg); }
 /* Task card */
 .task-card {
   position: relative;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .task-card:hover {
   box-shadow: var(--c-card-shadow-hover) !important;
+}
+
+.task-card:focus-visible {
+  outline: 2px solid var(--c-focus-outline);
+  outline-offset: 2px;
 }
 
 .task-card.focused {
@@ -292,14 +297,6 @@ html, body { background: var(--c-bg); }
   outline-offset: 2px;
   box-shadow: var(--c-focus-shadow) !important;
   z-index: 10;
-}
-
-/* Done task */
-.task-card.done {
-  opacity: 0.55;
-}
-.task-card.done:hover {
-  opacity: 1;
 }
 
 /* Badge animations */
@@ -318,16 +315,16 @@ html, body { background: var(--c-bg); }
 ::-webkit-scrollbar-thumb { background: var(--c-scrollbar); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--c-scrollbar-hover); }
 
-/* Quick action buttons */
+/* Quick action buttons: shown on hover. visibility (not just opacity) keeps them out of the tab order while hidden. */
 .task-quick-actions {
+  visibility: hidden;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, pointer-events 0s 0.15s;
+  transition: opacity 0.12s ease, visibility 0s 0.12s;
 }
 .task-card:hover .task-quick-actions {
+  visibility: visible;
   opacity: 1;
-  pointer-events: auto;
-  transition: opacity 0.15s ease, pointer-events 0s;
+  transition-delay: 0s;
 }
 
 /* Force consistent native elements */

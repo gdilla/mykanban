@@ -7,8 +7,7 @@ import {
 } from '@dnd-kit/core'
 import { useApp } from '../../state/AppContext'
 import { keyboardMove, landsAfter, resolveDrop } from '../../state/drop'
-import StatusView from '../board/StatusView'
-import TagView from '../board/TagView'
+import BoardColumns from '../board/BoardColumns'
 import DragOverlayCard from '../task/DragOverlay'
 
 // Column.tsx registers each card as a sortable with id `${columnId}:${taskId}` inside a SortableContext whose
@@ -83,23 +82,23 @@ class CardKeyboardSensor extends KeyboardSensor {
   }]
 }
 
+// Sensor options live out here so they are the same objects on every render: new ones give dnd-kit new
+// sensors, which re-renders every card on the board each time Board renders (on every action).
+// Require 8px of movement before activating drag — this lets clicks through
+const pointerOptions = { activationConstraint: { distance: 8 } }
+// Space picks up and drops a focused card; Enter is left to useKeyboardNav (it opens the card).
+const keyboardOptions = {
+  coordinateGetter: keyboardCoordinates,
+  // scroll at once: the next key press reads card positions, which a smooth scroll would still be changing
+  scrollBehavior: 'auto' as const,
+  keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Tab'] },
+}
+
 export default function Board() {
   const { state, dispatch } = useApp()
   const [activeId, setActiveId] = React.useState<string | null>(null)
 
-  const sensors = useSensors(
-    // Require 8px of movement before activating drag — this lets clicks through
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    // Space picks up and drops a focused card; Enter is left to useKeyboardNav (it opens the card).
-    useSensor(CardKeyboardSensor, {
-      coordinateGetter: keyboardCoordinates,
-      // scroll at once: the next key press reads card positions, which a smooth scroll would still be changing
-      scrollBehavior: 'auto',
-      keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Tab'] },
-    })
-  )
+  const sensors = useSensors(useSensor(PointerSensor, pointerOptions), useSensor(CardKeyboardSensor, keyboardOptions))
 
   // While a card is being moved with the keyboard, its keys (arrows, Space, Escape) must not also reach
   // useKeyboardNav's window listener, which would move the board focus or act on another card.
@@ -156,12 +155,13 @@ export default function Board() {
         className="board-area"
         onClick={handleBoardClick}
         display="flex"
-        gap={6}
+        gap="16px"
         overflowX="auto"
         flex="1"
         minH={0}
       >
-        {state.currentView === 'status' ? <StatusView /> : <TagView />}
+        {/* Nothing until the data is in: empty columns would flash "nothing to do" on every launch */}
+        {state.loaded && <BoardColumns />}
       </Box>
       <DragOverlay>
         {activeId ? <DragOverlayCard taskId={activeId} /> : null}
