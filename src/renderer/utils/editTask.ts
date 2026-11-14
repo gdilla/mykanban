@@ -1,4 +1,4 @@
-import { Attachment, Task } from '../state/types'
+import { AppState, Attachment, Task } from '../state/types'
 
 /** The fields the edit window lets you change (status is moved separately, with MOVE_TASK). */
 export type TaskDraft = Pick<Task, 'title' | 'description' | 'dueDate' | 'tags' | 'attachments'>
@@ -39,9 +39,11 @@ export function filesToDelete(atOpen: Attachment[], now: Attachment[], outcome: 
 /**
  * Which attachment files to delete from disk once a deleted task can no longer be restored:
  * its files that no task on the board shows. A duplicate shares its files, and if the task
- * itself is back (Undo, or a reload from disk) that is every one of them.
+ * itself is back (Undo, or a reload from disk) that is every one of them. A task deleted
+ * since then, which Undo can still bring back, counts as on the board.
  */
-export function orphanedFiles(deleted: Task, tasks: Task[]): string[] {
-  const used = new Set(tasks.flatMap(t => t.attachments.map(a => a.filename)))
+export function orphanedFiles(deleted: Task, { tasks, lastDeleted }: Pick<AppState, 'tasks' | 'lastDeleted'>): string[] {
+  const live = lastDeleted && lastDeleted.task.id !== deleted.id ? [...tasks, lastDeleted.task] : tasks
+  const used = new Set(live.flatMap(t => t.attachments.map(a => a.filename)))
   return deleted.attachments.map(a => a.filename).filter(f => !used.has(f))
 }

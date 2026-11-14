@@ -60,15 +60,26 @@ describe('orphanedFiles', () => {
   const withFiles = (id: string, ...files: string[]) => ({ id, attachments: files.map(att) }) as Task
   const deleted = withFiles('gone', 'a.png', 'b.pdf')
 
+  // lastDeleted is still this task when its Undo toast times out
+  const expired = (tasks: Task[]) => ({ tasks, lastDeleted: { task: deleted, index: 0 } })
+
   it('a deleted task leaves all of its files behind when nothing else uses them', () => {
-    expect(orphanedFiles(deleted, [withFiles('other', 'c.png'), withFiles('bare')])).toEqual(['a.png', 'b.pdf'])
+    expect(orphanedFiles(deleted, expired([withFiles('other', 'c.png'), withFiles('bare')]))).toEqual(['a.png', 'b.pdf'])
   })
 
   it('keeps a file another task still shows (a duplicate shares its files)', () => {
-    expect(orphanedFiles(deleted, [withFiles('copy', 'a.png')])).toEqual(['b.pdf'])
+    expect(orphanedFiles(deleted, expired([withFiles('copy', 'a.png')]))).toEqual(['b.pdf'])
   })
 
   it('keeps everything when the task is back on the board (Undo, or a reload from disk)', () => {
-    expect(orphanedFiles(deleted, [withFiles('other'), deleted])).toEqual([])
+    expect(orphanedFiles(deleted, { tasks: [withFiles('other'), deleted], lastDeleted: null })).toEqual([])
+  })
+
+  it('keeps a file shown by a task deleted since, which Undo can still bring back', () => {
+    // the task and its duplicate were deleted one after the other: the second delete retired the first toast
+    const copy = withFiles('copy', 'a.png')
+    expect(orphanedFiles(deleted, { tasks: [], lastDeleted: { task: copy, index: 0 } })).toEqual(['b.pdf'])
+    // ...and when the copy's own toast times out, nothing shows a.png any more
+    expect(orphanedFiles(copy, { tasks: [], lastDeleted: { task: copy, index: 0 } })).toEqual(['a.png'])
   })
 })
