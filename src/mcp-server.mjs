@@ -1,3 +1,6 @@
+// MCP server: lets Claude and Codex read and change the board the app shows.
+// Written for an agent's context window: compact one-line JSON, tags by name, errors that say what to do next.
+// The board logic lives in mcp-board.mjs; this file is the tool list and the file I/O.
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
@@ -5,251 +8,153 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import store from './store.js'; // CommonJS, shared with the Electron main process
+import dates from './dates.js';
+import * as board from './mcp-board.mjs';
 
-// Data paths — match Electron's app.getPath('userData') for kanban-app
-const userDataPath = path.join(os.homedir(), 'Library', 'Application Support', 'kanban-app');
-const dataPath = path.join(userDataPath, 'kanban-data.json');
-const summariesPath = path.join(userDataPath, 'summaries');
+// Defaults to Electron's app.getPath('userData') for kanban-app
+const dataDir = process.env.KANBAN_DATA_DIR || path.join(os.homedir(), 'Library', 'Application Support', 'kanban-app');
+const dataPath = path.join(dataDir, 'kanban-data.json');
+const imagesPath = path.join(dataDir, 'images');
+const summariesPath = path.join(dataDir, 'summaries');
 
-// Helpers
-
-// Same store as the app. Strict: a corrupt file fails the tool call instead of
-// reading as an empty board that the next write would save over the real data.
-const loadData = () => store.load(dataPath);
-const saveData = data => store.save(dataPath, data);
-
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+// Same strict store as the app: a corrupt file fails the call instead of reading as an empty board.
+function load() {
+  try {
+    return store.load(dataPath);
+  } catch (e) {
+    throw new Error(`Cannot read the board file ${dataPath} (${e.message}). Nothing was changed; the file has to be repaired by hand.`);
+  }
 }
 
-// Server setup
+// Apply a change to the board and save it. A change that throws, or changes nothing, writes nothing.
+function change(apply) {
+  const data = load();
+  const before = JSON.stringify(data);
+  const result = apply(data);
+  if (JSON.stringify(data) !== before) store.save(dataPath, data);
+  return result;
+}
 
-const server = new McpServer({
-  name: 'kanban',
-  version: '1.0.0',
-});
-
-// --- Task tools ---
-
-server.tool(
-  'list_tasks',
-  'List tasks, optionally filtered by status and/or tag',
-  { status: z.enum(['todo', 'doing', 'done']).optional(), tagId: z.string().optional() },
-  async ({ status, tagId }) => {
-    const { tasks } = loadData();
-    let filtered = tasks;
-    if (status) filtered = filtered.filter(t => t.status === status);
-    if (tagId) filtered = filtered.filter(t => t.tags && t.tags.includes(tagId));
-    filtered.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    return { content: [{ type: 'text', text: JSON.stringify(filtered, null, 2) }] };
+// Dates that have a daily summary, newest first
+function summaryDates() {
+  try {
+    return fs.readdirSync(summariesPath)
+      .map(name => /^summary-(\d{4}-\d{2}-\d{2})\.md$/.exec(name)?.[1])
+      .filter(Boolean)
+      .sort()
+      .reverse();
+  } catch (e) {
+    if (e.code === 'ENOENT') return [];
+    throw e;
   }
+}
+
+const text = value => ({ content: [{ type: 'text', text: value }] });
+const json = value => text(JSON.stringify(value));
+
+const server = new McpServer(
+  { name: 'kanban', version: '2.0.0' },
+  { instructions: 'A personal kanban board (todo / doing / done). Start with board_summary; use list_tasks to find task ids. Tags are given by name, dates as local YYYY-MM-DD.' },
 );
 
-server.tool(
-  'get_task',
-  'Get a single task by ID',
-  { id: z.string() },
-  async ({ id }) => {
-    const { tasks } = loadData();
-    const task = tasks.find(t => t.id === id);
-    if (!task) return { content: [{ type: 'text', text: `Task not found: ${id}` }], isError: true };
-    return { content: [{ type: 'text', text: JSON.stringify(task, null, 2) }] };
-  }
-);
+// A handler that throws becomes an isError result carrying the message (the SDK does this).
+// Schemas are strict, so a misspelt or unsupported argument is an error rather than silently ignored.
+const READ = { readOnlyHint: true, openWorldHint: false };
+const WRITE = { readOnlyHint: false, destructiveHint: false, openWorldHint: false };
 
-server.tool(
-  'create_task',
-  'Create a new task',
-  {
+const id = z.string().describe('Task id, from list_tasks or board_summary');
+const status = z.enum(['todo', 'doing', 'done']);
+const tagNames = z.array(z.string()).describe('Tag names (see list_tags); they must already exist');
+
+server.registerTool('board_summary', {
+  title: 'Board summary',
+  description: 'Start here: what is being worked on and what is urgent. Returns task counts per status, the tasks in progress, and the open tasks that are overdue or due today, each with its id. Use list_tasks for anything more.',
+  annotations: READ,
+}, () => json(board.boardSummary(load(), dates.localDateStr(new Date()))));
+
+server.registerTool('list_tasks', {
+  title: 'List tasks',
+  description: 'Lists tasks as compact rows {id, title, status, due, tags}: with no arguments, the open (todo and doing) tasks in board order. Returns {tasks, total}. Use get_task for a task\'s description and attachments.',
+  inputSchema: z.strictObject({
+    status: z.enum(['todo', 'doing', 'done', 'open', 'all']).optional().describe('Default "open" (todo + doing)'),
+    tag: z.string().optional().describe('Only tasks with this tag name (case-insensitive)'),
+    query: z.string().optional().describe('Only tasks whose title or description contains this text (case-insensitive)'),
+    due_before: z.string().optional().describe('Only tasks due on or before this date, YYYY-MM-DD'),
+    limit: z.number().int().min(1).max(200).optional().describe('Maximum rows, default 50'),
+  }),
+  annotations: READ,
+}, filters => json(board.listTasks(load(), filters)));
+
+server.registerTool('get_task', {
+  title: 'Get task',
+  description: 'Returns one task in full: description, tag names, timestamps, minutes spent, and attachments with absolute file paths you can read.',
+  inputSchema: z.strictObject({ id }),
+  annotations: READ,
+}, ({ id }) => json(board.taskDetail(load(), id, imagesPath)));
+
+server.registerTool('add_task', {
+  title: 'Add task',
+  description: 'Creates a task at the end of its column and returns its row, including the new id.',
+  inputSchema: z.strictObject({
     title: z.string(),
     description: z.string().optional(),
-    status: z.enum(['todo', 'doing', 'done']).optional(),
-    dueDate: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-  },
-  async ({ title, description, status, dueDate, tags }) => {
-    const data = loadData();
-    const s = status || 'todo';
-    const now = new Date().toISOString();
+    due: z.string().optional().describe('Due date, YYYY-MM-DD'),
+    tags: tagNames.optional(),
+    status: status.optional().describe('Default "todo"'),
+  }),
+  annotations: WRITE,
+}, fields => json(change(data => board.addTask(data, fields))));
 
-    // Calculate max sortOrder for the target status column
-    const maxSort = data.tasks
-      .filter(t => t.status === s)
-      .reduce((max, t) => Math.max(max, t.sortOrder ?? 0), -1);
-
-    const task = {
-      id: generateId(),
-      title,
-      description: description || '',
-      status: s,
-      dueDate: dueDate || null,
-      tags: tags || [],
-      attachments: [],
-      createdAt: now,
-      startedAt: s === 'doing' || s === 'done' ? now : null,
-      completedAt: s === 'done' ? now : null,
-      timeSpent: null,
-      sortOrder: maxSort + 1,
-      tagSortOrders: {},
-    };
-
-    data.tasks.push(task);
-    saveData(data);
-    return { content: [{ type: 'text', text: JSON.stringify(task, null, 2) }] };
-  }
-);
-
-server.tool(
-  'update_task',
-  'Update an existing task (partial update)',
-  {
-    id: z.string(),
+server.registerTool('update_task', {
+  title: 'Update task',
+  description: 'Changes a task\'s title, description, due date or tags and returns its updated row. Only the fields you pass change. To change status, use move_task.',
+  inputSchema: z.strictObject({
+    id,
     title: z.string().optional(),
     description: z.string().optional(),
-    status: z.enum(['todo', 'doing', 'done']).optional(),
-    dueDate: z.string().nullable().optional(),
-    tags: z.array(z.string()).optional(),
-  },
-  async ({ id, title, description, status, dueDate, tags }) => {
-    const data = loadData();
-    const task = data.tasks.find(t => t.id === id);
-    if (!task) return { content: [{ type: 'text', text: `Task not found: ${id}` }], isError: true };
+    due: z.string().nullable().optional().describe('Due date, YYYY-MM-DD; "" or null removes it'),
+    tags: tagNames.optional().describe('Tag names; replaces the task\'s tags ([] removes them all)'),
+  }),
+  annotations: { ...WRITE, idempotentHint: true },
+}, ({ id, ...changes }) => json(change(data => board.updateTask(data, id, changes))));
 
-    if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
-    if (dueDate !== undefined) task.dueDate = dueDate;
-    if (tags !== undefined) task.tags = tags;
+server.registerTool('move_task', {
+  title: 'Move task',
+  description: 'Moves a task to todo, doing or done, with the app\'s time tracking: doing starts the clock, done records the time spent, todo resets it. Returns the task\'s status, timestamps and minutes spent.',
+  inputSchema: z.strictObject({ id, status }),
+  annotations: { ...WRITE, idempotentHint: true },
+}, ({ id, status }) => json(change(data => board.moveTask(data, id, status))));
 
-    if (status !== undefined && status !== task.status) {
-      const now = new Date().toISOString();
-      // Transition logic
-      if (status === 'doing' && !task.startedAt) task.startedAt = now;
-      if (status === 'done') {
-        task.completedAt = now;
-        if (!task.startedAt) task.startedAt = now;
-      }
-      if (task.status === 'done' && status !== 'done') task.completedAt = null;
-      task.status = status;
-    }
+server.registerTool('delete_task', {
+  title: 'Delete task',
+  description: 'Permanently deletes a task and returns the deleted title. There is no undo: to finish a task, use move_task with status "done" instead.',
+  inputSchema: z.strictObject({ id }),
+  annotations: { ...WRITE, destructiveHint: true, idempotentHint: true },
+}, ({ id }) => json(change(data => board.deleteTask(data, id))));
 
-    saveData(data);
-    return { content: [{ type: 'text', text: JSON.stringify(task, null, 2) }] };
+server.registerTool('list_tags', {
+  title: 'List tags',
+  description: 'Lists the tags as {name, color, open}, where open is the number of open tasks with that tag. These names are what the tag arguments of list_tasks, add_task and update_task accept.',
+  annotations: READ,
+}, () => json(board.listTags(load())));
+
+server.registerTool('read_summary', {
+  title: 'Read daily summary',
+  description: 'Returns the daily summary the app writes each evening (markdown: completed, in progress, overdue) for one date, or the most recent one when no date is given.',
+  inputSchema: z.strictObject({
+    date: z.string().optional().describe('YYYY-MM-DD; default is the most recent summary'),
+  }),
+  annotations: READ,
+}, ({ date }) => {
+  const available = summaryDates();
+  const wanted = date === undefined ? available[0] : board.checkDate(date, 'date');
+  if (!wanted) throw new Error('No daily summaries have been written yet.');
+  // `wanted` is only ever read if it is one of the dates found in the folder, so it cannot name another path
+  if (!available.includes(wanted)) {
+    throw new Error(`No summary for ${wanted}. Most recent: ${available.slice(0, 5).join(', ') || 'none'}.`);
   }
-);
-
-server.tool(
-  'delete_task',
-  'Delete a task by ID',
-  { id: z.string() },
-  async ({ id }) => {
-    const data = loadData();
-    const idx = data.tasks.findIndex(t => t.id === id);
-    if (idx === -1) return { content: [{ type: 'text', text: `Task not found: ${id}` }], isError: true };
-    data.tasks.splice(idx, 1);
-    saveData(data);
-    return { content: [{ type: 'text', text: `Deleted task ${id}` }] };
-  }
-);
-
-// --- Tag tools ---
-
-server.tool(
-  'list_tags',
-  'List all tags',
-  {},
-  async () => {
-    const { tags } = loadData();
-    return { content: [{ type: 'text', text: JSON.stringify(tags, null, 2) }] };
-  }
-);
-
-server.tool(
-  'create_tag',
-  'Create a new tag',
-  { name: z.string(), color: z.string() },
-  async ({ name, color }) => {
-    const data = loadData();
-    const tag = { id: generateId(), name, color };
-    data.tags.push(tag);
-    saveData(data);
-    return { content: [{ type: 'text', text: JSON.stringify(tag, null, 2) }] };
-  }
-);
-
-server.tool(
-  'update_tag',
-  'Update an existing tag',
-  { id: z.string(), name: z.string().optional(), color: z.string().optional() },
-  async ({ id, name, color }) => {
-    const data = loadData();
-    const tag = data.tags.find(t => t.id === id);
-    if (!tag) return { content: [{ type: 'text', text: `Tag not found: ${id}` }], isError: true };
-    if (name !== undefined) tag.name = name;
-    if (color !== undefined) tag.color = color;
-    saveData(data);
-    return { content: [{ type: 'text', text: JSON.stringify(tag, null, 2) }] };
-  }
-);
-
-server.tool(
-  'delete_tag',
-  'Delete a tag and remove it from all tasks',
-  { id: z.string() },
-  async ({ id }) => {
-    const data = loadData();
-    const idx = data.tags.findIndex(t => t.id === id);
-    if (idx === -1) return { content: [{ type: 'text', text: `Tag not found: ${id}` }], isError: true };
-    data.tags.splice(idx, 1);
-    // Strip tag from all tasks
-    for (const task of data.tasks) {
-      if (task.tags) task.tags = task.tags.filter(t => t !== id);
-      if (task.tagSortOrders) delete task.tagSortOrders[id];
-    }
-    saveData(data);
-    return { content: [{ type: 'text', text: `Deleted tag ${id}` }] };
-  }
-);
-
-// --- Summary tools ---
-
-server.tool(
-  'list_summaries',
-  'List available daily summary files, newest first',
-  {},
-  async () => {
-    try {
-      if (!fs.existsSync(summariesPath)) return { content: [{ type: 'text', text: '[]' }] };
-      const files = fs.readdirSync(summariesPath)
-        .filter(f => f.startsWith('summary-') && f.endsWith('.md'))
-        .sort()
-        .reverse();
-      return { content: [{ type: 'text', text: JSON.stringify(files, null, 2) }] };
-    } catch {
-      return { content: [{ type: 'text', text: '[]' }] };
-    }
-  }
-);
-
-server.tool(
-  'read_summary',
-  'Read a daily summary file by filename',
-  { filename: z.string() },
-  async ({ filename }) => {
-    // Path traversal guard
-    if (filename.includes('/') || filename.includes('\\') || filename.includes('..')) {
-      return { content: [{ type: 'text', text: 'Invalid filename' }], isError: true };
-    }
-    const filePath = path.join(summariesPath, filename);
-    try {
-      const content = fs.readFileSync(filePath, 'utf8');
-      return { content: [{ type: 'text', text: content }] };
-    } catch {
-      return { content: [{ type: 'text', text: `Summary not found: ${filename}` }], isError: true };
-    }
-  }
-);
-
-// Start server
+  return text(fs.readFileSync(path.join(summariesPath, `summary-${wanted}.md`), 'utf8'));
+});
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

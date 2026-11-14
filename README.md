@@ -267,7 +267,7 @@ The repo includes an MCP server (`src/mcp-server.mjs`) that lets Claude Code, Cl
 
 | Tool | What it does |
 |------|--------------|
-| `board_summary` | Short overview of the board |
+| `board_summary` | Counts per column, what is in progress, what is overdue or due today |
 | `list_tasks` | Compact task rows (id, title, status, due, tag names). Filters: `status` (defaults to open tasks), `tag` (by name), `query`, `due_before`, `limit` |
 | `get_task` | Full details of one task |
 | `add_task` | Create a task |
@@ -277,7 +277,7 @@ The repo includes an MCP server (`src/mcp-server.mjs`) that lets Claude Code, Cl
 | `list_tags` | List the tags |
 | `read_summary` | Read a daily summary |
 
-Tags are given and returned by name; an unknown tag name is an error that lists the valid names. Due dates are `YYYY-MM-DD`.
+Tags are given and returned by name; an unknown tag name is an error that lists the valid names. Due dates are `YYYY-MM-DD`. Tags themselves are created, renamed and deleted in the app, not through the server. Results are compact JSON; time spent is reported in minutes.
 
 ### Registration
 
