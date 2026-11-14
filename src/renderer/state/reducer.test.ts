@@ -82,10 +82,11 @@ describe('delete and restore', () => {
     expect(restored.tagSortOrders).toEqual({}) // no place left in the dead tag's column; none invented for t2
   })
 
-  it('RESTORE_TASK does not move a task that has no recorded place in its tag column (data from before places were kept)', () => {
-    const unplaced = { ...task('u', 3), tagSortOrders: {} }
-    const deleted = appReducer({ ...loaded, tasks: [...loaded.tasks, unplaced] }, { type: 'DELETE_TASK', id: 'u' })
-    expect(appReducer(deleted, { type: 'RESTORE_TASK', id: 'u' }).tasks[3]).toEqual(unplaced)
+  it('RESTORE_TASK puts back the very task that was deleted when its tags are all still there (so delete + Undo leaves the file as it was)', () => {
+    // old data: no recorded place in its tag column, and a leftover entry
+    const old = { ...task('u', 3), tagSortOrders: { untagged: 0 } }
+    const deleted = appReducer({ ...loaded, tasks: [...loaded.tasks, old] }, { type: 'DELETE_TASK', id: 'u' })
+    expect(appReducer(deleted, { type: 'RESTORE_TASK', id: 'u' }).tasks[3]).toBe(old)
   })
 
   it('DELETE_TAG takes the tasks\' place in that tag column with it, and leaves the other tasks alone', () => {

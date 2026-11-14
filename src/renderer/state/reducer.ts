@@ -62,12 +62,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       // Already back (an external reload can return it): just forget it.
       if (state.tasks.some(t => t.id === action.id)) return { ...state, lastDeleted: null }
       // A tag deleted since then must not come back as a dangling id (the card would vanish from tag view).
-      // ...nor keep its place in that tag's column. The board "before" includes the task as it was deleted,
-      // so the tags it still has are not new to it and it goes back exactly where it was.
-      const task = withTagOrders(
-        { ...lastDeleted.task, tags: lastDeleted.task.tags.filter(id => state.tags.some(t => t.id === id)) },
-        [...state.tasks, lastDeleted.task],
-      )
+      // ...nor keep its place in that tag's column. Otherwise the task goes back untouched. (The board "before"
+      // includes the task as it was deleted, so the tags it still has are not new to it and keep their place.)
+      const tags = lastDeleted.task.tags.filter(id => state.tags.some(t => t.id === id))
+      const task = tags.length === lastDeleted.task.tags.length
+        ? lastDeleted.task
+        : withTagOrders({ ...lastDeleted.task, tags }, [...state.tasks, lastDeleted.task])
       const tasks = [...state.tasks]
       tasks.splice(lastDeleted.index, 0, task) // splice clamps an index past the end
       return { ...state, tasks, lastDeleted: null }
