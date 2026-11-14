@@ -32,6 +32,15 @@ const collisionDetection: CollisionDetection = args => {
   return [card ?? { id: column.id, data: { droppableContainer: column } }]
 }
 
+// Only the card itself starts a keyboard drag: Space on a button inside the card still presses that button.
+class CardKeyboardSensor extends KeyboardSensor {
+  static activators: typeof KeyboardSensor.activators = [{
+    eventName: 'onKeyDown',
+    handler: (event, ...rest) =>
+      event.target === event.currentTarget && KeyboardSensor.activators[0].handler(event, ...rest),
+  }]
+}
+
 export default function Board() {
   const { state, dispatch } = useApp()
   const [activeId, setActiveId] = React.useState<string | null>(null)
@@ -42,7 +51,7 @@ export default function Board() {
       activationConstraint: { distance: 8 },
     }),
     // Space picks up and drops a focused card; Enter is left to useKeyboardNav (it opens the card).
-    useSensor(KeyboardSensor, {
+    useSensor(CardKeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
       keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Tab'] },
     })
