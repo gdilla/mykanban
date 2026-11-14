@@ -143,11 +143,11 @@ describe('withTagOrders', () => {
     expect(t.tagSortOrders).toEqual({ g2: 2, __untagged__: 4 })
   })
 
-  it('reads a task from an old file (no tagSortOrders) and does not change the task it is given', () => {
-    const old = task({ id: 'n', tags: ['g1'], tagSortOrders: undefined })
+  it('only a tag the task is newly given is placed: one it already had on the board stays where it is, even with no place recorded', () => {
+    const old = task({ id: 'n', tags: ['g1'], tagSortOrders: undefined }) // from an old file: shown first in g1
     const before = JSON.stringify(old)
-    expect(withTagOrders(old, [...board, old]).tagSortOrders).toEqual({ g1: 8 })
-    expect(JSON.stringify(old)).toBe(before)
+    expect(withTagOrders({ ...old, tags: ['g1', 'g2'] }, [...board, old]).tagSortOrders).toEqual({ g2: 3 })
+    expect(JSON.stringify(old)).toBe(before) // and the task it is given is not changed
   })
 
   it('the reducer applies it when a task is added with tags (quick add) or its tags are edited', () => {

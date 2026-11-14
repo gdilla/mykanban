@@ -27,6 +27,7 @@ export function newTask(
 }
 
 interface Tagged {
+  id: string
   tags: string[]
   tagSortOrders: Record<string, number>
 }

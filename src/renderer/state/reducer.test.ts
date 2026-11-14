@@ -77,7 +77,16 @@ describe('delete and restore', () => {
     let state = appReducer({ ...loaded, tags, tasks: [...loaded.tasks, both] }, { type: 'DELETE_TASK', id: 'z' })
     state = appReducer(state, { type: 'DELETE_TAG', id: 't1' })
     state = appReducer(state, { type: 'RESTORE_TASK', id: 'z' })
-    expect(state.tasks.find(t => t.id === 'z')!.tags).toEqual(['t2'])
+    const restored = state.tasks.find(t => t.id === 'z')!
+    expect(restored.tags).toEqual(['t2'])
+    expect(restored.tagSortOrders).toEqual({ t2: 0 }) // no place left in the dead tag's column
+  })
+
+  it('DELETE_TAG takes the tasks\' place in that tag column with it, and leaves the other tasks alone', () => {
+    const other = { ...task('o', 9), tags: ['t2'], tagSortOrders: { t2: 5 } }
+    const next = appReducer({ ...loaded, tasks: [...loaded.tasks, other] }, { type: 'DELETE_TAG', id: 't1' })
+    expect(next.tasks.map(t => [t.tags, t.tagSortOrders])).toEqual([[[], {}], [[], {}], [[], {}], [['t2'], { t2: 5 }]])
+    expect(next.tasks[3]).toBe(other)
   })
 
   it('DELETE_TASK for an unknown id changes nothing', () => {

@@ -50,15 +50,21 @@ export function newTask(fields, tasks, now = Date.now()) {
 }
 
 // A copy of `task` whose tagSortOrders match its tags. Call it whenever a task's tags are set.
-// A tag it has no place under yet puts it at the bottom of that tag column; places under tags it no
-// longer has are dropped (its place in the Untagged column is kept). `tasks` is the whole board.
+// `tasks` is the whole board as it was before that change (with the old version of the task, if it had one).
+// A tag the task is newly given puts it at the bottom of that tag column. A tag it already had keeps the
+// place it has, recorded or not, so editing a task's tags never moves it in its other columns. Places
+// under tags it no longer has are dropped (its place in the Untagged column is kept).
 export function withTagOrders(task, tasks) {
   const old = task.tagSortOrders || {}
+  const had = tasks.find(t => t.id === task.id)?.tags || []
   const tagSortOrders = '__untagged__' in old ? { __untagged__: old.__untagged__ } : {}
   for (const tagId of task.tags || []) {
-    tagSortOrders[tagId] = old[tagId] ?? tasks
-      .filter(t => (t.tags || []).includes(tagId))
-      .reduce((max, t) => Math.max(max, t.tagSortOrders?.[tagId] || 0), -1) + 1
+    if (tagId in old) tagSortOrders[tagId] = old[tagId]
+    else if (!had.includes(tagId)) {
+      tagSortOrders[tagId] = tasks
+        .filter(t => (t.tags || []).includes(tagId))
+        .reduce((max, t) => Math.max(max, t.tagSortOrders?.[tagId] || 0), -1) + 1
+    }
   }
   return { ...task, tagSortOrders }
 }

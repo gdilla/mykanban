@@ -157,8 +157,8 @@ export function updateTask(board, id, { title, description, due, tags }) {
   if (description !== undefined) changes.description = description
   if (due !== undefined) changes.dueDate = due ? checkDate(due) : ''
   if (tags !== undefined) changes.tags = tagIds(tags, board.tags)
+  if (changes.tags) changes.tagSortOrders = withTagOrders({ ...task, ...changes }, board.tasks).tagSortOrders
   Object.assign(task, changes)
-  if (changes.tags) task.tagSortOrders = withTagOrders(task, board.tasks).tagSortOrders
   return row(task, board.tags)
 }
 

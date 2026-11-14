@@ -62,7 +62,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       // Already back (an external reload can return it): just forget it.
       if (state.tasks.some(t => t.id === action.id)) return { ...state, lastDeleted: null }
       // A tag deleted since then must not come back as a dangling id (the card would vanish from tag view).
-      const task = { ...lastDeleted.task, tags: lastDeleted.task.tags.filter(id => state.tags.some(t => t.id === id)) }
+      const task = withTagOrders(
+        { ...lastDeleted.task, tags: lastDeleted.task.tags.filter(id => state.tags.some(t => t.id === id)) },
+        state.tasks,
+      )
       const tasks = [...state.tasks]
       tasks.splice(lastDeleted.index, 0, task) // splice clamps an index past the end
       return { ...state, tasks, lastDeleted: null }
@@ -110,10 +113,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'DELETE_TAG': {
       const tags = state.tags.filter(t => t.id !== action.id)
-      const tasks = state.tasks.map(t => ({
-        ...t,
-        tags: t.tags.filter(tagId => tagId !== action.id),
-      }))
+      const tasks = state.tasks.map(t => t.tags.includes(action.id)
+        ? withTagOrders({ ...t, tags: t.tags.filter(tagId => tagId !== action.id) }, state.tasks)
+        : t)
       // Its filter chip goes with it, so the filter must too.
       const activeFilters = { ...state.activeFilters, tags: state.activeFilters.tags.filter(id => id !== action.id) }
       return { ...state, tags, tasks, activeFilters }
