@@ -36,6 +36,11 @@ export interface AppState {
   }
   currentView: 'status' | 'tags'
   focusedTaskId: string | null
+  // Column (index on screen) the focused card is in: tag view can draw one task in several columns.
+  // -1 = not known, the first column showing it.
+  focusedCol: number
+  loaded: boolean // false until the first SET_DATA
+  showAllDone: boolean // Done column expanded past the most recent few
   lastDeleted: { task: Task; index: number } | null // one level of undo
   activeTimerTaskId: string | null
 }
@@ -54,6 +59,7 @@ export type AppAction =
   | { type: 'SET_EDITING_TASK'; id: string | null }
   | { type: 'SET_VIEW'; view: 'status' | 'tags' }
   | { type: 'SET_FILTERS'; filters: Partial<AppState['activeFilters']> }
-  | { type: 'SET_FOCUSED_TASK'; id: string | null }
+  | { type: 'SET_FOCUSED_TASK'; id: string | null; col?: number }
+  | { type: 'SET_SHOW_ALL_DONE'; show: boolean }
   | { type: 'TOGGLE_TIMER'; id: string }
   | { type: 'DUPLICATE_TASK'; id: string }

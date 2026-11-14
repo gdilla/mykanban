@@ -1,16 +1,13 @@
 import { AppState } from './types'
-import { getTasksByStatus, getTasksByTag, getUntaggedTasks } from './selectors'
+import { getBoardColumns } from './selectors'
 
 export type NavKey = 'up' | 'down' | 'left' | 'right'
 export interface Focus { id: string; col: number }
 
 // The board as it is drawn: one array of task ids per column, left to right, top to bottom.
-// Uses the same selectors as StatusView/TagView, so filters and sort order match the screen.
+// Same selector as the views, so filters, sort order and the collapsed Done column match the screen.
 export function getVisibleColumns(state: AppState): string[][] {
-  const columns = state.currentView === 'status'
-    ? (['todo', 'doing', 'done'] as const).map(status => getTasksByStatus(state, status))
-    : [...state.tags.map(tag => getTasksByTag(state, tag.id)), getUntaggedTasks(state)]
-  return columns.map(tasks => tasks.map(t => t.id))
+  return getBoardColumns(state).map(tasks => tasks.map(t => t.id))
 }
 
 // Is this keydown a board shortcut at all? Returns its key, or null when it belongs to someone else.
@@ -53,4 +50,9 @@ export function nextFocus(columns: string[][], focusedId: string | null, key: Na
     if (columns[c].length > 0) return { id: columns[c][Math.min(row, columns[c].length - 1)], col: c }
   }
   return { id: focusedId, col }
+}
+
+// The one column whose copy of the focused card is highlighted and holds native focus. -1 = none on screen.
+export function focusedColumn(state: AppState, columns = getVisibleColumns(state)): number {
+  return columnOf(columns, state.focusedTaskId, state.focusedCol)
 }

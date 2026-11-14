@@ -1,5 +1,7 @@
 import { AppState, Task } from './types'
 
+export const DONE_LIMIT = 10
+
 export function getFilteredTasks(state: AppState): Task[] {
   let filtered = state.tasks
 
@@ -49,4 +51,27 @@ export function getUntaggedTasks(state: AppState): Task[] {
     .filter(t => !t.tags || t.tags.length === 0)
     // Its own order once reordered in tag view (tagSortOrders.__untagged__); until then the order it always had.
     .sort((a, b) => (a.tagSortOrders?.__untagged__ ?? a.sortOrder ?? 0) - (b.tagSortOrders?.__untagged__ ?? b.sortOrder ?? 0))
+}
+
+// The Done column in status view: a log, most recently completed first, cut to the latest DONE_LIMIT
+// until the user asks for all of it. ISO timestamps compare as strings; no timestamp sorts last.
+export function getDoneTasks(state: AppState): Task[] {
+  const done = getTasksByStatus(state, 'done')
+    .sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''))
+  return state.showAllDone ? done : done.slice(0, DONE_LIMIT)
+}
+
+// The board as it is drawn: the cards of each column, left to right, top to bottom.
+// The views, keyboard navigation and drag all read this, so they agree on what is on screen.
+export function getBoardColumns(state: AppState): Task[][] {
+  return state.currentView === 'status'
+    ? [getTasksByStatus(state, 'todo'), getTasksByStatus(state, 'doing'), getDoneTasks(state)]
+    : [...state.tags.map(tag => getTasksByTag(state, tag.id)), getUntaggedTasks(state)]
+}
+
+// tagSortOrders value that puts a new task at the bottom of a tag column
+export function endOfTagColumn(tasks: Task[], tagId: string): number {
+  return tasks
+    .filter(t => t.tags.includes(tagId))
+    .reduce((max, t) => Math.max(max, t.tagSortOrders?.[tagId] || 0), -1) + 1
 }

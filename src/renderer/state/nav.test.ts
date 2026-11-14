@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { nextFocus, getVisibleColumns, boardKey } from './nav'
+import { nextFocus, getVisibleColumns, boardKey, focusedColumn } from './nav'
 import { initialState } from './reducer'
 import { Task } from './types'
 
@@ -94,6 +94,30 @@ describe('getVisibleColumns', () => {
   it('leaves out cards hidden by the active filters', () => {
     const state = { ...initialState, tasks, tags, currentView: 'status' as const, activeFilters: { tags: ['t2'], age: null } }
     expect(getVisibleColumns(state)).toEqual([['todo1'], [], []])
+  })
+})
+
+describe('focusedColumn', () => {
+  // "both" carries two tags, so tag view draws it twice: in column 0 and in column 1
+  const tags = [{ id: 't1', name: 'one', color: '#111' }, { id: 't2', name: 'two', color: '#222' }]
+  const tasks = [task('both', { tags: ['t1', 't2'] }), task('one', { tags: ['t1'] }), task('none')]
+  const tagView = { ...initialState, tasks, tags, currentView: 'tags' as const }
+
+  it('is the column the user navigated to, so only that copy of a multi-tag task is highlighted', () => {
+    expect(focusedColumn({ ...tagView, focusedTaskId: 'both', focusedCol: 1 })).toBe(1)
+    expect(focusedColumn({ ...tagView, focusedTaskId: 'both', focusedCol: 0 })).toBe(0)
+  })
+
+  it('falls back to the first column showing the task when the remembered column is unknown or stale', () => {
+    expect(focusedColumn({ ...tagView, focusedTaskId: 'both', focusedCol: -1 })).toBe(0)
+    expect(focusedColumn({ ...tagView, focusedTaskId: 'none', focusedCol: 0 })).toBe(2)
+  })
+
+  it('is -1 when nothing is focused or the focused task is not on screen', () => {
+    expect(focusedColumn(tagView)).toBe(-1)
+    expect(focusedColumn({ ...tagView, focusedTaskId: 'gone', focusedCol: 0 })).toBe(-1)
+    const hidden = { ...tagView, focusedTaskId: 'none', activeFilters: { tags: ['t1'], age: null } }
+    expect(focusedColumn(hidden)).toBe(-1)
   })
 })
 

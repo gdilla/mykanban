@@ -15,6 +15,25 @@ describe('appReducer', () => {
     expect(next.tasks.map(t => t.status)).toEqual(['todo', 'done', 'todo'])
   })
 
+  it('SET_DATA marks the board as loaded (until then the columns are not drawn)', () => {
+    expect(initialState.loaded).toBe(false)
+    expect(appReducer(initialState, { type: 'SET_DATA', tasks: [], tags: [] }).loaded).toBe(true)
+  })
+
+  it('SET_FOCUSED_TASK remembers the column the card was focused in, or -1 when not told', () => {
+    const inColumn = appReducer(initialState, { type: 'SET_FOCUSED_TASK', id: 'a', col: 2 })
+    expect([inColumn.focusedTaskId, inColumn.focusedCol]).toEqual(['a', 2])
+    const anywhere = appReducer(inColumn, { type: 'SET_FOCUSED_TASK', id: 'b' })
+    expect([anywhere.focusedTaskId, anywhere.focusedCol]).toEqual(['b', -1])
+  })
+
+  it('SET_SHOW_ALL_DONE expands and collapses the Done column', () => {
+    expect(initialState.showAllDone).toBe(false)
+    const open = appReducer(initialState, { type: 'SET_SHOW_ALL_DONE', show: true })
+    expect(open.showAllDone).toBe(true)
+    expect(appReducer(open, { type: 'SET_SHOW_ALL_DONE', show: false }).showAllDone).toBe(false)
+  })
+
   it('MOVE_TASK ignores a status that is not todo/doing/done', () => {
     const state = { ...initialState, tasks: [{ id: 'a', status: 'doing', sortOrder: 3 }] } as any
     expect(appReducer(state, { type: 'MOVE_TASK', id: 'a', status: 'mkohl2jwshr9tgpt60e' } as any)).toBe(state)

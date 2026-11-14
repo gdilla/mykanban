@@ -5,12 +5,10 @@ import { appReducer, initialState } from './reducer'
 
 const { ipcRenderer } = window.require('electron')
 
-interface AppContextValue {
-  state: AppState
-  dispatch: React.Dispatch<AppAction>
-}
-
-const AppContext = createContext<AppContextValue | null>(null)
+// Two contexts: state changes on every action, dispatch never does. A component that only dispatches
+// (a card) reads the second one and is not re-rendered by state it does not use.
+const StateContext = createContext<AppState | null>(null)
+const DispatchContext = createContext<React.Dispatch<AppAction> | null>(null)
 
 // Bring whatever is on disk (including legacy shapes) up to the current task shape
 function migrate(data: any): { tasks: Task[]; tags: Tag[] } {
@@ -117,14 +115,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppContext.Provider>
+    <DispatchContext.Provider value={dispatch}>
+      <StateContext.Provider value={state}>
+        {children}
+      </StateContext.Provider>
+    </DispatchContext.Provider>
   )
 }
 
+export function useAppState(): AppState {
+  const state = useContext(StateContext)
+  if (!state) throw new Error('useAppState must be used within AppProvider')
+  return state
+}
+
+export function useAppDispatch(): React.Dispatch<AppAction> {
+  const dispatch = useContext(DispatchContext)
+  if (!dispatch) throw new Error('useAppDispatch must be used within AppProvider')
+  return dispatch
+}
+
+// Re-renders on every state change: fine for the few top-level components, not for anything drawn per card.
 export function useApp() {
-  const ctx = useContext(AppContext)
-  if (!ctx) throw new Error('useApp must be used within AppProvider')
-  return ctx
+  return { state: useAppState(), dispatch: useAppDispatch() }
 }

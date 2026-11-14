@@ -13,6 +13,9 @@ export const initialState: AppState = {
   activeFilters: { tags: [], age: null },
   currentView: (localStorage.getItem('kanban-view') as 'status' | 'tags') || 'status',
   focusedTaskId: null,
+  focusedCol: -1,
+  loaded: false,
+  showAllDone: false,
   lastDeleted: null,
   activeTimerTaskId: null,
 }
@@ -25,6 +28,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         tasks: action.tasks.map(t => (isStatus(t.status) ? t : { ...t, status: 'todo' })),
         tags: action.tags,
+        loaded: true,
       }
 
     case 'ADD_TASK': {
@@ -118,7 +122,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, activeFilters: { ...state.activeFilters, ...action.filters } }
 
     case 'SET_FOCUSED_TASK':
-      return { ...state, focusedTaskId: action.id }
+      return { ...state, focusedTaskId: action.id, focusedCol: action.col ?? -1 }
+
+    case 'SET_SHOW_ALL_DONE':
+      return { ...state, showAllDone: action.show }
 
     case 'TOGGLE_TIMER': {
       const task = state.tasks.find(t => t.id === action.id)
