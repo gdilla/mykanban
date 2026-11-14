@@ -30,3 +30,16 @@ export function nextTagColor(tags: Tag[]): string {
   const presets = Object.values(TAG_COLORS)
   return presets.find(preset => !tags.some(t => t.color.toLowerCase() === preset)) ?? presets[0]
 }
+
+/**
+ * What saving a tag's edit form should write: only the fields that differ from the tag as it was
+ * when the form opened, so a change made on disk meanwhile to the other field is not put back
+ * (the same rule as editedFields for tasks).
+ */
+export function editedTagFields(opened: Pick<Tag, 'name' | 'color'>, draft: Pick<Tag, 'name' | 'color'>): Partial<Tag> {
+  const updates: Partial<Tag> = {}
+  const name = draft.name.trim()
+  if (name !== opened.name) updates.name = name
+  if (draft.color !== opened.color) updates.color = draft.color
+  return updates
+}

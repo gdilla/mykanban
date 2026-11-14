@@ -4,7 +4,7 @@ import { Pencil, Trash2, Pipette } from 'lucide-react'
 import { useApp } from '../../state/AppContext'
 import { Tag } from '../../state/types'
 import { colors as c } from '../../theme'
-import { TAG_COLORS, tagNameError, nextTagColor } from '../../utils/tags'
+import { TAG_COLORS, tagNameError, nextTagColor, editedTagFields } from '../../utils/tags'
 import Dialog, { Field, fieldStyle, FIELD_HEIGHT } from '../shared/Dialog'
 import ConfirmDialog from '../shared/ConfirmDialog'
 import TagChip from '../shared/TagChip'
@@ -18,18 +18,19 @@ const PRESETS = Object.entries(TAG_COLORS)
 export default function TagManagerModal() {
   const { state, dispatch } = useApp()
   const [isOpen, setIsOpen] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
+  // The tag being edited, as it was when its form opened: a save writes only what differs from this.
+  const [editing, setEditing] = useState<Tag | null>(null)
   const [deleting, setDeleting] = useState<Tag | null>(null)
   const newNameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const handler = () => { setEditingId(null); setIsOpen(true) }
+    const handler = () => { setEditing(null); setIsOpen(true) }
     window.addEventListener('open-tag-manager', handler)
     return () => window.removeEventListener('open-tag-manager', handler)
   }, [])
 
   // The edit form is about to unmount with the focus inside it: give focus a home in the window.
-  const stopEditing = () => { setEditingId(null); newNameRef.current?.focus() }
+  const stopEditing = () => { setEditing(null); newNameRef.current?.focus() }
 
   const usedBy = (tagId: string) => state.tasks.filter(t => t.tags.includes(tagId)).length
   const tasks = (n: number) => `${n} ${n === 1 ? 'task' : 'tasks'}`
@@ -41,12 +42,16 @@ export default function TagManagerModal() {
       footer={<Button variant="primary" onClick={() => setIsOpen(false)}>Done</Button>}
     >
       <Box mx="-8px" mb={4}>
-        {state.tags.map(tag => editingId === tag.id ? (
+        {state.tags.map(tag => editing?.id === tag.id ? (
           <Box key={tag.id} p="8px" my="2px" bg={c.card} borderRadius="8px">
             <TagForm
-              tag={tag}
+              tag={editing}
               submitLabel="Save"
-              onSubmit={updates => { dispatch({ type: 'UPDATE_TAG', id: tag.id, updates }); stopEditing() }}
+              onSubmit={draft => {
+                const updates = editedTagFields(editing, draft)
+                if (Object.keys(updates).length) dispatch({ type: 'UPDATE_TAG', id: tag.id, updates })
+                stopEditing()
+              }}
               onCancel={stopEditing}
             />
           </Box>
@@ -54,12 +59,12 @@ export default function TagManagerModal() {
           <Flex key={tag.id} align="center" gap={2} h="36px" px="8px" borderRadius="8px" _hover={{ bg: c.card }}>
             <Box
               as="button" type="button" display="flex" minW={0} cursor="pointer" borderRadius="full"
-              title="Rename or recolour" onClick={() => setEditingId(tag.id)}
+              title="Rename or recolour" onClick={() => setEditing(tag)}
             >
               <TagChip name={tag.name} color={tag.color} />
             </Box>
             <Text flex={1} fontSize="12px" color={c.textMuted} whiteSpace="nowrap">{tasks(usedBy(tag.id))}</Text>
-            <RowButton label={`Edit ${tag.name}`} onClick={() => setEditingId(tag.id)}><Pencil size={14} /></RowButton>
+            <RowButton label={`Edit ${tag.name}`} onClick={() => setEditing(tag)}><Pencil size={14} /></RowButton>
             <RowButton label={`Delete ${tag.name}`} onClick={() => setDeleting(tag)} danger><Trash2 size={14} /></RowButton>
           </Flex>
         ))}

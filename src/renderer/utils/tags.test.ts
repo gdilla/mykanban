@@ -1,11 +1,34 @@
 import { describe, it, expect } from 'vitest'
-import { tagNameError, nextTagColor, TAG_COLORS } from './tags'
+import { tagNameError, nextTagColor, editedTagFields, TAG_COLORS } from './tags'
 import { isHex } from './color'
 
 const tags = [
   { id: 'a', name: 'webapp', color: '#6bcb77' },
   { id: 'b', name: 'Kiosk', color: '#a855f7' },
 ]
+
+// A tag can be changed on disk (by an agent) while its edit form is open: saving the form
+// must write only what the user changed, or it would put the other field back.
+describe('editedTagFields', () => {
+  const opened = { name: 'Kiosk', color: '#a855f7' }
+
+  it('is empty when nothing was changed', () => {
+    expect(editedTagFields(opened, { name: 'Kiosk', color: '#a855f7' })).toEqual({})
+    expect(editedTagFields(opened, { name: '  Kiosk ', color: '#a855f7' })).toEqual({})
+  })
+
+  it('a rename alone does not carry the colour', () => {
+    expect(editedTagFields(opened, { name: ' Kiosk displays ', color: '#a855f7' })).toEqual({ name: 'Kiosk displays' })
+  })
+
+  it('a recolour alone does not carry the name', () => {
+    expect(editedTagFields(opened, { name: 'Kiosk', color: '#14b8a6' })).toEqual({ color: '#14b8a6' })
+  })
+
+  it('carries both when both changed', () => {
+    expect(editedTagFields(opened, { name: 'Displays', color: '#14b8a6' })).toEqual({ name: 'Displays', color: '#14b8a6' })
+  })
+})
 
 describe('tagNameError', () => {
   it('accepts a new name', () => {
