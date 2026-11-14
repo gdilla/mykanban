@@ -5,6 +5,12 @@ function channels(hex: string): [number, number, number] {
 
 export const isHex = (value: string) => /^#[0-9a-f]{6}$/i.test(value)
 
+/** `fg` at `alpha` (0 to 1) painted over `bg`, the way CSS composites it: per sRGB channel. */
+export function blend(fg: string, bg: string, alpha: number): string {
+  const [f, b] = [channels(fg), channels(bg)]
+  return '#' + f.map((v, i) => Math.round(v * alpha + b[i] * (1 - alpha)).toString(16).padStart(2, '0')).join('')
+}
+
 /** WCAG 2.x relative luminance, 0 (black) to 1 (white). */
 export function luminance(hex: string): number {
   const [r, g, b] = channels(hex).map(v => {
