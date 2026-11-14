@@ -150,8 +150,10 @@ describe('boardKey', () => {
     expect(boardKey(ev('j'), { busy: false, onControl: true })).toBe('j')
   })
 
-  it('does not repeat delete while x is held', () => {
-    expect(boardKey(ev('x', { repeat: true }), idle)).toBeNull()
-    expect(boardKey(ev('j', { repeat: true }), idle)).toBe('j')
+  it('a held key repeats navigation only: never an action (x would mow down the column, d would flip Done back and forth)', () => {
+    for (const key of ['x', 'd', '1', '2', '3', 'Enter']) expect(boardKey(ev(key, { repeat: true }), idle)).toBeNull()
+    for (const key of ['j', 'k', 'h', 'l', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight']) {
+      expect(boardKey(ev(key, { repeat: true }), idle)).toBe(key)
+    }
   })
 })

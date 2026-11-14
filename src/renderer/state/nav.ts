@@ -2,6 +2,13 @@ import { AppState } from './types'
 import { getBoardColumns } from './selectors'
 
 export type NavKey = 'up' | 'down' | 'left' | 'right'
+
+export const NAV_KEYS: Record<string, NavKey> = {
+  ArrowDown: 'down', j: 'down',
+  ArrowUp: 'up', k: 'up',
+  ArrowLeft: 'left', h: 'left',
+  ArrowRight: 'right', l: 'right',
+}
 export interface Focus { id: string; col: number }
 
 // The board as it is drawn: one array of task ids per column, left to right, top to bottom.
@@ -20,7 +27,9 @@ export function boardKey(
   // consumed (e.g. a keyboard drag).
   if (busy || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return null
   if (e.key === 'Enter' && onControl) return null // Enter presses the focused button (e.g. Undo)
-  if (e.key === 'x' && e.repeat) return null // a held key must not mow down the column: undo is one level
+  // A held key repeats navigation only. Held x would mow down the column (undo is one level); held d
+  // would flip a card between Done and To do, wiping its timestamps.
+  if (e.repeat && !NAV_KEYS[e.key]) return null
   return e.key
 }
 

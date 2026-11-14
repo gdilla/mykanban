@@ -2,16 +2,9 @@ import { useEffect, useCallback, useRef, createElement } from 'react'
 import { flushSync } from 'react-dom'
 import { Button, Flex, Text, useToast } from '@chakra-ui/react'
 import { useApp } from '../state/AppContext'
-import { getVisibleColumns, nextFocus, focusedColumn, boardKey, NavKey } from '../state/nav'
+import { getVisibleColumns, nextFocus, focusedColumn, boardKey, NAV_KEYS } from '../state/nav'
 import { Task } from '../state/types'
 import { colors as c } from '../theme'
-
-const NAV_KEYS: Record<string, NavKey> = {
-  ArrowDown: 'down', j: 'down',
-  ArrowUp: 'up', k: 'up',
-  ArrowLeft: 'left', h: 'left',
-  ArrowRight: 'right', l: 'right',
-}
 
 const STATUS_KEYS: Record<string, Task['status']> = { '1': 'todo', '2': 'doing', '3': 'done' }
 
