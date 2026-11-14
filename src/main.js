@@ -392,7 +392,7 @@ ipcMain.handle('list-summaries', async () => {
 // Handlers below take a filename from the renderer: safeJoin rejects anything
 // that is not a bare filename, so they cannot reach outside their directory.
 const { shell } = require('electron');
-const { safeJoin } = require('./safe-name');
+const { safeJoin, isAttachmentReferenced } = require('./file-guards');
 
 // Read a specific summary file
 ipcMain.handle('read-summary', async (event, filename) => {
@@ -425,8 +425,14 @@ ipcMain.handle('load-image', async (event, filename) => {
     return `data:image/${mimeType};base64,${buffer.toString('base64')}`;
 });
 
+// Delete an attachment file. Resolves to false, deleting nothing, while a task in
+// the saved board still lists it: the renderer's save is debounced and can be
+// refused, so "removed in the window" is not yet "removed on disk". An unreadable
+// data file throws, which also deletes nothing.
 ipcMain.handle('delete-image', async (event, filename) => {
     const filePath = safeJoin(imagesPath, filename);
+    const savedBoard = fs.existsSync(dataPath) ? JSON.parse(fs.readFileSync(dataPath, 'utf8')) : [];
+    if (isAttachmentReferenced(savedBoard, filename)) return false;
     if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
     }

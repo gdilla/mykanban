@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect } from 'react'
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import {
   Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter,
   ModalCloseButton, Input, Textarea, TextareaProps, Button, Box, Flex, Text, chakra,
@@ -8,7 +8,7 @@ import { useIpc } from '../../hooks/useIpc'
 import { colors as c } from '../../theme'
 import AttachmentGrid from '../shared/AttachmentGrid'
 import { Attachment, Task } from '../../state/types'
-import { filesToDelete } from '../../utils/attachments'
+import { editedFields, filesToDelete } from '../../utils/editTask'
 
 const fieldLabel = {
   fontFamily: 'body',
@@ -72,40 +72,54 @@ function EditTaskForm({ task }: { task: Task }) {
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const closed = useRef(false)
 
-  // Every way out of the window ends here. Escape, an overlay click, the close
-  // button and Cmd+Enter save; the Cancel button is the only discard.
-  const close = (outcome: 'save' | 'cancel') => {
+  // Every way out of the window ends here, once. Escape, an overlay click, the
+  // close button and Cmd+Enter save; the Cancel button is the only discard.
+  const commit = (outcome: 'save' | 'cancel') => {
     if (closed.current) return
     closed.current = true
-    if (outcome === 'save') {
-      // Only the fields edited here are written, so closing an untouched window writes nothing.
-      const updates: Partial<Task> = {}
-      const newTitle = title.trim()
-      if (newTitle && newTitle !== opened.title) updates.title = newTitle // an emptied title keeps the old one
-      if (description !== (opened.description || '')) updates.description = description
-      if (dueDate !== (opened.dueDate || '')) updates.dueDate = dueDate
-      if (selectedTags !== opened.tags) updates.tags = selectedTags
-      if (attachments !== opened.attachments) updates.attachments = attachments
-      if (Object.keys(updates).length) dispatch({ type: 'UPDATE_TASK', id: task.id, updates })
-      if (status !== opened.status) dispatch({ type: 'MOVE_TASK', id: task.id, status })
-    }
-    const usedElsewhere = state.tasks
-      .filter(t => t.id !== task.id)
-      .flatMap(t => t.attachments.map(a => a.filename))
-    filesToDelete(opened.attachments, attachments, outcome, usedElsewhere).forEach(f => ipc.deleteImage(f))
+    const unwanted = filesToDelete(opened.attachments, attachments, outcome)
+    if (outcome === 'cancel') { deleteFiles(unwanted); return } // added here and never saved
+    const updates = editedFields(
+      opened,
+      { title, description, dueDate, tags: selectedTags, attachments },
+      state.tags.map(t => t.id),
+    )
+    if (Object.keys(updates).length) dispatch({ type: 'UPDATE_TASK', id: task.id, updates })
+    if (status !== opened.status) dispatch({ type: 'MOVE_TASK', id: task.id, status })
+    // Main refuses to delete a file the saved board still lists, and the save that
+    // drops these is debounced, so ask once it has had time to reach disk.
+    // ponytail: fixed 2 s wait; if the save has not landed (or was refused) the file stays on disk,
+    // an orphan rather than a broken attachment. Upgrade: delete from the save path once it reports success.
+    if (unwanted.length) setTimeout(() => deleteFiles(unwanted), 2000)
+  }
+
+  const deleteFiles = (filenames: string[]) => filenames.forEach(f =>
+    ipc.deleteImage(f).catch((e: Error) => console.error(`Could not delete attachment file ${f}:`, e)))
+
+  const close = (outcome: 'save' | 'cancel') => {
+    commit(outcome)
     dispatch({ type: 'SET_EDITING_TASK', id: null })
   }
 
+  // Being swapped out without closing (the quick-add hotkey replaces this
+  // window) counts as closing it: save rather than drop the edits.
+  const commitRef = useRef(commit)
+  commitRef.current = commit
+  useEffect(() => {
+    closed.current = false // StrictMode runs this cleanup once on mount in dev
+    return () => commitRef.current('save')
+  }, [])
+
   const addAttachment = (attachment: Attachment) => {
     // The file finished saving after the window closed: nothing refers to it.
-    if (closed.current) { ipc.deleteImage(attachment.filename); return }
+    if (closed.current) { deleteFiles([attachment.filename]); return }
     setAttachments(prev => [...prev, attachment])
   }
 
   const removeAttachment = (filename: string) => {
     setAttachments(prev => prev.filter(a => a.filename !== filename))
     // Added in this session, so no saved task refers to it: delete it now.
-    if (!opened.attachments.some(a => a.filename === filename)) ipc.deleteImage(filename)
+    if (!opened.attachments.some(a => a.filename === filename)) deleteFiles([filename])
   }
 
   const handlePaste = (e: React.ClipboardEvent) => {
