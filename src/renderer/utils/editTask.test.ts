@@ -47,6 +47,10 @@ describe('editedFields', () => {
     expect(editedFields(opened, { ...draft, tags: ['a'] }, ['b'])).toEqual({ tags: [] })
   })
 
+  it('a tag switched off and on again, or attachments rebuilt with the same files, is not an edit', () => {
+    expect(editedFields(opened, { ...draft, tags: ['b', 'a'], attachments: [att('old.png')] }, ['a', 'b'])).toEqual({})
+  })
+
   it('changed attachments are written', () => {
     expect(editedFields(opened, { ...draft, attachments: [] }, ['a', 'b'])).toEqual({ attachments: [] })
   })

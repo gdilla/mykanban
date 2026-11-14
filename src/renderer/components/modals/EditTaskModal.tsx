@@ -35,14 +35,26 @@ const fieldInput = {
 }
 
 // A textarea that grows to show all of its text (Chromium 120 has no `field-sizing: content`).
-// ponytail: re-measured when the text changes, not when the window resizes; add a ResizeObserver if the modal gets a fluid width.
 function AutoGrowTextarea({ fieldRef, ...props }: TextareaProps & { fieldRef: React.RefObject<HTMLTextAreaElement | null> }) {
-  useLayoutEffect(() => {
+  const fit = () => {
     const el = fieldRef.current
     if (!el) return
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`
-  }, [props.value])
+  }
+  useLayoutEffect(fit, [props.value])
+  useLayoutEffect(() => {
+    const el = fieldRef.current
+    if (!el) return
+    el.setSelectionRange(el.value.length, el.value.length) // caret starts after the text, as in a single-line input
+    // A narrower window re-wraps the text, so fit again when the width changes.
+    let width = el.clientWidth
+    const observer = new ResizeObserver(() => {
+      if (el.clientWidth !== width) { width = el.clientWidth; fit() }
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
   return <Textarea ref={fieldRef} rows={1} minH="0" resize="none" overflow="hidden" {...props} />
 }
 

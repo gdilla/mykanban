@@ -15,10 +15,15 @@ export function editedFields(opened: Task, draft: TaskDraft, existingTagIds: str
   if (title && title !== opened.title) updates.title = title
   if (draft.description !== (opened.description || '')) updates.description = draft.description
   if (draft.dueDate !== (opened.dueDate || '')) updates.dueDate = draft.dueDate
-  if (draft.tags !== opened.tags) updates.tags = draft.tags.filter(id => existingTagIds.includes(id))
-  if (draft.attachments !== opened.attachments) updates.attachments = draft.attachments
+  if (!sameItems(draft.tags, opened.tags)) updates.tags = draft.tags.filter(id => existingTagIds.includes(id))
+  if (!sameItems(draft.attachments.map(a => a.filename), opened.attachments.map(a => a.filename))) {
+    updates.attachments = draft.attachments
+  }
   return updates
 }
+
+/** Same members, in any order (a tag switched off and on again moves to the end of the list). */
+const sameItems = (a: string[], b: string[]) => a.length === b.length && a.every(x => b.includes(x))
 
 /**
  * Which attachment files to delete from disk when the edit window closes.
