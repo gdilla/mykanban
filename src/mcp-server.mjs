@@ -11,8 +11,8 @@ import store from './store.js'; // CommonJS, shared with the Electron main proce
 import dates from './dates.js';
 import * as board from './mcp-board.mjs';
 
-// Defaults to Electron's app.getPath('userData') for kanban-app
-const dataDir = process.env.KANBAN_DATA_DIR || path.join(os.homedir(), 'Library', 'Application Support', 'kanban-app');
+// Defaults to Electron's app.getPath('userData') for kanban-app. Resolved, so attachment paths are absolute.
+const dataDir = path.resolve(process.env.KANBAN_DATA_DIR || path.join(os.homedir(), 'Library', 'Application Support', 'kanban-app'));
 const dataPath = path.join(dataDir, 'kanban-data.json');
 const imagesPath = path.join(dataDir, 'images');
 const summariesPath = path.join(dataDir, 'summaries');
@@ -158,3 +158,11 @@ server.registerTool('read_summary', {
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
+
+// A client may leave `arguments` out of a call. The SDK then rejects any tool that has an input schema,
+// even one whose arguments are all optional (list_tasks, read_summary), so read a missing `arguments` as {}.
+const deliver = transport.onmessage;
+transport.onmessage = (message, extra) => {
+  if (message.method === 'tools/call' && message.params) message.params.arguments ??= {};
+  deliver(message, extra);
+};

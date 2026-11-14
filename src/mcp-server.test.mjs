@@ -43,14 +43,17 @@ function fixture() {
 const servers = []
 const dirs = []
 
-async function start(dataFile) {
+async function start(dataFile, { relativeDir = false } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-mcp-'))
   dirs.push(dir)
   const file = path.join(dir, 'kanban-data.json')
   if (dataFile) fs.copyFileSync(dataFile, file)
   else fs.writeFileSync(file, JSON.stringify(fixture(), null, 2))
   const client = new Client({ name: 'test', version: '0' })
-  await client.connect(new StdioClientTransport({ command: process.execPath, args: [SERVER], env: { KANBAN_DATA_DIR: dir } }))
+  await client.connect(new StdioClientTransport({
+    command: process.execPath, args: [SERVER], cwd: path.dirname(dir),
+    env: { KANBAN_DATA_DIR: relativeDir ? path.basename(dir) : dir },
+  }))
   servers.push(client)
   const call = async (name, args = {}) => {
     const result = await client.callTool({ name, arguments: args })
@@ -164,6 +167,19 @@ describe('reading', () => {
   it('read_summary: the most recent by default, or one date', async () => {
     expect((await call('read_summary')).text).toBe('# Daily Summary - 2026-02-09\nnewest')
     expect((await call('read_summary', { date: '2026-02-08' })).text).toBe('# Daily Summary - 2026-02-08\nolder')
+  })
+
+  it('tools with no required arguments can be called with no arguments object at all', async () => {
+    for (const name of ['board_summary', 'list_tasks', 'list_tags', 'read_summary']) {
+      const result = await client.callTool({ name })
+      expect(result.isError, `${name}: ${result.content[0].text}`).toBeFalsy()
+    }
+  })
+
+  it('a relative KANBAN_DATA_DIR still gives absolute attachment paths', async () => {
+    const relative = await start(undefined, { relativeDir: true })
+    const { json } = await relative.call('get_task', { id: 'task02xxxxxxxxxxxxx' })
+    expect(json.attachments[0].path).toBe(path.join(fs.realpathSync(relative.dir), 'images', '1700000000_abc.png'))
   })
 
   it('read_summary: a missing date says which dates exist; anything that is not a date is refused', async () => {
