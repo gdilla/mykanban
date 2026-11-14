@@ -1,4 +1,4 @@
-// Guards for the IPC handlers that act on a file the renderer names.
+// Guards for the IPC handlers that act on a file the renderer names, and for window navigation.
 const path = require('path');
 
 // Join a renderer-supplied filename onto a storage directory, refusing anything
@@ -31,4 +31,17 @@ function isSafeToOpen(filename) {
     return typeof filename === 'string' && OPENABLE.has(path.extname(filename).slice(1).toLowerCase());
 }
 
-module.exports = { safeJoin, isAttachmentReferenced, isSafeToOpen };
+// True when `url` is the app's own page (`appUrl`, the built index.html or the dev server), ignoring
+// the #fragment. The window may navigate nowhere else.
+function isAppUrl(url, appUrl) {
+    try {
+        const a = new URL(url);
+        const b = new URL(appUrl);
+        a.hash = b.hash = '';
+        return a.href === b.href;
+    } catch {
+        return false;
+    }
+}
+
+module.exports = { safeJoin, isAttachmentReferenced, isSafeToOpen, isAppUrl };

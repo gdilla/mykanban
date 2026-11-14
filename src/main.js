@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Notification, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 const { localDateStr, completedOn, isOverdue, summaryFileName, summaryTime } = require('./dates');
 
 let mainWindow;
@@ -321,20 +322,24 @@ function createWindow() {
         // ponytail: page colour of the default dark/light palette, so a user-picked palette of the
         // other kind flashes once; have the renderer report its --c-bg over IPC if that ever matters.
         backgroundColor: require('electron').nativeTheme.shouldUseDarkColors ? '#0c0d14' : '#e8e8ed',
+        // The page has no Node: it reaches main only through `window.kanban` (preload.js, ipc-bridge.mjs)
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
+            preload: path.join(__dirname, '../preload/preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true
         },
         icon: path.join(__dirname, 'icon.png')
     });
 
-    // In dev mode with electron-vite, load from Vite dev server
-    // In production, load the built renderer index.html
-    if (process.env.ELECTRON_RENDERER_URL) {
-        mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
-    } else {
-        mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-    }
+    // In dev mode electron-vite serves the renderer; otherwise load the built index.html.
+    // The window may show nothing but that page: no navigating away, no new windows (the UI renders no links).
+    const appUrl = process.env.ELECTRON_RENDERER_URL || pathToFileURL(path.join(__dirname, '../renderer/index.html')).href;
+    mainWindow.webContents.on('will-navigate', (event, url) => {
+        if (!isAppUrl(url, appUrl)) event.preventDefault();
+    });
+    mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    mainWindow.loadURL(appUrl);
 
     // Minimize to tray instead of closing
     mainWindow.on('close', (event) => {
@@ -392,7 +397,7 @@ ipcMain.handle('list-summaries', async () => {
 // Handlers below take a filename from the renderer: safeJoin rejects anything
 // that is not a bare filename, so they cannot reach outside their directory.
 const { shell } = require('electron');
-const { safeJoin, isAttachmentReferenced, isSafeToOpen } = require('./file-guards');
+const { safeJoin, isAttachmentReferenced, isSafeToOpen, isAppUrl } = require('./file-guards');
 
 // Read a specific summary file
 ipcMain.handle('read-summary', async (event, filename) => {

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { createRequire } from 'node:module'
 
 // file-guards.js is CommonJS (required by the Electron main process)
-const { safeJoin, isAttachmentReferenced, isSafeToOpen } = createRequire(import.meta.url)('./file-guards.js')
+const { safeJoin, isAttachmentReferenced, isSafeToOpen, isAppUrl } = createRequire(import.meta.url)('./file-guards.js')
 
 describe('isSafeToOpen', () => {
   it.each([
@@ -72,5 +72,32 @@ describe('isAttachmentReferenced', () => {
   it('reads the legacy bare-array board format', () => {
     expect(isAttachmentReferenced(board.tasks, 'kept.png')).toBe(true)
     expect(isAttachmentReferenced([], 'kept.png')).toBe(false)
+  })
+})
+
+describe('isAppUrl', () => {
+  const built = 'file:///Applications/Kanban.app/Contents/Resources/app.asar/dist/renderer/index.html'
+  const dev = 'http://localhost:5173'
+
+  it.each([
+    [built, built],
+    [built + '#x', built],
+    [dev, dev],
+    ['http://localhost:5173/', dev],
+    ['http://localhost:5173/#/board', dev],
+  ])('allows the app itself: %s', (url, appUrl) => {
+    expect(isAppUrl(url, appUrl)).toBe(true)
+  })
+
+  it.each([
+    ['https://example.com', built],
+    ['file:///etc/passwd', built],
+    ['file:///Applications/Kanban.app/Contents/Resources/app.asar/dist/renderer/other.html', built],
+    ['http://localhost:5174/', dev],
+    ['http://localhost:5173/other', dev],
+    ['javascript:alert(1)', dev],
+    ['not a url', dev],
+  ])('blocks %s', (url, appUrl) => {
+    expect(isAppUrl(url, appUrl)).toBe(false)
   })
 })

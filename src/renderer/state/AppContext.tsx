@@ -4,7 +4,7 @@ import { colors as c } from '../theme'
 import { AppState, AppAction, Task, Tag } from './types'
 import { appReducer, initialState } from './reducer'
 
-const { ipcRenderer } = window.require('electron')
+const { kanban } = window
 
 // Two contexts: state changes on every action, dispatch never does. A component that only dispatches
 // (a card) reads the second one and is not re-rendered by state it does not use.
@@ -56,7 +56,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // user is told). Merge per task if that ever bites.
     let clashed = !!saveTimeoutRef.current
     cancelPendingSave()
-    const data = await ipcRenderer.invoke('load-data')
+    const data = await kanban.invoke('load-data')
     // Again: an edit made during the await scheduled a save of the pre-reload board, and main now treats
     // the reloaded file as seen, so its stale-write guard would let that save overwrite it.
     clashed ||= !!saveTimeoutRef.current
@@ -77,7 +77,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     saveTimeoutRef.current = undefined
     try {
       const { tasks, tags } = stateRef.current
-      const written = await ipcRenderer.invoke('save-data', { tasks, tags })
+      const written = await kanban.invoke('save-data', { tasks, tags })
       if (!written) { warnClash(); reload() } // refused: the file changed underneath us
     } catch (e) {
       if (!toast.isActive('save-failed')) {
@@ -88,8 +88,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     reload()
-    ipcRenderer.on('data-changed-external', reload)
-    return () => { ipcRenderer.removeListener('data-changed-external', reload) }
+    return kanban.on('data-changed-external', reload)
   }, [reload])
 
   // Auto-save on state change (debounced)
@@ -115,13 +114,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Listen for quick-add-task from main process
   useEffect(() => {
     const handler = () => dispatch({ type: 'SET_EDITING_TASK', id: '__quick_add__' })
-    ipcRenderer.on('quick-add-task', handler)
+    const offQuickAdd = kanban.on('quick-add-task', handler)
     // In-app Cmd+N: same path as the global hotkey
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && e.key === 'n') { e.preventDefault(); handler() }
     }
     window.addEventListener('keydown', onKey)
-    return () => { ipcRenderer.removeListener('quick-add-task', handler); window.removeEventListener('keydown', onKey) }
+    return () => { offQuickAdd(); window.removeEventListener('keydown', onKey) }
   }, [])
 
   if (loadError) {
