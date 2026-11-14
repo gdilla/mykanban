@@ -139,7 +139,7 @@ export default function Board() {
     if (!keyboard) return actions.forEach(dispatch)
     // A keyboard drop into another column draws the card anew there (in tag view: when it left the column it
     // was picked up in), and the element that had native focus is gone. Focus the new one, so the keyboard
-    // still has the card: handleFocus highlights it, and Space picks it up again.
+    // still has the card: the focusin listener below highlights it, and Space picks it up again.
     flushSync(() => actions.forEach(dispatch))
     if (!(event.activatorEvent.target as Node).isConnected) {
       document.querySelector<HTMLElement>(`[data-column="${columnId}"] [data-task-id="${taskId}"]`)?.focus()
@@ -147,13 +147,23 @@ export default function Board() {
   }
 
   // A card took native focus: make it the highlighted card as well (see focusTaken).
-  const handleFocus = (e: React.FocusEvent<HTMLElement>) => {
-    const card = e.target
-    if (!card.classList.contains('task-card')) return // a button or the title field inside a card
-    const column = card.closest('[data-column]')
-    const focus = focusTaken(state, card.dataset.taskId!, Array.from(e.currentTarget.children).indexOf(column!))
-    if (focus) dispatch({ type: 'SET_FOCUSED_TASK', ...focus })
-  }
+  // A native listener, not onFocus: React drops events that fire while it is committing, which is exactly
+  // when a closing dialog hands focus back to a card.
+  const boardRef = React.useRef<HTMLDivElement>(null)
+  const stateRef = React.useRef(state)
+  stateRef.current = state
+  React.useEffect(() => {
+    const board = boardRef.current!
+    const onFocusIn = (e: FocusEvent) => {
+      const card = e.target as HTMLElement
+      if (!card.classList.contains('task-card')) return // a button or the title field inside a card
+      const column = card.closest('[data-column]')
+      const focus = focusTaken(stateRef.current, card.dataset.taskId!, Array.from(board.children).indexOf(column!))
+      if (focus) dispatch({ type: 'SET_FOCUSED_TASK', ...focus })
+    }
+    board.addEventListener('focusin', onFocusIn)
+    return () => board.removeEventListener('focusin', onFocusIn)
+  }, [dispatch])
 
   const handleBoardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement
@@ -172,9 +182,9 @@ export default function Board() {
       onDragCancel={() => { keyboardDrag.current = false }}
     >
       <Box
+        ref={boardRef}
         className="board-area"
         onClick={handleBoardClick}
-        onFocus={handleFocus}
         display="flex"
         gap="16px"
         overflowX="auto"
