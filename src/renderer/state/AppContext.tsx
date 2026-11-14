@@ -49,6 +49,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Merge per task if that ever bites.
     cancelPendingSave()
     const data = await ipcRenderer.invoke('load-data')
+    // Again: an edit made during the await scheduled a save of the pre-reload board, and main now treats
+    // the reloaded file as seen, so its stale-write guard would let that save overwrite it.
+    cancelPendingSave()
     if (data.error) {
       loadedRef.current = false
       setLoadError(data.error)
