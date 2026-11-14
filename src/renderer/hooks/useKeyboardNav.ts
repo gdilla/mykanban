@@ -68,13 +68,6 @@ export function useKeyboardNav() {
   }, [])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // Cmd+T for quick add
-    if ((e.metaKey || e.ctrlKey) && e.key === 't') {
-      e.preventDefault()
-      dispatch({ type: 'SET_EDITING_TASK', id: '__quick_add__' })
-      return
-    }
-
     const onControl = e.target instanceof Element && !!e.target.closest('button, a')
     const key = boardKey(e, { busy: busy.current, onControl })
     if (key === null) return
