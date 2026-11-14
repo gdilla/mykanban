@@ -72,6 +72,15 @@ describe('tagIds', () => {
     expect(() => listTasks({ tasks: [], tags: same }, { tag: 'work' })).toThrow(/ambiguous/)
   })
 
+  it('finds a tag whose stored name has surrounding spaces (older tags were saved verbatim)', () => {
+    const padded = { id: 'p', name: ' Work ', color: '#f00' }
+    expect(tagIds([' Work '], [padded])).toEqual(['p'])
+    expect(tagIds(['work'], [padded])).toEqual(['p'])
+    const both = [padded, { id: 'q', name: 'Work', color: '#0f0' }]
+    expect(tagIds([' Work '], both)).toEqual(['p'])
+    expect(tagIds(['Work'], both)).toEqual(['q'])
+  })
+
   it('says so when the board has no tags', () => {
     expect(() => tagIds(['x'], [])).toThrow(/no tags/)
   })

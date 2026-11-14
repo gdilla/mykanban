@@ -22,12 +22,13 @@ export function checkDate(value, field = 'due') {
   return value
 }
 
-// The tag called `name`. Exact case wins, so a name the server returned always finds the same tag;
-// otherwise case-insensitive. The app allows duplicate names, so a name can match several tags: that is refused.
+// The tag called `name`. The name exactly as stored wins, so a name the server returned always finds the
+// same tag; otherwise case and surrounding space are ignored. The app allows duplicate names, so a name
+// can match several tags: that is refused.
 function findTag(name, tags) {
-  const wanted = String(name).trim()
-  const exact = tags.filter(t => t.name === wanted)
-  const matches = exact.length ? exact : tags.filter(t => lower(t.name) === lower(wanted))
+  const loose = text => lower(text).trim()
+  const exact = tags.filter(t => t.name === name)
+  const matches = exact.length ? exact : tags.filter(t => loose(t.name) === loose(name))
   if (matches.length === 1) return matches[0]
   if (matches.length > 1) {
     throw new Error(`Tag name "${name}" is ambiguous: it matches ${matches.map(t => `"${t.name}"`).join(' and ')}. Use the exact name, or rename one in the Kanban app.`)
