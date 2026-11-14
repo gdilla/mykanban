@@ -49,7 +49,6 @@ export default function BoardColumns() {
             expanded={isDone && showAllDone && doneCount > DONE_LIMIT}
             tags={tags}
             focusedTaskId={i === focusCol ? state.focusedTaskId : null}
-            activeTimerTaskId={state.activeTimerTaskId}
             today={today}
             emptyText={filtered ? 'No tasks match the filters.' : def.emptyText}
             showAddForm={def.id !== UNTAGGED}

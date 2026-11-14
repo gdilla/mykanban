@@ -42,7 +42,6 @@ export interface AppState {
   loaded: boolean // false until the first SET_DATA
   showAllDone: boolean // Done column expanded past the most recent few
   lastDeleted: { task: Task; index: number } | null // one level of undo
-  activeTimerTaskId: string | null
 }
 
 export type AppAction =
@@ -62,5 +61,4 @@ export type AppAction =
   | { type: 'SET_FILTERS'; filters: Partial<AppState['activeFilters']> }
   | { type: 'SET_FOCUSED_TASK'; id: string | null; col?: number }
   | { type: 'SET_SHOW_ALL_DONE'; show: boolean }
-  | { type: 'TOGGLE_TIMER'; id: string }
   | { type: 'DUPLICATE_TASK'; id: string }

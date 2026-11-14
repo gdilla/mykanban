@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dueLabel, formatTime } from './date'
+import { dueLabel, formatTime, timeSpentAt } from './date'
 
 // "today" is built from local components and injected, so this holds in any timezone.
 // 21:00 local: in US timezones UTC is already the next day.
@@ -51,5 +51,34 @@ describe('formatTime', () => {
     expect(formatTime(59 * 60_000 + 59_999)).toBe('59m')
     expect(formatTime(3_600_000)).toBe('1h 0m')
     expect(formatTime(2 * 3_600_000 + 5 * 60_000)).toBe('2h 5m')
+  })
+})
+
+describe('timeSpentAt', () => {
+  const now = Date.parse('2026-11-14T12:00:00Z')
+  const minutesAgo = (m: number) => new Date(now - m * 60_000).toISOString()
+
+  it('an in-progress task: the time already recorded plus the time since it was started', () => {
+    expect(timeSpentAt({ status: 'doing', startedAt: minutesAgo(90), timeSpent: 0 }, now)).toBe(90 * 60_000)
+    expect(timeSpentAt({ status: 'doing', startedAt: minutesAgo(5), timeSpent: 60_000 }, now)).toBe(6 * 60_000)
+  })
+
+  it('a missing or null timeSpent counts as none', () => {
+    expect(timeSpentAt({ status: 'doing', startedAt: minutesAgo(3) } as any, now)).toBe(3 * 60_000)
+    expect(timeSpentAt({ status: 'doing', startedAt: minutesAgo(3), timeSpent: null } as any, now)).toBe(3 * 60_000)
+  })
+
+  it('in progress without a start time: just what is recorded', () => {
+    expect(timeSpentAt({ status: 'doing', startedAt: null, timeSpent: 120_000 }, now)).toBe(120_000)
+    expect(timeSpentAt({ status: 'doing', startedAt: 'not a date', timeSpent: 0 }, now)).toBe(0)
+  })
+
+  it('a start time in the future (clock skew) adds nothing rather than going negative', () => {
+    expect(timeSpentAt({ status: 'doing', startedAt: minutesAgo(-10), timeSpent: 60_000 }, now)).toBe(60_000)
+  })
+
+  it('done and to-do tasks are not running: only the recorded time (done keeps its startedAt)', () => {
+    expect(timeSpentAt({ status: 'done', startedAt: minutesAgo(90), timeSpent: 30 * 60_000 }, now)).toBe(30 * 60_000)
+    expect(timeSpentAt({ status: 'todo', startedAt: null, timeSpent: 0 }, now)).toBe(0)
   })
 })
