@@ -4,6 +4,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import store from './store.js'; // CommonJS, shared with the Electron main process
 
 // Data paths — match Electron's app.getPath('userData') for kanban-app
 const userDataPath = path.join(os.homedir(), 'Library', 'Application Support', 'kanban-app');
@@ -12,24 +13,10 @@ const summariesPath = path.join(userDataPath, 'summaries');
 
 // Helpers
 
-function loadData() {
-  try {
-    if (fs.existsSync(dataPath)) {
-      const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-      if (Array.isArray(data)) return { tasks: data, tags: [] };
-      return { tasks: data.tasks || [], tags: data.tags || [] };
-    }
-  } catch (e) {
-    // corrupt file — return empty
-  }
-  return { tasks: [], tags: [] };
-}
-
-function saveData(data) {
-  const tmpPath = dataPath + '.tmp';
-  fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2));
-  fs.renameSync(tmpPath, dataPath);
-}
+// Same store as the app. Strict: a corrupt file fails the tool call instead of
+// reading as an empty board that the next write would save over the real data.
+const loadData = () => store.load(dataPath);
+const saveData = data => store.save(dataPath, data);
 
 function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);

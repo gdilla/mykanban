@@ -26,47 +26,16 @@ function ensureImagesDir() {
     }
 }
 
-// Load data from file (tasks and tags)
+const store = require('./store.js');
+
+// Lenient read for reminders and summaries: never throws, never writes.
+// The renderer loads through the strict `load-data` handler instead.
 function loadData() {
     try {
-        if (fs.existsSync(dataPath)) {
-            const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-            // Handle legacy format (array of tasks) vs new format ({ tasks, tags })
-            let tasks, tags;
-            if (Array.isArray(data)) {
-                tasks = data;
-                tags = [];
-            } else {
-                tasks = data.tasks || [];
-                tags = data.tags || [];
-            }
-            // Migrate: content -> title + description
-            let migrated = false;
-            tasks.forEach(task => {
-                if (task.content !== undefined && task.title === undefined) {
-                    task.title = task.content;
-                    task.description = '';
-                    delete task.content;
-                    migrated = true;
-                }
-            });
-            if (migrated) {
-                saveData({ tasks, tags });
-            }
-            return { tasks, tags };
-        }
+        return store.load(dataPath);
     } catch (e) {
         console.error('Error loading data:', e);
-    }
-    return { tasks: [], tags: [] };
-}
-
-// Save data to file (tasks and tags)
-function saveData(data) {
-    try {
-        fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-    } catch (e) {
-        console.error('Error saving data:', e);
+        return { tasks: [], tags: [] };
     }
 }
 
@@ -367,9 +336,31 @@ function createWindow() {
 }
 
 // IPC handlers for renderer
-ipcMain.handle('load-data', () => loadData());
+// File text the renderer last loaded or saved (null = no file, undefined = the last load failed).
+// Anything else on disk is someone else's change.
+let lastSeen = null;
+let knownTaskIds = null; // null until the first load, so launch does not announce every task
+
+ipcMain.handle('load-data', () => {
+    try {
+        const text = store.read(dataPath);
+        const data = store.parse(text);
+        lastSeen = text;
+        notifyNewTasks(data.tasks);
+        return data;
+    } catch (e) {
+        lastSeen = undefined; // matches nothing: every save is refused, and the watcher reloads when the file is fixed
+        return { error: `${dataPath}: ${e.message}` };
+    }
+});
+
+// Resolves false when the write was refused because the file changed underneath; the renderer then reloads.
+// ponytail: whole-file compare, so the refused UI change is dropped and disk wins. Merge per task if that ever bites.
 ipcMain.handle('save-data', (event, data) => {
-    saveDataTracked(data);
+    const text = store.saveIfFresh(dataPath, data, lastSeen);
+    if (text === null) return false;
+    lastSeen = text;
+    knownTaskIds = new Set(data.tasks.map(t => t.id));
     return true;
 });
 ipcMain.handle('get-paths', () => ({
@@ -438,58 +429,38 @@ ipcMain.handle('save-file', async (event, { base64Data, originalName, mimeType }
     return filename;
 });
 
-// Watch data file for external changes (e.g. MCP server)
-let lastKnownTaskIds = new Set();
-let fileWatcher = null;
-let ignoreNextChange = false; // skip changes we made ourselves
+// Announce tasks that reached the board from outside the app (e.g. the MCP server)
+function notifyNewTasks(tasks) {
+    const newTasks = knownTaskIds ? tasks.filter(t => !knownTaskIds.has(t.id)) : [];
+    knownTaskIds = new Set(tasks.map(t => t.id));
+    if (newTasks.length === 0) return;
 
-function startFileWatcher() {
-    // Seed known task IDs
-    const initial = loadData();
-    lastKnownTaskIds = new Set(initial.tasks.map(t => t.id));
-
-    let debounce = null;
-    fileWatcher = fs.watch(dataPath, () => {
-        if (ignoreNextChange) { ignoreNextChange = false; return; }
-        if (debounce) clearTimeout(debounce);
-        debounce = setTimeout(() => {
-            try {
-                const data = loadData();
-                const currentIds = new Set(data.tasks.map(t => t.id));
-                const newTasks = data.tasks.filter(t => !lastKnownTaskIds.has(t.id));
-
-                if (newTasks.length > 0) {
-                    const titles = newTasks.map(t => t.title).join(', ');
-                    const notification = new Notification({
-                        title: `📋 ${newTasks.length} new task${newTasks.length > 1 ? 's' : ''} added`,
-                        body: titles,
-                        silent: false
-                    });
-                    notification.on('click', () => {
-                        if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
-                    });
-                    notification.show();
-                }
-
-                lastKnownTaskIds = currentIds;
-
-                // Tell renderer to reload
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.webContents.send('data-changed-external');
-                }
-            } catch (e) {
-                // File might be mid-write, ignore
-            }
-        }, 500);
+    const notification = new Notification({
+        title: `📋 ${newTasks.length} new task${newTasks.length > 1 ? 's' : ''} added`,
+        body: newTasks.map(t => t.title).join(', '),
+        silent: false
     });
+    notification.on('click', () => {
+        if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
+    });
+    notification.show();
 }
 
-// Mark our own saves so the watcher ignores them
-const _origSaveData = saveData;
-function saveDataTracked(data) {
-    ignoreNextChange = true;
-    _origSaveData(data);
-    lastKnownTaskIds = new Set(data.tasks.map(t => t.id));
+// Watch the data directory, not the file: an atomic save replaces the inode, which a file watch loses.
+function startFileWatcher() {
+    let debounce = null;
+    fs.watch(userDataPath, (eventType, filename) => {
+        if (filename && filename !== path.basename(dataPath)) return;
+        if (debounce) clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            let onDisk;
+            try { onDisk = store.read(dataPath); } catch (e) { return; }
+            if (!store.isStale(onDisk, lastSeen)) return; // our own save, or nothing new
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('data-changed-external');
+            }
+        }, 100);
+    });
 }
 
 app.whenReady().then(() => {
