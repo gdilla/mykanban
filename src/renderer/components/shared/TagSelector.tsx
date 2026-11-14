@@ -1,8 +1,8 @@
 import React from 'react'
-import { Flex, Box, Text } from '@chakra-ui/react'
+import { Flex, Text } from '@chakra-ui/react'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
-import { getContrastColor } from '../../utils/color'
+import TagChip from './TagChip'
 
 interface TagSelectorProps {
   selectedTags: string[]
@@ -21,36 +21,18 @@ export default function TagSelector({ selectedTags, onChange }: TagSelectorProps
   }
 
   return (
-    <Flex gap={2} flexWrap="wrap">
-      {state.tags.map(tag => {
-        const isSelected = selectedTags.includes(tag.id)
-        return (
-          <Box
-            key={tag.id}
-            as="button"
-            bg={isSelected ? tag.color : 'transparent'}
-            color={isSelected ? getContrastColor(tag.color) : c.textSecondary}
-            border={`2px solid ${tag.color}`}
-            cursor="pointer"
-            px={3}
-            py={1}
-            fontFamily="heading"
-            fontSize="0.75rem"
-            fontWeight={500}
-            textTransform="uppercase"
-            letterSpacing="0.05em"
-            onClick={() => toggle(tag.id)}
-            _hover={{ opacity: 0.8 }}
-            transition="all 0.15s"
-          >
-            {tag.name}
-          </Box>
-        )
-      })}
+    <Flex gap="6px" flexWrap="wrap" role="group" aria-label="Tags">
+      {state.tags.map(tag => (
+        <TagChip
+          key={tag.id}
+          name={tag.name}
+          color={tag.color}
+          selected={selectedTags.includes(tag.id)}
+          onClick={() => toggle(tag.id)}
+        />
+      ))}
       {state.tags.length === 0 && (
-        <Text fontSize="0.7rem" color={c.textMuted}>
-          No tags yet — create some in Tag Manager
-        </Text>
+        <Text fontSize="12px" color={c.textMuted}>No tags yet. Create one in Manage tags.</Text>
       )}
     </Flex>
   )
