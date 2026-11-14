@@ -59,7 +59,7 @@ Renderer → main (`ipcRenderer.invoke`):
 - `save-file` — base64 + metadata → file in `images/`
 - `load-image` — filename → base64 data URI
 - `delete-image` — remove a file from `images/`
-- `open-attachment` — open an attachment with the system default app
+- `open-attachment` — open an attachment with the system default app; anything that is not an ordinary document type (`isSafeToOpen` in `src/file-guards.js`) is shown in Finder instead
 - `list-summaries` / `read-summary` / `generate-summary` — daily summaries
 - `get-paths` — data, summaries and images paths
 

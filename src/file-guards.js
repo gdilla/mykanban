@@ -21,4 +21,14 @@ function isAttachmentReferenced(board, filename) {
         : (t.images || []).includes(filename));
 }
 
-module.exports = { safeJoin, isAttachmentReferenced };
+// Attachments keep the extension they arrived with and carry no quarantine flag, so handing one to its
+// default app can run it (.terminal, .command, .jar, .pkg, .app, a shell script) with no Gatekeeper prompt.
+// Only these ordinary document types are opened. Not svg or html (they can script in a browser), not zip.
+const OPENABLE = new Set(('png jpg jpeg gif webp heic bmp tiff pdf txt md csv json log rtf '
+    + 'doc docx xls xlsx ppt pptx pages numbers key mp3 m4a wav mp4 mov').split(' '));
+
+function isSafeToOpen(filename) {
+    return typeof filename === 'string' && OPENABLE.has(path.extname(filename).slice(1).toLowerCase());
+}
+
+module.exports = { safeJoin, isAttachmentReferenced, isSafeToOpen };

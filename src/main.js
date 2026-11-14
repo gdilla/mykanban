@@ -392,7 +392,7 @@ ipcMain.handle('list-summaries', async () => {
 // Handlers below take a filename from the renderer: safeJoin rejects anything
 // that is not a bare filename, so they cannot reach outside their directory.
 const { shell } = require('electron');
-const { safeJoin, isAttachmentReferenced } = require('./file-guards');
+const { safeJoin, isAttachmentReferenced, isSafeToOpen } = require('./file-guards');
 
 // Read a specific summary file
 ipcMain.handle('read-summary', async (event, filename) => {
@@ -439,11 +439,16 @@ ipcMain.handle('delete-image', async (event, filename) => {
     return true;
 });
 
-// Open an attachment with the system default app. Resolves to '' on success,
-// or an error message (e.g. the file is missing).
+// Open an attachment with the system default app, or show it in Finder when it is
+// not an ordinary document (isSafeToOpen). Resolves to '' on success, or an error
+// message (e.g. the file is missing).
 ipcMain.handle('open-attachment', async (event, filename) => {
     const filePath = safeJoin(imagesPath, filename);
     if (!fs.existsSync(filePath)) return 'File not found';
+    if (!isSafeToOpen(filename)) {
+        shell.showItemInFolder(filePath);
+        return '';
+    }
     return shell.openPath(filePath);
 });
 
