@@ -3,15 +3,7 @@ import { Flex, Box } from '@chakra-ui/react'
 import { Calendar, Clock, Paperclip } from 'lucide-react'
 import { Task } from '../../state/types'
 import { colors as c } from '../../theme'
-import { dueLabel } from '../../utils/date'
-
-function formatTime(ms: number): string {
-  if (!ms || ms < 0) return '< 1m'
-  const minutes = Math.floor(ms / 60000)
-  const hours = Math.floor(minutes / 60)
-  if (hours > 0) return `${hours}h ${minutes % 60}m`
-  return `${minutes}m`
-}
+import { dueLabel, formatTime } from '../../utils/date'
 
 const DUE_COLOR = { overdue: c.dangerText, soon: c.doing, normal: undefined }
 

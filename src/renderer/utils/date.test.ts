@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { dueLabel } from './date'
+import { dueLabel, formatTime } from './date'
 
 // "today" is built from local components and injected, so this holds in any timezone.
 // 21:00 local: in US timezones UTC is already the next day.
@@ -38,5 +38,18 @@ describe('dueLabel', () => {
   })
   it('shows an unparseable value as-is instead of "Invalid Date"', () => {
     expect(dueLabel('soon', today)).toEqual({ label: 'soon', tone: 'normal' })
+  })
+})
+
+describe('formatTime', () => {
+  it('reads anything under a minute as "< 1m", never "0m"', () => {
+    for (const ms of [0, -5, 1, 59_999]) expect(formatTime(ms)).toBe('< 1m')
+  })
+
+  it('shows whole minutes, then hours and minutes', () => {
+    expect(formatTime(60_000)).toBe('1m')
+    expect(formatTime(59 * 60_000 + 59_999)).toBe('59m')
+    expect(formatTime(3_600_000)).toBe('1h 0m')
+    expect(formatTime(2 * 3_600_000 + 5 * 60_000)).toBe('2h 5m')
   })
 })

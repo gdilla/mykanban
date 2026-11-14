@@ -17,3 +17,12 @@ export function dueLabel(dueDate: string, today: Date): { label: string; tone: D
     tone: 'normal',
   }
 }
+
+// Time spent on a task, from milliseconds.
+export function formatTime(ms: number): string {
+  if (!ms || ms < 60000) return '< 1m'
+  const minutes = Math.floor(ms / 60000)
+  const hours = Math.floor(minutes / 60)
+  if (hours > 0) return `${hours}h ${minutes % 60}m`
+  return `${minutes}m`
+}
