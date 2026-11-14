@@ -40,11 +40,14 @@ export function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'RESTORE_TASK': {
       const { lastDeleted } = state
-      if (!lastDeleted) return state
+      // The id guards against a stale Undo (an older toast still on its way out).
+      if (!lastDeleted || lastDeleted.task.id !== action.id) return state
       // Already back (an external reload can return it): just forget it.
-      if (state.tasks.some(t => t.id === lastDeleted.task.id)) return { ...state, lastDeleted: null }
+      if (state.tasks.some(t => t.id === action.id)) return { ...state, lastDeleted: null }
+      // A tag deleted since then must not come back as a dangling id (the card would vanish from tag view).
+      const task = { ...lastDeleted.task, tags: lastDeleted.task.tags.filter(id => state.tags.some(t => t.id === id)) }
       const tasks = [...state.tasks]
-      tasks.splice(lastDeleted.index, 0, lastDeleted.task) // splice clamps an index past the end
+      tasks.splice(lastDeleted.index, 0, task) // splice clamps an index past the end
       return { ...state, tasks, lastDeleted: null }
     }
 

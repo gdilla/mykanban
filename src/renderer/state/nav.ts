@@ -13,6 +13,20 @@ export function getVisibleColumns(state: AppState): string[][] {
   return columns.map(tasks => tasks.map(t => t.id))
 }
 
+// Is this keydown a board shortcut at all? Returns its key, or null when it belongs to someone else.
+// `busy`: a dialog is open or a field has focus. `onControl`: focus is on a button or link.
+export function boardKey(
+  e: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey' | 'repeat' | 'defaultPrevented'>,
+  { busy, onControl }: { busy: boolean; onControl: boolean },
+): string | null {
+  // Plain keys only (Cmd+X, Cmd+K, Ctrl+D are not ours), and not one another handler already
+  // consumed (e.g. a keyboard drag).
+  if (busy || e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return null
+  if (e.key === 'Enter' && onControl) return null // Enter presses the focused button (e.g. Undo)
+  if (e.key === 'x' && e.repeat) return null // a held key must not mow down the column: undo is one level
+  return e.key
+}
+
 // Which column the focused card is in. In tag view one task can sit in several columns, so the
 // id alone is ambiguous: `hint` is the column the user last navigated to. -1 = not on screen.
 export function columnOf(columns: string[][], id: string | null, hint = -1): number {

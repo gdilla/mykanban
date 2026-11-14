@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, createElement } from 'react'
 import { flushSync } from 'react-dom'
 import { Button, Flex, Text, useToast } from '@chakra-ui/react'
 import { useApp } from '../state/AppContext'
-import { getVisibleColumns, nextFocus, columnOf, NavKey } from '../state/nav'
+import { getVisibleColumns, nextFocus, columnOf, boardKey, NavKey } from '../state/nav'
 import { Task } from '../state/types'
 import { colors as c } from '../theme'
 
@@ -36,7 +36,7 @@ export function useKeyboardNav() {
         createElement(Text, { flex: 1, noOfLines: 1 }, `Deleted "${deleted.task.title}"`),
         createElement(Button, {
           size: 'sm', variant: 'brutalist-outline',
-          onClick: () => { dispatch({ type: 'RESTORE_TASK' }); onClose() },
+          onClick: () => { dispatch({ type: 'RESTORE_TASK', id: deleted.task.id }); onClose() },
         }, 'Undo'),
       ),
     })
@@ -74,9 +74,9 @@ export function useKeyboardNav() {
       return
     }
 
-    // Board shortcuts are plain keys only: Cmd+X, Cmd+K, Ctrl+D etc. belong to someone else,
-    // and so does a key another handler already consumed (e.g. a keyboard drag).
-    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || busy.current) return
+    const onControl = e.target instanceof Element && !!e.target.closest('button, a')
+    const key = boardKey(e, { busy: busy.current, onControl })
+    if (key === null) return
 
     const columns = getVisibleColumns(state)
     // Scroll the focused card into view. In tag view the card can be drawn in several columns;
@@ -86,7 +86,7 @@ export function useKeyboardNav() {
       document.querySelectorAll('.task-card.focused')[nth]?.scrollIntoView({ block: 'nearest' })
     }
 
-    const navKey = NAV_KEYS[e.key]
+    const navKey = NAV_KEYS[key]
     if (navKey) {
       e.preventDefault()
       const next = nextFocus(columns, state.focusedTaskId, navKey, focusCol.current)
@@ -97,7 +97,7 @@ export function useKeyboardNav() {
       return
     }
 
-    if (e.key === 'Escape') {
+    if (key === 'Escape') {
       dispatch({ type: 'SET_FOCUSED_TASK', id: null })
       return
     }
@@ -114,16 +114,16 @@ export function useKeyboardNav() {
       reveal(task.id, state.currentView === 'tags' ? col : 0)
     }
 
-    if (e.key === 'Enter') {
+    if (key === 'Enter') {
       e.preventDefault()
       dispatch({ type: 'SET_EDITING_TASK', id: task.id })
-    } else if (e.key === 'd') {
+    } else if (key === 'd') {
       e.preventDefault()
       moveTo(task.status === 'done' ? 'todo' : 'done')
-    } else if (STATUS_KEYS[e.key]) {
+    } else if (STATUS_KEYS[key]) {
       e.preventDefault()
-      moveTo(STATUS_KEYS[e.key])
-    } else if (e.key === 'x' && !e.repeat) { // a held key must not mow down the column: undo is one level
+      moveTo(STATUS_KEYS[key])
+    } else if (key === 'x') {
       e.preventDefault()
       const row = columns[col].indexOf(task.id)
       const neighbour = columns[col][row + 1] ?? columns[col][row - 1] ?? null

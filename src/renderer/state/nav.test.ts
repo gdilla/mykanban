@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { nextFocus, getVisibleColumns } from './nav'
+import { nextFocus, getVisibleColumns, boardKey } from './nav'
 import { initialState } from './reducer'
 import { Task } from './types'
 
@@ -94,5 +94,40 @@ describe('getVisibleColumns', () => {
   it('leaves out cards hidden by the active filters', () => {
     const state = { ...initialState, tasks, tags, currentView: 'status' as const, activeFilters: { tags: ['t2'], age: null } }
     expect(getVisibleColumns(state)).toEqual([['todo1'], [], []])
+  })
+})
+
+describe('boardKey', () => {
+  const ev = (key: string, over = {}) => ({ key, metaKey: false, ctrlKey: false, altKey: false, repeat: false, defaultPrevented: false, ...over })
+  const idle = { busy: false, onControl: false }
+
+  it('passes plain keys through', () => {
+    expect(boardKey(ev('j'), idle)).toBe('j')
+    expect(boardKey(ev('Enter'), idle)).toBe('Enter')
+  })
+
+  it('ignores keys with meta, ctrl or alt held (Cmd+X is not delete, Cmd+K is not up)', () => {
+    expect(boardKey(ev('x', { metaKey: true }), idle)).toBeNull()
+    expect(boardKey(ev('k', { metaKey: true }), idle)).toBeNull()
+    expect(boardKey(ev('d', { ctrlKey: true }), idle)).toBeNull()
+    expect(boardKey(ev('j', { altKey: true }), idle)).toBeNull()
+  })
+
+  it('ignores everything while a dialog is open or a field has focus', () => {
+    for (const key of ['j', 'x', 'd', 'Enter', 'Escape', '2']) expect(boardKey(ev(key), { busy: true, onControl: false })).toBeNull()
+  })
+
+  it('ignores a key another handler already consumed', () => {
+    expect(boardKey(ev('ArrowDown', { defaultPrevented: true }), idle)).toBeNull()
+  })
+
+  it('leaves Enter to a focused button or link (e.g. the Undo button), but still navigates from it', () => {
+    expect(boardKey(ev('Enter'), { busy: false, onControl: true })).toBeNull()
+    expect(boardKey(ev('j'), { busy: false, onControl: true })).toBe('j')
+  })
+
+  it('does not repeat delete while x is held', () => {
+    expect(boardKey(ev('x', { repeat: true }), idle)).toBeNull()
+    expect(boardKey(ev('j', { repeat: true }), idle)).toBe('j')
   })
 })
