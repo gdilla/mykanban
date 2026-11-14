@@ -389,9 +389,14 @@ ipcMain.handle('list-summaries', async () => {
     return files;
 });
 
+// Handlers below take a filename from the renderer: safeJoin rejects anything
+// that is not a bare filename, so they cannot reach outside their directory.
+const { shell } = require('electron');
+const { safeJoin } = require('./safe-name');
+
 // Read a specific summary file
 ipcMain.handle('read-summary', async (event, filename) => {
-    const filePath = path.join(summariesPath, filename);
+    const filePath = safeJoin(summariesPath, filename);
     if (fs.existsSync(filePath)) {
         return fs.readFileSync(filePath, 'utf8');
     }
@@ -412,7 +417,7 @@ ipcMain.handle('save-image', async (event, base64Data) => {
 });
 
 ipcMain.handle('load-image', async (event, filename) => {
-    const filePath = path.join(imagesPath, filename);
+    const filePath = safeJoin(imagesPath, filename);
     if (!fs.existsSync(filePath)) return null;
     const buffer = fs.readFileSync(filePath);
     const ext = path.extname(filename).slice(1);
@@ -421,11 +426,19 @@ ipcMain.handle('load-image', async (event, filename) => {
 });
 
 ipcMain.handle('delete-image', async (event, filename) => {
-    const filePath = path.join(imagesPath, filename);
+    const filePath = safeJoin(imagesPath, filename);
     if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
     }
     return true;
+});
+
+// Open an attachment with the system default app. Resolves to '' on success,
+// or an error message (e.g. the file is missing).
+ipcMain.handle('open-attachment', async (event, filename) => {
+    const filePath = safeJoin(imagesPath, filename);
+    if (!fs.existsSync(filePath)) return 'File not found';
+    return shell.openPath(filePath);
 });
 
 // Generic file save handler (for non-image attachments)

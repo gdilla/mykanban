@@ -32,7 +32,6 @@ export default function QuickAddModal() {
       setDueDate('')
       setStatus('todo')
       setSelectedTags([])
-      setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [isOpen])
 
@@ -63,7 +62,7 @@ export default function QuickAddModal() {
   if (!isOpen) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} size="md" initialFocusRef={inputRef}>
       <ModalOverlay bg="rgba(0, 0, 0, 0.7)" />
       <ModalContent maxW="400px" bg={c.surface} color={c.text}>
         <ModalHeader>Quick Add Task</ModalHeader>

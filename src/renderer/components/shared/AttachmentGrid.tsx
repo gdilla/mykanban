@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Box, Flex, Image, Text, IconButton, Button } from '@chakra-ui/react'
+import { Box, Flex, Image, Text } from '@chakra-ui/react'
 import { Attachment } from '../../state/types'
 import { useIpc } from '../../hooks/useIpc'
 import { colors as c } from '../../theme'
@@ -13,17 +13,25 @@ interface AttachmentGridProps {
 
 export default function AttachmentGrid({ attachments, onRemove, onFileAttach, showAlways }: AttachmentGridProps) {
   const ipc = useIpc()
-  const [thumbnails, setThumbnails] = useState<Record<string, string>>({})
+  // Per filename: a data URI once an image has loaded, null when the file is
+  // missing on disk, '' when it is there but cannot be shown as an image.
+  const [thumbnails, setThumbnails] = useState<Record<string, string | null>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const attachButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     attachments.forEach(async (att) => {
-      if (att.type.startsWith('image/') && !thumbnails[att.filename]) {
-        const data = await ipc.loadImage(att.filename)
-        if (data) setThumbnails(prev => ({ ...prev, [att.filename]: data }))
-      }
+      if (!att.type.startsWith('image/') || att.filename in thumbnails) return
+      const data = await ipc.loadImage(att.filename).catch(() => null)
+      setThumbnails(prev => ({ ...prev, [att.filename]: data }))
     })
   }, [attachments])
+
+  const open = async (filename: string) => {
+    const error = await ipc.openAttachment(filename)
+    if (error === 'File not found') setThumbnails(prev => ({ ...prev, [filename]: null }))
+    else if (error) console.error(`Could not open ${filename}: ${error}`)
+  }
 
   if (attachments.length === 0 && !showAlways) return null
 
@@ -34,38 +42,65 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach, sh
       </Text>
       {attachments.length > 0 && (
         <Flex gap={2} flexWrap="wrap">
-          {attachments.map(att => (
-            <Box key={att.filename} position="relative" border={`2px solid ${c.borderStrong}`} p={1}>
-              {att.type.startsWith('image/') && thumbnails[att.filename] ? (
-                <Image src={thumbnails[att.filename]} alt={att.originalName} w="80px" h="80px" objectFit="cover" />
-              ) : (
-                <Flex w="80px" h="80px" align="center" justify="center" bg={c.bg}>
-                  <Text fontSize="0.6rem" fontFamily="body" textAlign="center" px={1} color={c.textSecondary}>
-                    {att.originalName}
-                  </Text>
-                </Flex>
-              )}
-              <Box
-                as="button"
-                position="absolute"
-                top={-1}
-                right={-1}
-                bg={c.danger}
-                color="white"
-                borderRadius="full"
-                w="16px"
-                h="16px"
-                fontSize="8px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                cursor="pointer"
-                onClick={() => onRemove(att.filename)}
-              >
-                ✕
+          {attachments.map(att => {
+            const thumbnail = thumbnails[att.filename]
+            return (
+              <Box key={att.filename} position="relative" border={`2px solid ${c.borderStrong}`} p={1}>
+                <Box
+                  as="button"
+                  type="button"
+                  display="block"
+                  cursor="pointer"
+                  title={`Open ${att.originalName}`}
+                  onClick={() => open(att.filename)}
+                >
+                  {thumbnail ? (
+                    <Image
+                      src={thumbnail}
+                      alt={att.originalName}
+                      w="80px" h="80px" objectFit="cover"
+                      onError={() => setThumbnails(prev => ({ ...prev, [att.filename]: '' }))}
+                    />
+                  ) : (
+                    <Flex w="80px" h="80px" direction="column" align="center" justify="center" bg={c.bg}>
+                      <Text fontSize="0.6rem" fontFamily="body" textAlign="center" px={1} color={c.textSecondary} wordBreak="break-all" noOfLines={3}>
+                        {att.originalName}
+                      </Text>
+                      {thumbnail === null && (
+                        <Text fontSize="0.6rem" fontFamily="body" color={c.danger}>missing</Text>
+                      )}
+                    </Flex>
+                  )}
+                </Box>
+                <Box
+                  as="button"
+                  type="button"
+                  aria-label={`Remove ${att.originalName}`}
+                  position="absolute"
+                  top={-1}
+                  right={-1}
+                  bg={c.danger}
+                  color="white"
+                  borderRadius="full"
+                  w="16px"
+                  h="16px"
+                  fontSize="8px"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  cursor="pointer"
+                  onClick={() => {
+                    onRemove(att.filename)
+                    // This button is about to disappear; without a new home, focus falls to
+                    // <body> and the window stops hearing Escape and Cmd+Enter.
+                    attachButtonRef.current?.focus()
+                  }}
+                >
+                  ✕
+                </Box>
               </Box>
-            </Box>
-          ))}
+            )
+          })}
         </Flex>
       )}
       <input
@@ -77,6 +112,7 @@ export default function AttachmentGrid({ attachments, onRemove, onFileAttach, sh
       />
       <Box
         as="button"
+        ref={attachButtonRef}
         mt={2}
         fontFamily="heading"
         fontSize="0.75rem"

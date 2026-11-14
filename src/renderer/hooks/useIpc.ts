@@ -9,6 +9,8 @@ export function useIpc() {
       ipcRenderer.invoke('save-file', data),
     loadImage: (filename: string) => ipcRenderer.invoke('load-image', filename),
     deleteImage: (filename: string) => ipcRenderer.invoke('delete-image', filename),
+    /** Opens with the system default app; resolves to '' on success, else an error message. */
+    openAttachment: (filename: string): Promise<string> => ipcRenderer.invoke('open-attachment', filename),
     listSummaries: () => ipcRenderer.invoke('list-summaries'),
     readSummary: (filename: string) => ipcRenderer.invoke('read-summary', filename),
     generateSummary: () => ipcRenderer.invoke('generate-summary'),
