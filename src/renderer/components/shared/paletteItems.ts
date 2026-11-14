@@ -74,11 +74,15 @@ export function paletteSections(query: string, ctx: PaletteContext): PaletteSect
 
   const byLabel = (items: PaletteItem[]) => items.filter(i => matches(i.label)).slice(0, CAP)
 
+  const taskSection = { heading: searching ? 'Tasks' : 'Recent tasks', items: tasks.map((task): PaletteItem => ({ kind: 'task', key: `task:${task.id}`, task, label: task.title })) }
+  const filterSection = { heading: 'Tag filters', items: byLabel(filters) }
+  const paletteSection = { heading: 'Palette', items: byLabel(palettes) }
+
   // Actions first: typing a command's name ("summ", "new") must run it, not open a task that happens to mention the word.
+  // A search lists palettes and tag filters before tasks for the same reason ("linear" switches palette); they are
+  // only there when their names match. With no query everything is listed, so the recent tasks stay near the top.
   return [
     { heading: 'Actions', items: byLabel(actions) },
-    { heading: searching ? 'Tasks' : 'Recent tasks', items: tasks.map((task): PaletteItem => ({ kind: 'task', key: `task:${task.id}`, task, label: task.title })) },
-    { heading: 'Tag filters', items: byLabel(filters) },
-    { heading: 'Palette', items: byLabel(palettes) },
+    ...(searching ? [paletteSection, filterSection, taskSection] : [taskSection, filterSection, paletteSection]),
   ].filter(section => section.items.length > 0)
 }

@@ -50,9 +50,17 @@ describe('paletteSections', () => {
     expect(labels('', { ...ctx, tasks })['Recent tasks']).toEqual(['Write requirements', 'Floorplan view in kiosk', 'Wireframe BACnet support', 'Undated'])
   })
 
-  it('lists actions first, then tasks, tag filters and palettes', () => {
+  it('with no query, lists actions, recent tasks, tag filters, palettes; a search lists tasks last', () => {
     expect(paletteSections('', ctx).map(s => s.heading)).toEqual(['Actions', 'Recent tasks', 'Tag filters', 'Palette'])
-    expect(paletteSections('a', ctx).map(s => s.heading)).toEqual(['Actions', 'Tasks', 'Tag filters', 'Palette'])
+    expect(paletteSections('a', ctx).map(s => s.heading)).toEqual(['Actions', 'Palette', 'Tag filters', 'Tasks'])
+  })
+
+  it('a palette or tag filter named by the query comes before a task that mentions the word', () => {
+    const withTask = { ...ctx, tasks: [...ctx.tasks, task('8', 'Do null state design like linear')] }
+    const found = paletteSections('linear', withTask)
+    expect(found.map(s => s.heading)).toEqual(['Palette', 'Tasks'])
+    expect(found[0].items[0].label).toBe('Palette: Linear') // what Enter runs
+    expect(paletteSections('kiosk', ctx).map(s => s.heading)).toEqual(['Tag filters', 'Tasks'])
   })
 
   it('a command name runs the command, even when tasks match the same words', () => {
