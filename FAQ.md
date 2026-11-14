@@ -4,29 +4,31 @@
 
 Everything is local on your machine:
 
-- **Task data:** `~/Library/Application Support/Kanban/kanban-data.json`
-- **Attachments:** `~/Library/Application Support/Kanban/images/`
-- **Daily summaries:** `~/Library/Application Support/Kanban/summaries/`
+- **Task data:** `~/Library/Application Support/kanban-app/kanban-data.json`
+- **Attachments:** `~/Library/Application Support/kanban-app/images/`
+- **Daily summaries:** `~/Library/Application Support/kanban-app/summaries/`
 
-You can see these paths at the bottom of the filter bar (click "Filters" in the header).
+The installed app and a run from source (`npm start` / `npm run dev`) use the same folder.
 
 ---
 
 ### How do I back up my data?
 
-Copy the entire `~/Library/Application Support/Kanban/` folder. This includes your task data, all attachments, and daily summaries. To restore, put the folder back in the same location.
+Copy the entire `~/Library/Application Support/kanban-app/` folder. This includes your task data, all attachments, and daily summaries. To restore, put the folder back in the same location.
 
 ---
 
 ### Can I use this on multiple computers?
 
-Not with built-in sync. The data is stored locally. You could manually copy the `Kanban` folder between machines, or put it in a synced folder (like Dropbox or iCloud), but there's no conflict resolution — don't edit on two machines simultaneously.
+Not with built-in sync. The data is stored locally. You could manually copy the `kanban-app` folder between machines, or put it in a synced folder (like Dropbox or iCloud), but there's no conflict resolution — don't edit on two machines simultaneously.
 
 ---
 
 ### How do I change a task's status?
 
-Drag the task card to a different column in Status view. Dragging to "In Progress" starts a timer. Dragging to "Done" stops it and records the completion time.
+Drag the task card to a different column in Status view. Dragging to "In Progress" records the start time. Dragging to "Done" records the completion time and adds the elapsed time to the task's total.
+
+From the keyboard, focus a card and press `1`, `2` or `3` to move it to To Do, In Progress or Done, or `d` to mark it done. Hovering a card also shows quick action buttons.
 
 ---
 
@@ -34,7 +36,7 @@ Drag the task card to a different column in Status view. Dragging to "In Progres
 
 **Status view** groups tasks into three columns: To Do, In Progress, Done. Each task appears in exactly one column.
 
-**Tags view** groups tasks by tag. Each tag gets its own column, plus an "Untagged" column. Tasks with multiple tags appear in multiple columns simultaneously. Each card shows a status badge (To Do / In Progress / Done) since the column doesn't imply status.
+**Tags view** groups tasks by tag. Each tag gets its own column, plus an "Untagged" column. Tasks with multiple tags appear in multiple columns simultaneously. Each card has a small status dot colored by status, since the column doesn't imply status. Dragging a card onto a tag column gives it that tag; its status does not change.
 
 Switch between views using the "Status" and "Tags" buttons in the header.
 
@@ -42,7 +44,7 @@ Switch between views using the "Status" and "Tags" buttons in the header.
 
 ### Can a task have multiple tags?
 
-Yes. A task can have zero or more tags. In Tags view, multi-tagged tasks appear in every relevant tag column. You can assign tags via the "+" button on the card, in the edit modal, or in the Quick Add form.
+Yes. A task can have zero or more tags. In Tags view, multi-tagged tasks appear in every relevant tag column. You can assign tags in the edit window, in the Quick Add form, or by dragging the card onto a tag column in Tags view.
 
 ---
 
@@ -50,34 +52,36 @@ Yes. A task can have zero or more tags. In Tags view, multi-tagged tasks appear 
 
 It's automatic:
 
-1. Move a task to **In Progress** — a timer starts
-2. Move it to **Done** (or back to **To Do**) — the timer stops and elapsed time is added to the total
-3. Move it back to **In Progress** — the timer resumes from where it left off
+1. Move a task to **In Progress** — the start time is recorded
+2. Move it to **Done** — the time elapsed since then is added to the task's total
+3. Move it back to **In Progress** and to **Done** again — the new stretch is added to the total
 
-The active timer shows as a pulsing green badge on the card. Accumulated time shows as a static green badge. Time persists across app restarts.
+Moving a task back to **To Do** clears the start time without adding to the total.
+
+The total shows as a clock badge on the card (e.g., "2h 15m"). It is elapsed clock time, not active work time, and it persists across app restarts.
 
 ---
 
 ### How do I add images or files to a task?
 
-Open a task for editing (click the card content), then either:
+Open a task for editing (click the card, or focus it and press Enter), then either:
 
-- **Paste an image** — Copy a screenshot or image, then press Cmd+V in the edit modal
-- **Attach any file** — Click the "attach files" link below the description field to open a file picker
+- **Paste an image** — Copy a screenshot or image, then press Cmd+V in the edit window
+- **Attach any file** — Click "Attach files" in the Attachments section to open a file picker
 
-Images are auto-resized to max 1920px. Other file types are stored as-is. Thumbnails appear on the card after saving.
+Files are stored as-is. After saving, the card shows a paperclip badge with the number of attachments.
 
 ---
 
 ### What file types can I attach?
 
-Any file type. Images (PNG, JPEG, GIF, WebP) get visual thumbnails and lightbox previews. Non-image files (PDF, DOC, ZIP, etc.) show a file extension badge on the card and in the edit modal.
+Any file type. In the edit window, images (PNG, JPEG, GIF, WebP) show a thumbnail and other files (PDF, DOC, ZIP, etc.) show their file name. Click any attachment to open it in its default app.
 
 ---
 
 ### How do I reorder tasks?
 
-Drag a task card up or down within its column. An orange line shows where the card will land. The order is saved automatically.
+Drag a task card up or down within its column. The other cards move aside to show where it will land. The order is saved automatically.
 
 ---
 
@@ -91,13 +95,12 @@ Yes, completely independent. Reordering tasks in Status view does not affect the
 
 | Badge | Meaning |
 |-------|---------|
-| Red border + red shadow | Task is overdue |
-| Orange border + orange shadow | Task is due within 2 days |
-| Gray "Xd old" badge | Days since task was created (To Do tasks only) |
-| Orange "Xd old" badge | Task has been in To Do for 30+ days (stale) |
-| Green time badge (static) | Total time tracked on this task |
-| Green time badge (pulsing) | Task is in progress — timer is running |
-| Colored status pill (tag view) | Task's current status (To Do / In Progress / Done) |
+| Red "Xd overdue" badge | Task is overdue |
+| Highlighted due date ("today", "tomorrow") | Task is due soon |
+| Plain due date (e.g., "feb 15") | Task is due later |
+| Clock badge (e.g., "2h 15m") | Total time tracked on this task |
+| Paperclip badge with a number | Number of attachments |
+| Colored status dot | Task's current status (To Do / In Progress / Done) |
 
 ---
 
@@ -124,7 +127,7 @@ At 9pm each day, the app auto-generates a markdown summary file with:
 - Tomorrow's priorities
 - Per-tag breakdowns
 
-Summaries are saved to `~/Library/Application Support/Kanban/summaries/`. View them from the "Summaries" button in the header, or generate one on demand with the "Summary" button.
+Summaries are saved to `~/Library/Application Support/kanban-app/summaries/`. View them from the "Summaries" button in the header, or generate one on demand from the same window. If the Mac was asleep at 9pm, the summary is written when the app next checks that evening.
 
 ---
 
@@ -132,29 +135,22 @@ Summaries are saved to `~/Library/Application Support/Kanban/summaries/`. View t
 
 Click "Filters" in the header to open the filter bar:
 
-- **By tag:** Click one or more tags to show only tasks matching ALL selected tags
-- **By age:** Set a minimum age in days and click "Apply" to hide newer To Do tasks
-- **Sort by age:** Click "Sort by Age" to order the To Do column oldest-first
+- **By tag:** Click one or more tags to show only tasks that have at least one of the selected tags
+- **By age:** Click 1d, 3d, 1w, 2w or 1m to show only tasks created within that period
 
-Click "Clear Filters" to reset everything.
+Click "Clear" to reset everything.
 
 ---
 
 ### Can I delete a tag?
 
-Yes. Open the Tag Manager (click "Tags" in the header), then click the "x" button next to the tag you want to remove. The tag will be removed from all tasks that had it.
-
----
-
-### How do I edit a due date without opening the task?
-
-Click the due date badge on the card (e.g., "Due: Feb 15" or "+ Due date"). A calendar picker appears inline. Pick a date and it saves immediately — no need to open the edit modal.
+Yes. Open the tag manager from the header, then click the delete button next to the tag you want to remove and confirm. The tag will be removed from all tasks that had it. You can also rename or recolor a tag there.
 
 ---
 
 ### What happens to my data if I close the app?
 
-Closing the window hides the app to the system tray — it keeps running in the background for reminders and the Cmd+T hotkey. Your data is saved to disk after every change, so nothing is lost. To fully quit, use Cmd+Q.
+Closing the window hides it — the app keeps running in the background for reminders and the Control+Option+K hotkey. There is no tray or menu bar icon; click the Dock icon to bring the window back. Your data is saved to disk after every change, so nothing is lost. To fully quit, use Cmd+Q.
 
 ---
 
@@ -165,7 +161,13 @@ cd /Applications/kanban-app
 npm run build
 ```
 
-This uses electron-builder to create a macOS DMG in the `dist/` folder.
+This uses electron-builder to create a macOS DMG in the `release/` folder.
+
+---
+
+### Can Claude or Codex use my board?
+
+Yes. The repo includes an MCP server that lets Claude Code, Claude Desktop and Codex list, add, update, move and delete tasks in the same data file. Changes an agent makes show up in the open app within a couple of seconds. See "Use it from Claude and Codex" in `README.md` for setup.
 
 ---
 
@@ -173,6 +175,15 @@ This uses electron-builder to create a macOS DMG in the `dist/` folder.
 
 | Shortcut | Action |
 |----------|--------|
-| Cmd+T | Open Quick Add modal (works globally, even when app is in background) |
-| Enter | Submit the current form (add task, quick add, new tag) |
-| Escape | Close any open modal, lightbox, or overlay |
+| Control+Option+K | Open Quick Add (works globally, even when app is in background) |
+| Cmd+N | Open Quick Add (in the app) |
+| Cmd+K | Command palette: search tasks, run actions, filter by tag |
+| Arrow keys or `h` `j` `k` `l` | Move focus between cards and columns |
+| Enter | Edit the focused task; in a form, submit it (add task, quick add, new tag) |
+| `d` | Mark the focused task done |
+| `x` | Delete the focused task (an Undo toast restores it) |
+| `1` / `2` / `3` | Move the focused task to To Do / In Progress / Done |
+| Cmd+Enter | Save in the edit window |
+| Escape | In the edit window: save and close (Cancel discards). Elsewhere: close the open window |
+
+Board shortcuts do nothing while a window is open or while you are typing in a field.
