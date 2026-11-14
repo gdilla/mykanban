@@ -43,11 +43,14 @@ function fixture() {
 const servers = []
 const dirs = []
 
-async function start(dataFile, { relativeDir = false } = {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-mcp-'))
-  dirs.push(dir)
+// `missingDir`: the data directory does not exist yet, as on a machine where the app has never run
+async function start(dataFile, { relativeDir = false, missingDir = false } = {}) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kanban-mcp-'))
+  dirs.push(tmp)
+  const dir = missingDir ? path.join(tmp, 'never-run') : tmp
   const file = path.join(dir, 'kanban-data.json')
-  if (dataFile) fs.copyFileSync(dataFile, file)
+  if (missingDir) { /* nothing on disk */ }
+  else if (dataFile) fs.copyFileSync(dataFile, file)
   else fs.writeFileSync(file, JSON.stringify(fixture(), null, 2))
   const client = new Client({ name: 'test', version: '0' })
   await client.connect(new StdioClientTransport({
@@ -284,6 +287,17 @@ describe('writing', () => {
     }
     expect(fs.readFileSync(file, 'utf8')).toBe('{ "tasks": [')
     fs.writeFileSync(file, good)
+  })
+})
+
+describe('first run', () => {
+  it('reads an empty board and add_task creates the data directory when the app has never run', async () => {
+    const fresh = await start(null, { missingDir: true })
+    expect((await fresh.call('list_tasks')).json).toEqual({ tasks: [], total: 0 })
+    const added = await fresh.call('add_task', { title: 'First task' })
+    expect(added.text).toContain('First task')
+    expect(added.isError).toBe(false)
+    expect(JSON.parse(fs.readFileSync(fresh.file, 'utf8')).tasks.map(t => t.title)).toEqual(['First task'])
   })
 })
 

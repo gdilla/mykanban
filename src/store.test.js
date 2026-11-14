@@ -53,6 +53,12 @@ describe('store', () => {
     expect(fs.readdirSync(dir)).toEqual(['kanban-data.json'])
   })
 
+  it('save creates the data directory when it does not exist yet (the app has never run)', () => {
+    const fresh = path.join(dir, 'never', 'run', 'kanban-data.json')
+    store.save(fresh, board)
+    expect(store.load(fresh)).toEqual(board)
+  })
+
   it('save returns the exact text now on disk', () => {
     expect(store.save(file, board)).toBe(fs.readFileSync(file, 'utf8'))
   })

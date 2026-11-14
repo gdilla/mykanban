@@ -1,6 +1,7 @@
 // The one place that reads and writes kanban-data.json.
 // CommonJS: bundled into the Electron main process and imported by the MCP server.
 const fs = require('fs');
+const path = require('path');
 
 // File text, or null when there is no file yet.
 function read(file) {
@@ -41,6 +42,7 @@ function load(file) {
 function save(file, data) {
     const text = JSON.stringify(data, null, 2);
     const tmp = `${file}.${process.pid}.tmp`;
+    fs.mkdirSync(path.dirname(file), { recursive: true }); // first write on a machine where the app has never run
     try {
         fs.writeFileSync(tmp, text);
         fs.renameSync(tmp, file);
