@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Notification, ipcMain, globalShortcut } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { localDateStr, completedOn, isOverdue, summaryFileName, summaryTime } = require('./dates');
 
 let mainWindow;
 let reminderInterval;
@@ -108,11 +109,8 @@ function showReminder() {
     const doingCount = tasks.filter(t => t.status === 'doing').length;
 
     // Check for overdue tasks
-    const now = new Date();
-    const overdue = tasks.filter(t => {
-        if (!t.dueDate || t.status === 'done') return false;
-        return new Date(t.dueDate) < now;
-    });
+    const todayStr = localDateStr(new Date());
+    const overdue = tasks.filter(t => isOverdue(t, todayStr));
 
     let body = `📋 To Do: ${todoCount} | 🔄 In Progress: ${doingCount}`;
     if (overdue.length > 0) {
@@ -141,31 +139,25 @@ function generateDailySummary() {
 
     const tasks = loadData().tasks;
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dateStr = localDateStr(today);
 
     const done = tasks.filter(t => t.status === 'done');
     const todo = tasks.filter(t => t.status === 'todo');
     const doing = tasks.filter(t => t.status === 'doing');
 
-    // Find tasks completed today (if we track completion date)
-    const completedToday = done.filter(t => {
-        if (!t.completedAt) return false;
-        return t.completedAt.startsWith(dateStr);
-    });
+    // Find tasks completed today (local date)
+    const completedToday = done.filter(t => completedOn(t, dateStr));
 
     // Calculate total time spent today
     const totalTimeToday = completedToday.reduce((sum, t) => sum + (t.timeSpent || 0), 0);
 
     // Check for overdue
-    const overdue = tasks.filter(t => {
-        if (!t.dueDate || t.status === 'done') return false;
-        return new Date(t.dueDate) < today;
-    });
+    const overdue = tasks.filter(t => isOverdue(t, dateStr));
 
     // Tomorrow's priorities (overdue + due tomorrow + oldest todos)
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    const tomorrowStr = localDateStr(tomorrow);
 
     const dueTomorrow = tasks.filter(t => {
         if (!t.dueDate || t.status === 'done') return false;
@@ -263,7 +255,7 @@ function generateDailySummary() {
             const tagDone = tagTasks.filter(t => t.status === 'done');
             const tagDoing = tagTasks.filter(t => t.status === 'doing');
             const tagTodo = tagTasks.filter(t => t.status === 'todo');
-            const tagCompletedToday = tagDone.filter(t => t.completedAt && t.completedAt.startsWith(dateStr));
+            const tagCompletedToday = tagDone.filter(t => completedOn(t, dateStr));
             const tagTimeSpent = tagTasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0);
 
             if (tagTasks.length > 0) {
@@ -294,7 +286,7 @@ function generateDailySummary() {
     summary += `Data stored at: ${dataPath}\n`;
     summary += `Summaries stored at: ${summariesPath}\n`;
 
-    const summaryFile = path.join(summariesPath, `summary-${dateStr}.md`);
+    const summaryFile = path.join(summariesPath, summaryFileName(today));
     fs.writeFileSync(summaryFile, summary);
 
     // Show notification about summary
@@ -308,24 +300,37 @@ function generateDailySummary() {
     return summaryFile;
 }
 
+// Write today's summary once it is due (9pm) and has not been written since then.
+// Checked on every tick and at startup, so a Mac that was asleep at 9pm catches up when it wakes.
+// ponytail: same-evening catch-up only; a Mac asleep through midnight skips that day.
+// Give generateDailySummary a date and also check yesterday if that matters.
+function writeSummaryIfDue() {
+    try {
+        const now = new Date();
+        if (now < summaryTime(now)) return;
+        const file = fs.statSync(path.join(summariesPath, summaryFileName(now)), { throwIfNoEntry: false });
+        // A manual summary from earlier in the day does not count as tonight's
+        if (!file || file.mtime < summaryTime(now)) generateDailySummary();
+    } catch (e) {
+        console.error('Error writing daily summary:', e);
+    }
+}
+
 // Schedule reminders and summary
 function setupScheduler() {
     // Check every minute for scheduled tasks
     setInterval(() => {
-        const now = new Date();
-        const minutes = now.getMinutes();
-        const hour = now.getHours();
+        const minutes = new Date().getMinutes();
 
         // 30-minute reminders during work hours
         if ((minutes === 0 || minutes === 30) && isWorkHours()) {
             showReminder();
         }
 
-        // 9pm daily summary
-        if (hour === 21 && minutes === 0) {
-            generateDailySummary();
-        }
+        writeSummaryIfDue();
     }, 60000); // Check every minute
+
+    writeSummaryIfDue();
 
     // Initial reminder if within work hours
     if (isWorkHours()) {
@@ -494,14 +499,18 @@ app.whenReady().then(() => {
     startFileWatcher();
     setupScheduler();
 
-    // Register global Cmd+T hotkey for quick add
-    globalShortcut.register('CommandOrControl+T', () => {
+    // Global quick-add hotkey: Control+Option+K (not Cmd+T, which is "new tab" in every other app)
+    const quickAddKey = 'Control+Alt+K';
+    const registered = globalShortcut.register(quickAddKey, () => {
         if (mainWindow) {
             mainWindow.show();
             mainWindow.focus();
             mainWindow.webContents.send('quick-add-task');
         }
     });
+    if (!registered) {
+        console.error(`Global shortcut ${quickAddKey} could not be registered (already taken by another app?)`);
+    }
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

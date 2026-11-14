@@ -61,7 +61,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handler = () => dispatch({ type: 'SET_EDITING_TASK', id: '__quick_add__' })
     ipcRenderer.on('quick-add-task', handler)
-    return () => { ipcRenderer.removeListener('quick-add-task', handler) }
+    // In-app Cmd+N: same path as the global hotkey
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && e.key === 'n') { e.preventDefault(); handler() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => { ipcRenderer.removeListener('quick-add-task', handler); window.removeEventListener('keydown', onKey) }
   }, [])
 
   // Reload data when changed externally (e.g. MCP server)

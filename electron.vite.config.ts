@@ -8,7 +8,10 @@ export default defineConfig({
       outDir: 'dist/main',
       lib: {
         entry: 'src/main.js'
-      }
+      },
+      // main.js is CommonJS: without this its relative require()s (./dates) are left
+      // unbundled and the built app cannot find them
+      commonjsOptions: { include: [/src\/[^/]+\.js$/, /node_modules/] }
     }
   },
   preload: {

@@ -4,21 +4,7 @@ import { Calendar, Clock, Paperclip } from 'lucide-react'
 import { Task } from '../../state/types'
 import { useApp } from '../../state/AppContext'
 import { colors as c } from '../../theme'
-
-function formatDue(dueDate: string): { label: string; isOverdue: boolean; isSoon: boolean } {
-  const diff = new Date(dueDate + 'T23:59:59').getTime() - Date.now()
-  const days = Math.ceil(diff / 86400000)
-  if (days < 0) return { label: `${Math.abs(days)}d overdue`, isOverdue: true, isSoon: false }
-  if (days === 0) return { label: 'today', isOverdue: false, isSoon: true }
-  if (days === 1) return { label: 'tomorrow', isOverdue: false, isSoon: true }
-  if (days <= 3) return { label: `in ${days}d`, isOverdue: false, isSoon: true }
-  const d = new Date(dueDate)
-  return {
-    label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toLowerCase(),
-    isOverdue: false,
-    isSoon: false,
-  }
-}
+import { dueLabel } from '../../utils/date'
 
 function formatTime(ms: number): string {
   if (!ms || ms < 0) return '< 1m'
@@ -31,12 +17,12 @@ function formatTime(ms: number): string {
 export default function TaskBadges({ task }: { task: Task }) {
   const { state } = useApp()
   const isTimerActive = state.activeTimerTaskId === task.id
-  const due = task.dueDate ? formatDue(task.dueDate) : null
+  const due = task.dueDate ? dueLabel(task.dueDate, new Date()) : null
 
   return (
     <Flex gap="8px" flexWrap="wrap" align="center" ml="auto">
       {due && task.status !== 'done' && (
-        due.isOverdue ? (
+        due.tone === 'overdue' ? (
           <Box
             display="inline-flex" alignItems="center" gap="3px"
             fontFamily="body" fontSize="0.68rem" fontWeight={500}
@@ -48,7 +34,11 @@ export default function TaskBadges({ task }: { task: Task }) {
             {due.label}
           </Box>
         ) : (
-          <Box display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem" color={c.textMuted}>
+          <Box
+            display="inline-flex" alignItems="center" gap="3px" fontSize="0.68rem"
+            color={due.tone === 'soon' ? c.doing : c.textMuted}
+            fontWeight={due.tone === 'soon' ? 500 : undefined}
+          >
             <Calendar size={11} />
             {due.label}
           </Box>
