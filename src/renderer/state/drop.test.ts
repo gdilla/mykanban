@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { appReducer, initialState } from './reducer'
 import { getTasksByStatus, getTasksByTag, getUntaggedTasks } from './selectors'
-import { resolveDrop, snapDistance, landsAfter, Drop, UNTAGGED } from './drop'
+import { resolveDrop, keyboardMove, landsAfter, Drop, UNTAGGED } from './drop'
 import { AppState, Task } from './types'
 
 const task = (id: string, over: Partial<Task> = {}): Task => ({
@@ -134,13 +134,6 @@ describe('drop geometry', () => {
   // three cards, 40 / 160 / 40 px tall, 8 px apart
   const cards = [rect(0, 40), rect(48, 160), rect(216, 40)]
 
-  it('snapDistance is 0 for the card a keyboard move snapped the dragged card onto, whatever the heights', () => {
-    // ArrowUp from the last card: its top edge is put on the middle card's top edge
-    expect(cards.map(c => snapDistance(rect(48, 40), c))).toEqual([48, 0, 168])
-    // ArrowDown from the first card: its bottom edge is put on the middle card's bottom edge
-    expect(cards.map(c => snapDistance(rect(168, 40), c))).toEqual([168, 0, 48])
-  })
-
   it('landsAfter: a pointer drop lands below a card once the dragged centre is past its centre', () => {
     expect(landsAfter(rect(100, 40), cards[1], false)).toBe(false)
     expect(landsAfter(rect(120, 40), cards[1], false)).toBe(true)
@@ -150,5 +143,41 @@ describe('drop geometry', () => {
     expect(landsAfter(rect(48, 40), cards[1], true)).toBe(true)
     expect(landsAfter(rect(47.9999, 40), cards[1], true)).toBe(true)
     expect(landsAfter(rect(20, 40), cards[1], true)).toBe(false)
+  })
+})
+
+describe('keyboardMove', () => {
+  const at = (left: number, top: number) => ({ left, top })
+  // column 0: cards 160 / 40 / 40 px tall, 8 px apart; column 1: empty; column 2: two cards
+  const columns = [
+    { ...at(0, -30), cards: [at(0, 0), at(0, 168), at(0, 216)] },
+    { ...at(300, -30), cards: [] },
+    { ...at(600, -30), cards: [at(600, 0), at(600, 100)] },
+  ]
+  const move = (code: string, column: number, slot: number, top = 0) => keyboardMove(code, columns, { column, slot, top })
+
+  it('Up and Down step through the column in card order, whatever the card heights', () => {
+    expect(move('ArrowDown', 0, 0)).toEqual(at(0, 168))
+    expect(move('ArrowDown', 0, 1)).toEqual(at(0, 216))
+    expect(move('ArrowUp', 0, 2)).toEqual(at(0, 168))
+  })
+
+  it('stops at the bottom card; above the first card is the column top, and nothing above that', () => {
+    expect(move('ArrowDown', 0, 2)).toBeUndefined()
+    expect(move('ArrowUp', 0, 0)).toEqual(at(0, -30))
+    expect(move('ArrowUp', 0, -1)).toBeUndefined()
+    expect(move('ArrowDown', 0, -1)).toEqual(at(0, 0))
+  })
+
+  it('Left and Right go to the neighbouring column: its nearest card, or its top when it is empty', () => {
+    expect(move('ArrowRight', 0, 1, 168)).toEqual(at(300, -30))
+    expect(move('ArrowRight', 1, -1, 90)).toEqual(at(600, 100))
+    expect(move('ArrowLeft', 1, -1, -30)).toEqual(at(0, 0))
+    expect(move('ArrowLeft', 0, 0)).toBeUndefined()
+    expect(move('ArrowRight', 2, 0)).toBeUndefined()
+  })
+
+  it('ignores other keys', () => {
+    expect(move('KeyJ', 0, 0)).toBeUndefined()
   })
 })

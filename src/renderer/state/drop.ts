@@ -61,19 +61,36 @@ export function resolveDrop(tasks: Task[], { view, taskId, fromColumnId, columnI
   return actions
 }
 
-type Edges = { top: number; bottom: number; height: number }
+type Point = { left: number; top: number }
 
 /**
- * dnd-kit's keyboard moves put the dragged card's top edge (or, moving down its own column, its bottom edge) exactly
- * on the card they target, so the card at distance 0 is the target whatever the card heights.
+ * Where an arrow key puts a card that is being moved with the keyboard: the top-left corner to snap it to.
+ * `columns` are left to right, their cards top to bottom. `at.slot` n means "snapped onto card n" and -1 "at the
+ * column top, above the first card"; `at.top` is the dragged card's current top edge.
+ * Up/Down step through the column in card order (so card heights do not matter); Left/Right go to the neighbouring
+ * column, onto its nearest card or its top when it is empty. Undefined when there is nowhere to go.
  */
-export const snapDistance = (dragged: Edges, card: Edges) =>
-  Math.min(Math.abs(card.top - dragged.top), Math.abs(card.bottom - dragged.bottom))
+export function keyboardMove(
+  code: string,
+  columns: (Point & { cards: Point[] })[],
+  at: { column: number; slot: number; top: number },
+): Point | undefined {
+  const dx = code === 'ArrowRight' ? 1 : code === 'ArrowLeft' ? -1 : 0
+  const dy = code === 'ArrowDown' ? 1 : code === 'ArrowUp' ? -1 : 0
+  const column = columns[at.column + dx]
+  if (!column || (!dx && !dy)) return undefined
+  const { cards } = column
+  const gap = (i: number) => Math.abs(cards[i].top - at.top)
+  const slot = dx ? cards.reduce((best, _, i) => (gap(i) < gap(best) ? i : best), cards.length ? 0 : -1) : at.slot + dy
+  if (slot < -1 || slot >= cards.length) return undefined
+  return slot === -1 ? { left: column.left, top: column.top } : { left: cards[slot].left, top: cards[slot].top }
+}
 
 /**
  * Whether a card arriving from another column lands below the card it is dropped on.
  * Pointer: once its centre is past that card's centre. Keyboard: when snapped onto the card, so the bottom slot is
  * reachable; moving up past the first card rests on the column top and lands above it.
  */
-export const landsAfter = (dragged: Edges, over: Edges, keyboard: boolean) =>
+type Span = { top: number; height: number }
+export const landsAfter = (dragged: Span, over: Span, keyboard: boolean) =>
   keyboard ? dragged.top > over.top - 1 : dragged.top + dragged.height / 2 > over.top + over.height / 2

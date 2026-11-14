@@ -2,12 +2,11 @@ import React from 'react'
 import { Box } from '@chakra-ui/react'
 import {
   Active, CollisionDetection, DndContext, DragEndEvent, DragOverlay, DragStartEvent, DroppableContainer,
-  KeyboardSensor, Over, PointerSensor, closestCenter, getClientRect, pointerWithin, rectIntersection, useSensor,
-  useSensors,
+  KeyboardCoordinateGetter, KeyboardSensor, Over, PointerSensor, closestCenter, getClientRect, pointerWithin,
+  rectIntersection, useSensor, useSensors,
 } from '@dnd-kit/core'
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useApp } from '../../state/AppContext'
-import { landsAfter, resolveDrop, snapDistance } from '../../state/drop'
+import { keyboardMove, landsAfter, resolveDrop } from '../../state/drop'
 import StatusView from '../board/StatusView'
 import TagView from '../board/TagView'
 import DragOverlayCard from '../task/DragOverlay'
@@ -21,24 +20,54 @@ function parse({ id, data }: Active | Over): { columnId: string; taskId: string 
     : { columnId: containerId, taskId: String(id).slice(String(containerId).length + 1) }
 }
 
+const isColumn = (d: DroppableContainer) => !d.data.current?.sortable
+const cardsOf = (column: DroppableContainer, all: DroppableContainer[]) =>
+  all.filter(d => d.data.current?.sortable?.containerId === column.data.current?.columnId)
+
 // The column under the pointer (or, for keyboard drags, under the dragged card), then one card inside it:
-// the nearest by centre for a pointer, the one the dragged card was snapped onto for the keyboard.
+// the nearest by centre for a pointer, the one the dragged card was snapped onto (same top edge) for the keyboard.
 const collisionDetection: CollisionDetection = args => {
-  const columns = args.droppableContainers.filter(d => !d.data.current?.sortable)
+  const columns = args.droppableContainers.filter(isColumn)
   const column: DroppableContainer | undefined = (pointerWithin({ ...args, droppableContainers: columns })[0]
     ?? rectIntersection({ ...args, droppableContainers: columns })[0])?.data?.droppableContainer
   if (!column) return []
-  const cards = args.droppableContainers.filter(
-    d => d.data.current?.sortable?.containerId === column.data.current?.columnId)
-  const snap = (d: DroppableContainer) => {
-    const rect = args.droppableRects.get(d.id)
-    return rect ? snapDistance(args.collisionRect, rect) : Infinity
-  }
+  const cards = cardsOf(column, args.droppableContainers)
+  const gap = (d: DroppableContainer) =>
+    Math.abs((args.droppableRects.get(d.id)?.top ?? Infinity) - args.collisionRect.top)
   const card = args.pointerCoordinates
     ? closestCenter({ ...args, droppableContainers: cards })[0]?.data?.droppableContainer
-    : cards.reduce<DroppableContainer | undefined>((best, d) => (best && snap(best) <= snap(d) ? best : d), undefined)
+    : cards.reduce<DroppableContainer | undefined>((best, d) => (best && gap(best) <= gap(d) ? best : d), undefined)
   const hit = card ?? column
   return [{ id: hit.id, data: { droppableContainer: hit } }]
+}
+
+// Arrow keys while a card is picked up with the keyboard: snap it onto the next card or column (keyboardMove).
+// dnd-kit's sortableKeyboardCoordinates picks targets by distance, which skips cards when heights differ.
+// ponytail: a target hidden in another column's scrolled list is not scrolled into view; scroll it here if needed.
+const keyboardCoordinates: KeyboardCoordinateGetter = (event, { context }) => {
+  const { over, collisionRect, droppableRects } = context
+  if (!over || !collisionRect || !event.code.startsWith('Arrow')) return
+  event.preventDefault()
+  const all = context.droppableContainers.getEnabled().filter(d => droppableRects.has(d.id))
+  const rect = (d: DroppableContainer) => droppableRects.get(d.id)!
+  const columns = all.filter(isColumn).sort((a, b) => rect(a).left - rect(b).left)
+  const { columnId, taskId } = parse(over)
+  const index: number = taskId === null ? -1 : over.data.current?.sortable.index
+  const to = keyboardMove(
+    event.code,
+    columns.map(column => ({
+      ...rect(column),
+      cards: cardsOf(column, all)
+        .sort((a, b) => a.data.current?.sortable.index - b.data.current?.sortable.index).map(rect),
+    })),
+    {
+      column: columns.findIndex(d => d.data.current?.columnId === columnId),
+      // resting on the column top, above the first card, the card under it is not the one it is snapped onto
+      slot: index !== -1 && collisionRect.top < over.rect.top - 1 ? index - 1 : index,
+      top: collisionRect.top,
+    },
+  )
+  return to && { x: to.left, y: to.top }
 }
 
 // Collide with the picked-up card's own box (the overlay wrapper), not the smaller, tilted preview drawn inside it.
@@ -65,16 +94,29 @@ export default function Board() {
     }),
     // Space picks up and drops a focused card; Enter is left to useKeyboardNav (it opens the card).
     useSensor(CardKeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: keyboardCoordinates,
+      // scroll at once: the next key press reads card positions, which a smooth scroll would still be changing
+      scrollBehavior: 'auto',
       keyboardCodes: { start: ['Space'], cancel: ['Escape'], end: ['Space', 'Tab'] },
     })
   )
 
+  // While a card is being moved with the keyboard, its keys (arrows, Space, Escape) must not also reach
+  // useKeyboardNav's window listener, which would move the board focus or act on another card.
+  const keyboardDrag = React.useRef(false)
+  React.useEffect(() => {
+    const swallow = (e: KeyboardEvent) => { if (keyboardDrag.current) e.stopPropagation() }
+    document.addEventListener('keydown', swallow)
+    return () => document.removeEventListener('keydown', swallow)
+  }, [])
+
   const handleDragStart = (event: DragStartEvent) => {
+    keyboardDrag.current = event.activatorEvent instanceof KeyboardEvent
     setActiveId(parse(event.active).taskId)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
+    keyboardDrag.current = false
     setActiveId(null)
     const { active, over } = event
     const { columnId: fromColumnId, taskId } = parse(active)
@@ -108,6 +150,7 @@ export default function Board() {
       measuring={measuring}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => { keyboardDrag.current = false }}
     >
       <Box
         className="board-area"
